@@ -24,13 +24,14 @@ VALID_ENVIRONMENTS = {"LAB", "PREPROD", "PROD"}
 
 
 class OnboardingExecutor:
-    def __init__(self, company_id: str, *, environment: str = "LAB"):
-        if not company_id.strip():
-            raise ValueError("company_id required")
+    def __init__(self, company_id: str, *, environment: str = "LAB", version: str = "1.0.0"):
+        if not company_id.strip() or not version.strip():
+            raise ValueError("company_id and version required")
         if environment not in VALID_ENVIRONMENTS:
             raise ValueError("invalid environment")
         self.company_id = company_id
         self.environment = environment
+        self.version = version
         self.completed: list[str] = []
         self.failed: dict[str, str] = {}
         self.evidence_refs: dict[str, tuple[str, ...]] = {}
@@ -41,7 +42,7 @@ class OnboardingExecutor:
                 return phase
         return None
 
-    def mark_green(self, phase: str, *, evidence_refs=(), company_id: str | None = None, environment: str | None = None) -> None:
+    def mark_green(self, phase: str, *, evidence_refs=(), company_id: str | None = None, environment: str | None = None, version: str | None = None) -> None:
         expected = self.next_phase()
         if phase != expected:
             raise ValueError(f"out-of-order phase: expected {expected}, got {phase}")
@@ -49,6 +50,8 @@ class OnboardingExecutor:
             raise ValueError("cross-company phase update denied")
         if environment is not None and environment != self.environment:
             raise ValueError("cross-environment phase update denied")
+        if version is not None and version != self.version:
+            raise ValueError("cross-version phase update denied")
         refs = tuple(ref for ref in evidence_refs if isinstance(ref, str) and ref.strip())
         if not refs:
             raise ValueError("green phase requires evidence_refs")
