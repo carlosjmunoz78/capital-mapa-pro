@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from collections import Counter
 
+VALID_ENVIRONMENTS = {"LAB", "PREPROD", "PROD"}
+
 
 # LRN-001
 @dataclass(frozen=True)
@@ -13,10 +15,14 @@ class OutcomeEvent:
     outcome: str
     evidence_ref: str
     sensitive: bool = False
+    environment: str = "LAB"
+    version: str = "1.0.0"
 
     def validate(self) -> None:
-        if not all((self.company_id.strip(), self.domain.strip(), self.action.strip(), self.outcome.strip(), self.evidence_ref.strip())):
+        if not all((self.company_id.strip(), self.domain.strip(), self.action.strip(), self.outcome.strip(), self.evidence_ref.strip(), self.version.strip())):
             raise ValueError("outcome event fields required")
+        if self.environment not in VALID_ENVIRONMENTS:
+            raise ValueError("invalid environment")
 
 
 @dataclass(frozen=True)
@@ -30,16 +36,22 @@ class RuleCandidate:
 
 
 class LearningEngine:
-    def __init__(self, company_id: str) -> None:
-        if not company_id.strip():
-            raise ValueError("company_id required")
+    def __init__(self, company_id: str, environment: str = "LAB", version: str = "1.0.0") -> None:
+        if not company_id.strip() or not version.strip():
+            raise ValueError("company_id and version required")
+        if environment not in VALID_ENVIRONMENTS:
+            raise ValueError("invalid environment")
         self.company_id = company_id
+        self.environment = environment
+        self.version = version
         self._events: list[OutcomeEvent] = []
 
     def record(self, event: OutcomeEvent) -> None:
         event.validate()
         if event.company_id != self.company_id:
             raise ValueError("cross-company learning event denied")
+        if event.environment != self.environment or event.version != self.version:
+            raise ValueError("cross-scope learning event denied")
         self._events.append(event)
 
     def candidates(self, min_cases: int = 3) -> tuple[RuleCandidate, ...]:
@@ -74,7 +86,8 @@ class TrainingRun:
 class TrainingRegistry:
     def __init__(self) -> None:
         self._runs: dict[str, TrainingRun] = {}
-        self._champions: dict[tuple[str, str], str] = {}
+        self._champions: dict[tuple[str, str, str, str], str] = {}
+        self._promotion_evidence: dict[str, dict[str, str]] = {}
 
     def register(self, run: TrainingRun) -> None:
         run.validate()
@@ -82,17 +95,26 @@ class TrainingRegistry:
             raise ValueError("duplicate run_id")
         self._runs[run.run_id] = run
 
-    def promote_champion(self, run_id: str, tribunal_approved: bool, reproducible: bool) -> None:
+    def promote_champion(self, run_id: str, tribunal_approved: bool, reproducible: bool, evidence_refs: dict[str, str] | None = None) -> None:
         if run_id not in self._runs:
             raise ValueError("unknown run")
         if not tribunal_approved or not reproducible:
             raise ValueError("champion promotion requires tribunal and reproducibility")
+        refs = evidence_refs or {}
+        required = ("tribunal", "reproducibility")
+        if any(not str(refs.get(name, "")).strip() for name in required):
+            raise ValueError("champion promotion requires tribunal and reproducibility evidence")
         run = self._runs[run_id]
-        self._champions[(run.company_id, run.engine_id)] = run_id
+        key = (run.company_id, run.engine_id, run.environment, run.code_version)
+        self._champions[key] = run_id
+        self._promotion_evidence[run_id] = {name: str(refs[name]).strip() for name in required}
 
-    def champion(self, company_id: str, engine_id: str) -> TrainingRun | None:
-        run_id = self._champions.get((company_id, engine_id))
+    def champion(self, company_id: str, engine_id: str, environment: str = "LAB", code_version: str = "git-1") -> TrainingRun | None:
+        run_id = self._champions.get((company_id, engine_id, environment, code_version))
         return self._runs.get(run_id) if run_id else None
+
+    def promotion_evidence(self, run_id: str) -> dict[str, str] | None:
+        return self._promotion_evidence.get(run_id)
 
 
 # RSH-001
