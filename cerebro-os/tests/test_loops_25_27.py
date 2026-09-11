@@ -62,11 +62,11 @@ class Loops25To27Tests(unittest.TestCase):
             proc.update(pipeline.ProcessStep("fenix", "PAY-001", "HUMAN_REQUIRED", human_reason="UNKNOWN_REASON"))
 
     def test_macro_controller_connects_three_loops(self):
-        ctl = grouped.GroupedProcessController()
+        ctl = grouped.GroupedProcessController(company_id="fenix", environment="LAB")
         self.assertEqual("LOOP-25-COMMS", ctl.next_macro())
         for macro in grouped.MACRO_ORDER:
             for family in grouped.MACRO_LOOPS[macro]:
-                ctl.update_family(family, "GREEN")
+                ctl.update_family(family, "GREEN", evidence_refs=(f"evidence:{macro}:{family}",))
             self.assertEqual("GREEN", ctl.macro_status(macro))
         self.assertEqual("GREEN", ctl.system_status())
         self.assertIsNone(ctl.next_macro())
