@@ -26,10 +26,17 @@ class ResilienceVersioningDataOnboardingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             recovery.RecoveryEvidence("b", "r", "rb", True, True, True, "fenix", "FACT-001", "INVALID", "1.0.0").validate()
 
-    def test_version_contract(self):
-        contract = versioning.VersionContract("FACT-001", "1.2.0", "1.0.0", "LAB")
+    def test_version_contract_is_tenant_scoped_and_same_major_only(self):
+        with self.assertRaises(ValueError):
+            versioning.VersionContract("FACT-001", "1.2.0", "1.0.0", "LAB").validate()
+        contract = versioning.VersionContract("FACT-001", "1.2.0", "1.0.0", "LAB", "fenix")
         self.assertTrue(contract.compatible_with("1.1.0"))
         self.assertFalse(contract.compatible_with("0.9.9"))
+        self.assertFalse(contract.compatible_with("2.0.0"))
+        with self.assertRaises(ValueError):
+            versioning.VersionContract("FACT-001", "1.2.0", "2.0.0", "LAB", "fenix").validate()
+        with self.assertRaises(ValueError):
+            versioning.VersionContract("FACT-001", "1.2.0", "1.3.0", "LAB", "fenix").validate()
 
     def test_data_contract_requires_consumer_and_company_scope(self):
         unsafe = data.DataContract("DATA-001", "engine-event", "1.0.0", True, "schemas/event.json", "EVT-001", ("AUD-001",))
