@@ -19,14 +19,18 @@ cp = load("core_control_plane_41_50", "core/control_plane.py")
 
 
 class Loops41To50Tests(unittest.TestCase):
-    def test_loop41_core_state_is_company_scoped_and_provenanced(self):
+    def test_loop41_core_state_is_company_environment_version_scoped_and_provenanced(self):
         store = cp.CoreState()
-        store.put(cp.CoreValue("fenix", "priority", "cash", "1.0.0", "src:master"))
-        self.assertEqual("cash", store.get("fenix", "priority").value)
+        store.put(cp.CoreValue("fenix", "priority", "cash", "1.0.0", "src:master", "LAB"))
+        store.put(cp.CoreValue("fenix", "priority", "growth", "1.0.0", "src:prod", "PROD"))
+        self.assertEqual("cash", store.get("fenix", "priority", "LAB", "1.0.0").value)
+        self.assertEqual("growth", store.get("fenix", "priority", "PROD", "1.0.0").value)
         self.assertIsNone(store.get("other", "priority"))
+        with self.assertRaises(ValueError):
+            store.put(cp.CoreValue("fenix", "x", "y", "1.0.0", "src", "DEV"))
 
-    def test_loop42_orchestrator_orders_by_dependencies_priority_and_evidence(self):
-        orch = cp.Orchestrator("fenix")
+    def test_loop42_orchestrator_orders_by_dependencies_priority_scope_and_evidence(self):
+        orch = cp.Orchestrator("fenix", "LAB", "1.0.0")
         orch.add(cp.OrchestratedTask("a", "fenix", 10))
         orch.add(cp.OrchestratedTask("b", "fenix", 100, ("a",)))
         orch.add(cp.OrchestratedTask("c", "fenix", 50))
@@ -39,13 +43,17 @@ class Loops41To50Tests(unittest.TestCase):
         self.assertEqual(("b", "c"), orch.ready())
         with self.assertRaises(ValueError):
             orch.add(cp.OrchestratedTask("x", "other", 1))
+        with self.assertRaises(ValueError):
+            orch.add(cp.OrchestratedTask("p", "fenix", 1, environment="PROD"))
 
-    def test_loop43_hex_accepts_only_canonical_reasons(self):
-        q = cp.HumanExceptionQueue("fenix")
+    def test_loop43_hex_accepts_only_canonical_reasons_and_exact_scope(self):
+        q = cp.HumanExceptionQueue("fenix", "LAB", "1.0.0")
         q.emit(cp.HumanException("fenix", "LEG-001", "LEGAL_REQUIRED", "e:1", 90))
         self.assertEqual("LEGAL_REQUIRED", q.pending()[0].reason)
         with self.assertRaises(ValueError):
             q.emit(cp.HumanException("fenix", "X", "MISSING_CREDENTIAL", "e:2"))
+        with self.assertRaises(ValueError):
+            q.emit(cp.HumanException("fenix", "LEG-001", "LEGAL_REQUIRED", "e:prod", environment="PROD"))
 
     def test_loop44_decision_is_deterministic_and_explainable(self):
         weights = {"benefit": 1, "cost": 1, "urgency": 1, "risk": 1, "speed": 1}
@@ -63,12 +71,17 @@ class Loops41To50Tests(unittest.TestCase):
         with self.assertRaises(ValueError):
             cat.register(cp.SemanticEntity("EXPEDIENTE", ("id",)))
 
-    def test_loop46_ownership_requires_owner_approver_backup(self):
+    def test_loop46_ownership_requires_owner_approver_backup_and_scope(self):
         reg = cp.OwnershipRegistry()
         reg.set(cp.Ownership("FACT-001", "tech", "gov", "backup"))
+        reg.set(cp.Ownership("FACT-001", "prod-tech", "prod-gov", "prod-backup", "fenix", "PROD", "2.0.0"))
         self.assertEqual("tech", reg.get("FACT-001").owner)
+        self.assertEqual("prod-tech", reg.get("FACT-001", "fenix", "PROD", "2.0.0").owner)
+        self.assertIsNone(reg.get("FACT-001", "fenix", "LAB", "2.0.0"))
         with self.assertRaises(ValueError):
             reg.set(cp.Ownership("X", "", "gov", "backup"))
+        with self.assertRaises(ValueError):
+            reg.set(cp.Ownership("X", "tech", "gov", "backup", environment="DEV"))
 
     def test_loop47_objectives_support_at_least_and_at_most(self):
         self.assertEqual("GREEN", cp.Objective("o1", "sales", 10, 12).status())
