@@ -7,7 +7,7 @@ sys.path.insert(0, str(ROOT / "resilience"))
 sys.path.insert(0, str(ROOT / "identity"))
 
 from plan import RecoveryPlan
-from contracts import CredentialRef, Connector
+from model import CredentialRef, Connector
 
 
 class ResilienceIdentityTests(unittest.TestCase):
