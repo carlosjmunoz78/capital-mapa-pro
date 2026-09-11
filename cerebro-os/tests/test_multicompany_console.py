@@ -24,11 +24,19 @@ class MultiCompanyConsoleTests(unittest.TestCase):
         command = ConsoleCommand(user_id="u1", company_id="fenix-capital", context_type="global", context_id=None, message="estado")
         command.validate()
         self.assertTrue(command.request_id)
+        self.assertEqual("LAB", command.environment)
+        self.assertEqual("1.0.0", command.version)
 
     def test_console_rejects_missing_company(self):
         command = ConsoleCommand(user_id="u1", company_id="", context_type="global", context_id=None, message="estado")
         with self.assertRaises(ValueError):
             command.validate()
+
+    def test_console_rejects_invalid_environment_or_missing_version(self):
+        with self.assertRaises(ValueError):
+            ConsoleCommand(user_id="u1", company_id="fenix-capital", context_type="global", context_id=None, message="estado", environment="DEV").validate()
+        with self.assertRaises(ValueError):
+            ConsoleCommand(user_id="u1", company_id="fenix-capital", context_type="global", context_id=None, message="estado", version="").validate()
 
 
 if __name__ == "__main__":
