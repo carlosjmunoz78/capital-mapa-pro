@@ -1,17 +1,21 @@
-# CEREBRO OS · Engine Factory V0
+# CEREBRO OS LAB
 
-Estado: implementación aislada en rama `cerebro-engine-factory-v0`. No toca App, CRM ni PROD.
+Rama aislada de trabajo para FACT-001 y módulos base de CEREBRO OS.
 
-## Objetivo
-FACT-001 genera scaffolds estándar de motores lógicos compartiendo runtime. Cada scaffold incluye manifest, config, contratos, permisos, políticas, eventos, jobs, API, tests, evaluación, observabilidad, coste, backup, rollback, rebuild y documentación.
+## Estado
 
-## Regla de promoción
-Ningún motor se considera operativo por existir un scaffold. Debe pasar tests, evaluación, observabilidad y gates de promoción.
+- FACT-001 Engine Factory V0
+- GOV-001 Registry base
+- POL/HEX base
+- EVT/JOB/AUD base
+- FINOPS base
+- TENANT/COMP-REG/COMP-ONB contracts
+- Console/Gateway/History contracts
+- Identity/Credential Broker/Connector Registry contracts
+- Evaluation/Tribunal/Observability/Supervisor gates
+- Recovery/Versioning/Data contracts
+- Dependency graph + promotion state machine
+- Persistent outbox/job idempotency contracts
+- Mass scaffold planning
 
-## Alcance V0
-- Generador determinista sin IA de pago.
-- Engine Registry local versionado.
-- `company_id`, `engine_id`, `environment`, `version` obligatorios.
-- HUMAN_REQUIRED canónico.
-- Sin servidores por motor.
-- Cero coste adicional por defecto.
+Todos los módulos de esta rama son LAB. No equivalen a PROD ni autorizan promoción sin gates, rollback, backup, rebuild, seguridad, observabilidad y evidencia.
