@@ -12,10 +12,11 @@ class T(unittest.TestCase):
  def test_110_recruiting(self):
   rows=(e.Candidate('a',(('fit',.9),),'e'),e.Candidate('b',(('fit',.5),),'e'));self.assertEqual(('a','b'),e.rank_candidates(rows,{'fit':1}))
  def test_111_onboarding(self):
-  x=e.EmployeeOnboarding();self.assertEqual('ACCOUNTS',x.next());
-  with self.assertRaises(ValueError):x.complete('TRAINING')
-  for s in e.ONBOARDING:x.complete(s)
-  self.assertIsNone(x.next())
+  x=e.EmployeeOnboarding();self.assertEqual('ACCOUNTS',x.next())
+  with self.assertRaises(ValueError):x.complete('TRAINING','e:training')
+  with self.assertRaises(ValueError):x.complete('ACCOUNTS')
+  for s in e.ONBOARDING:x.complete(s,f'e:{s}')
+  self.assertIsNone(x.next());self.assertEqual('e:ACCOUNTS',x.evidence['ACCOUNTS'])
  def test_112_skills(self):
   self.assertEqual(('GREEN',None),e.SkillCertification('u','x',9,8,False,'e').decision());self.assertEqual(('HUMAN_REQUIRED','HIGH_RISK'),e.SkillCertification('u','x',9,8,True,'e').decision())
  def test_113_performance(self):
@@ -29,9 +30,14 @@ class T(unittest.TestCase):
  def test_117_compliance(self):
   self.assertEqual('GREEN',e.compliance_status((e.ComplianceControl('c',True,True,'e'),)));self.assertEqual('HUMAN_REQUIRED',e.compliance_status((e.ComplianceControl('c',True,False,'e'),)))
  def test_118_dpo(self):
-  self.assertEqual(('HUMAN_REQUIRED','LEGAL_REQUIRED'),e.PrivacyRequest('DELETE',True,True,False).decision());self.assertEqual(('BLOCKED',None),e.PrivacyRequest('READ',False,True,False).decision())
+  self.assertEqual(('BLOCKED',None),e.PrivacyRequest('READ',True,True,False).decision())
+  self.assertEqual(('GREEN',None),e.PrivacyRequest('READ',True,True,False,'id:e','law:e').decision())
+  self.assertEqual(('HUMAN_REQUIRED','LEGAL_REQUIRED'),e.PrivacyRequest('DELETE',True,True,False,'id:e','law:e').decision())
+  self.assertEqual(('BLOCKED',None),e.PrivacyRequest('READ',False,True,False,'id:e','law:e').decision())
  def test_119_consent(self):
-  self.assertEqual(('HUMAN_REQUIRED','SIGNATURE_REQUIRED'),e.ConsentDocument('d',True,True,False,False,True).status());self.assertEqual(('GREEN',None),e.ConsentDocument('d',True,True,True,True,True).status())
+  self.assertEqual(('HUMAN_REQUIRED','SIGNATURE_REQUIRED'),e.ConsentDocument('d',True,True,False,False,True).status())
+  self.assertEqual(('RED',None),e.ConsentDocument('d',True,True,True,True,True).status())
+  self.assertEqual(('GREEN',None),e.ConsentDocument('d',True,True,True,True,True,'gen:e','sent:e','signed:e','arch:e').status())
  def test_120_invoice(self):
   x=e.Invoice('i','case',Decimal('100'),Decimal('21'),Decimal('50'),'e');self.assertEqual(Decimal('121'),x.total);self.assertEqual(Decimal('71'),x.balance);self.assertEqual('GREEN',x.status())
  def test_121_receivables(self):
