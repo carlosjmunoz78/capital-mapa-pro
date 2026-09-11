@@ -67,11 +67,20 @@ class Loop24EnterpriseTests(unittest.TestCase):
         self.assertEqual("HR-001", pipe.next_engine())
 
     def test_full_enterprise_sequence_green_at_zero_cost(self):
-        pipe = enterprise.EnterpriseOps("fenix")
+        pipe = enterprise.EnterpriseOps("fenix", "LAB", "1.0.0")
         for engine_id in enterprise.ENTERPRISE_SEQUENCE:
             pipe.update(enterprise.EnterpriseStep("fenix", engine_id, "GREEN", f"e:{engine_id}"))
         self.assertEqual("GREEN", pipe.status())
         self.assertIsNone(pipe.next_engine())
+
+    def test_enterprise_rejects_cross_environment_or_version(self):
+        pipe = enterprise.EnterpriseOps("fenix", "PROD", "2.0.0")
+        with self.assertRaises(ValueError):
+            pipe.update(enterprise.EnterpriseStep("fenix", "HR-001", "GREEN", "e", environment="LAB", version="2.0.0"))
+        with self.assertRaises(ValueError):
+            pipe.update(enterprise.EnterpriseStep("fenix", "HR-001", "GREEN", "e", environment="PROD", version="1.0.0"))
+        pipe.update(enterprise.EnterpriseStep("fenix", "HR-001", "GREEN", "e:prod", environment="PROD", version="2.0.0"))
+        self.assertEqual("HR-002", pipe.next_engine())
 
 
 if __name__ == "__main__":
