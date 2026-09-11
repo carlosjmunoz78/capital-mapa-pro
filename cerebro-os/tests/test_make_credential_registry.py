@@ -30,6 +30,22 @@ def test_known_connections_are_reusable_by_id():
     assert len(registry.connections_for_app("openai-gpt-3")) == 9
 
 
+def test_duplicate_candidates_are_detected_without_declaring_safe_deletion():
+    registry = mod.CredentialRegistry.from_path(REGISTRY)
+    candidates = registry.duplicate_label_candidates()
+    assert ("openai-gpt-3", "My OpenAI connection") in candidates
+    assert len(candidates[("openai-gpt-3", "My OpenAI connection")]) == 9
+    assert ("facebook", "My Facebook connection") in candidates
+    assert len(candidates[("facebook", "My Facebook connection")]) == 4
+    assert ("google-analytics-4", "Fénix Capital · Google Analytics 4 · Solo lectura") in candidates
+    assert len(candidates[("google-analytics-4", "Fénix Capital · Google Analytics 4 · Solo lectura")]) == 2
+
+
+def test_incomplete_make_audit_scope_remains_explicit_until_live_connector_audit():
+    registry = mod.CredentialRegistry.from_path(REGISTRY)
+    assert registry.incomplete_audit_scopes() == ("inactive_test_scenarios",)
+
+
 def test_rotated_social_secret_resolves_only_as_vault_reference():
     registry = mod.CredentialRegistry.from_path(REGISTRY)
     ref = registry.secret_reference("MAKE-SOCIAL-LEAD-INGEST-001")
