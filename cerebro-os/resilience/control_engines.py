@@ -75,16 +75,24 @@ class RepairAction:
     precheck_green: bool
     postcheck_green: bool
     rollback_ref: str
+    precheck_evidence_ref: str = ""
+    postcheck_evidence_ref: str = ""
 
     @property
     def allowed(self) -> bool:
-        return bool(self.action_id.strip() and self.reversible and self.precheck_green and self.rollback_ref.strip())
+        return bool(
+            self.action_id.strip()
+            and self.reversible
+            and self.precheck_green
+            and self.rollback_ref.strip()
+            and self.precheck_evidence_ref.strip()
+        )
 
     @property
     def result(self) -> str:
         if not self.allowed:
             return "BLOCKED"
-        return "GREEN" if self.postcheck_green else "ROLLBACK_REQUIRED"
+        return "GREEN" if self.postcheck_green and self.postcheck_evidence_ref.strip() else "ROLLBACK_REQUIRED"
 
 
 # SEC-001
@@ -189,10 +197,10 @@ class RegressionBaseline:
     behavior_hash: str
 
 
-def regression_status(old: RegressionBaseline, new: RegressionBaseline, change_approved: bool = False) -> str:
+def regression_status(old: RegressionBaseline, new: RegressionBaseline, change_approved: bool = False, approval_evidence_ref: str = "") -> str:
     if old == new:
         return "GREEN"
-    return "GREEN" if change_approved else "RED"
+    return "GREEN" if change_approved and approval_evidence_ref.strip() else "RED"
 
 
 # BCP-001
@@ -203,10 +211,19 @@ class ContinuityReadiness:
     rebuild_verified: bool
     alternate_runtime_ready: bool
     runbook_ref: str
+    evidence_refs: tuple[str, ...] = ()
 
     @property
     def green(self) -> bool:
-        return all((self.backup_verified, self.restore_verified, self.rebuild_verified, self.alternate_runtime_ready, bool(self.runbook_ref.strip())))
+        refs = tuple(ref for ref in self.evidence_refs if isinstance(ref, str) and ref.strip())
+        return all((
+            self.backup_verified,
+            self.restore_verified,
+            self.rebuild_verified,
+            self.alternate_runtime_ready,
+            bool(self.runbook_ref.strip()),
+            len(refs) >= 4,
+        ))
 
 
 # CRS-001
