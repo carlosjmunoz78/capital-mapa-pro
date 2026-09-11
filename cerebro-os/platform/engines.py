@@ -19,9 +19,11 @@ class LegacyContract:
         if not self.version.strip() or not self.snapshot_ref.strip():
             raise ValueError("version and snapshot required")
 
-    def change_allowed(self, tests_green: bool, rollback_verified: bool, explicit_scope: bool) -> bool:
+    def change_allowed(self, tests_green: bool, rollback_verified: bool, explicit_scope: bool, evidence_refs: Mapping[str, str] | None = None) -> bool:
         self.validate()
-        return tests_green and rollback_verified and explicit_scope
+        refs=evidence_refs or {}
+        evidence_ok=all(str(refs.get(k," ")).strip() for k in ("tests","rollback","scope"))
+        return tests_green and rollback_verified and explicit_scope and evidence_ok
 
 
 # ARCH-001
@@ -69,10 +71,11 @@ class MigrationPlan:
     test_ref: str
     backup_ref: str
     rollback_tested: bool
+    rollback_evidence_ref: str = ""
 
     @property
     def green(self) -> bool:
-        return all((self.migration_id.strip(), self.up_ref.strip(), self.down_ref.strip(), self.test_ref.strip(), self.backup_ref.strip(), self.rollback_tested))
+        return all((self.migration_id.strip(), self.up_ref.strip(), self.down_ref.strip(), self.test_ref.strip(), self.backup_ref.strip(), self.rollback_tested, self.rollback_evidence_ref.strip()))
 
 
 # FF-001
@@ -96,9 +99,10 @@ class CanaryStage:
     metric_value: float
     min_metric: float
     rollback_ref: str
+    metric_evidence_ref: str = ""
 
     def decision(self) -> str:
-        if self.percentage not in {10, 50, 100} or not self.rollback_ref.strip():
+        if self.percentage not in {10, 50, 100} or not self.rollback_ref.strip() or not self.metric_evidence_ref.strip():
             return "BLOCKED"
         return "PROMOTE" if self.metric_value >= self.min_metric else "ROLLBACK"
 
@@ -146,8 +150,8 @@ class AutomationCandidate:
 
 # DOCS-001
 REQUIRED_DOCS=("engine_registry","contracts","dependency_map","runbook","changelog","backup","rebuild","autonomy")
-def docs_gate(updated: Mapping[str,bool]) -> str:
-    return "GREEN" if all(updated.get(x,False) for x in REQUIRED_DOCS) else "BLOCKED"
+def docs_gate(updated: Mapping[str,object]) -> str:
+    return "GREEN" if all(isinstance(updated.get(x),str) and str(updated.get(x)).strip() for x in REQUIRED_DOCS) else "BLOCKED"
 
 
 # WEB-001
@@ -159,10 +163,15 @@ class WebChange:
     seo_check_green: bool
     rollback_ref: str
     environment: str
+    backup_evidence_ref: str = ""
+    tests_evidence_ref: str = ""
+    seo_evidence_ref: str = ""
 
     def decision(self) -> str:
         if self.environment == "PROD": return "BLOCKED"
-        return "GREEN" if self.backup_verified and self.tests_green and self.seo_check_green and self.rollback_ref.strip() else "RED"
+        if self.environment not in {"LAB","PREPROD"}: return "RED"
+        evidence=all((self.backup_evidence_ref.strip(),self.tests_evidence_ref.strip(),self.seo_evidence_ref.strip(),self.rollback_ref.strip()))
+        return "GREEN" if self.backup_verified and self.tests_green and self.seo_check_green and evidence else "RED"
 
 
 # INT-001
