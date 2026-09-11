@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 
 STATES = ("DEFINED", "LAB_GREEN", "PREPROD_GREEN", "PROD_CANDIDATE", "PROD", "BLOCKED")
+LAB_EVIDENCE_KEYS = ("tests", "evaluation")
+PREPROD_EVIDENCE_KEYS = ("tests", "evaluation", "rollback", "backup")
 PROD_EVIDENCE_KEYS = (
     "contracts",
     "permissions",
@@ -37,11 +39,19 @@ class PromotionState:
         ):
             raise ValueError("promotion gates not satisfied")
 
-        if target in {"PROD_CANDIDATE", "PROD"}:
-            refs = evidence_refs or {}
-            missing = tuple(key for key in PROD_EVIDENCE_KEYS if not str(refs.get(key, "")).strip())
+        refs = evidence_refs or {}
+        required_evidence = ()
+        if target == "LAB_GREEN":
+            required_evidence = LAB_EVIDENCE_KEYS
+        elif target == "PREPROD_GREEN":
+            required_evidence = PREPROD_EVIDENCE_KEYS
+        elif target in {"PROD_CANDIDATE", "PROD"}:
+            required_evidence = PROD_EVIDENCE_KEYS
+
+        if required_evidence:
+            missing = tuple(key for key in required_evidence if not str(refs.get(key, "")).strip())
             if missing:
-                raise ValueError(f"production promotion evidence missing: {missing}")
+                raise ValueError(f"promotion evidence missing for {target}: {missing}")
 
         allowed = {
             "DEFINED": {"LAB_GREEN", "BLOCKED"},
