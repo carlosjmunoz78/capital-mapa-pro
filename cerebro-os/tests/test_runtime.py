@@ -16,12 +16,23 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(data["environment"], "LAB")
         self.assertTrue(data["request_id"])
 
-    def test_queue_is_idempotent_by_job_id(self):
+    def test_queue_is_idempotent_within_tenant_scope(self):
         q = JobQueue()
         job = Job(job_id="J1", request_id="R1", company_id="A", engine_id="JOB-001", action="test", payload={})
         self.assertTrue(q.enqueue(job))
         self.assertFalse(q.enqueue(job))
-        self.assertEqual(len(q), 1)
+        other_tenant = Job(job_id="J1", request_id="R2", company_id="B", engine_id="JOB-001", action="test", payload={})
+        self.assertTrue(q.enqueue(other_tenant))
+        other_env = Job(job_id="J1", request_id="R3", company_id="A", engine_id="JOB-001", action="test", payload={}, environment="PROD", version="2.0.0")
+        self.assertTrue(q.enqueue(other_env))
+        self.assertEqual(len(q), 3)
+
+    def test_queue_rejects_invalid_scope(self):
+        q = JobQueue()
+        with self.assertRaises(ValueError):
+            q.enqueue(Job(job_id="J", request_id="R", company_id="A", engine_id="JOB-001", action="test", payload={}, environment="DEV"))
+        with self.assertRaises(ValueError):
+            q.enqueue(Job(job_id="J", request_id="R", company_id="A", engine_id="JOB-001", action="test", payload={}, version=""))
 
     def test_retry_stops_at_limit(self):
         q = JobQueue()
