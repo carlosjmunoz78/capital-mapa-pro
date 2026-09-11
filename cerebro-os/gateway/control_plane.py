@@ -5,8 +5,16 @@ HUMAN_CODES = {
     "POLICY_CONFLICT", "SECURITY_INCIDENT", "MONEY_LIMIT", "CUSTOMER_HUMAN_REQUEST",
 }
 
+PROMOTION_BY_ENVIRONMENT = {
+    "LAB": "LAB_GREEN",
+    "PREPROD": "PREPROD_GREEN",
+    "PROD": "PROD_CANDIDATE",
+}
 
-def control_decision(*, route_status: str, policy_decision: str, supervisor_state: str, tribunal_approved: bool, promotion_decision: str) -> dict:
+
+def control_decision(*, route_status: str, policy_decision: str, supervisor_state: str, tribunal_approved: bool, promotion_decision: str, environment: str = "LAB") -> dict:
+    if environment not in PROMOTION_BY_ENVIRONMENT:
+        raise ValueError("invalid environment")
     if policy_decision == "DENY":
         return {"status": "BLOCKED", "reason": "POLICY_DENY"}
     if policy_decision == "HUMAN_REQUIRED" or supervisor_state == "HUMAN_REQUIRED":
@@ -17,8 +25,9 @@ def control_decision(*, route_status: str, policy_decision: str, supervisor_stat
         return {"status": "BLOCKED", "reason": "SUPERVISOR_RED"}
     if not tribunal_approved:
         return {"status": "BLOCKED", "reason": "TRIBUNAL_REJECTED"}
-    if promotion_decision not in {"LAB_GREEN", "PREPROD_GREEN", "PROD_CANDIDATE"}:
-        return {"status": "BLOCKED", "reason": "PROMOTION_NOT_READY"}
+    expected_promotion = PROMOTION_BY_ENVIRONMENT[environment]
+    if promotion_decision != expected_promotion:
+        return {"status": "BLOCKED", "reason": "PROMOTION_SCOPE_MISMATCH"}
     return {"status": "ALLOW_EXECUTION", "reason": "CONTROL_PLANE_GREEN"}
 
 
