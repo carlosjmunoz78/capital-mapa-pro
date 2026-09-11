@@ -8,6 +8,7 @@ MORTGAGE_SEQUENCE = (
     "OFR-001","REC-001","TAS-001","PROP-001",
 )
 VALID_STATUS = {"PENDING", "GREEN", "RED", "BLOCKED", "HUMAN_REQUIRED"}
+VALID_ENVIRONMENTS = {"LAB", "PREPROD", "PROD"}
 HUMAN_CODES = {"LEGAL_REQUIRED", "SIGNATURE_REQUIRED", "LOW_CONFIDENCE", "HIGH_RISK", "POLICY_CONFLICT", "SECURITY_INCIDENT", "MONEY_LIMIT", "CUSTOMER_HUMAN_REQUEST"}
 
 
@@ -18,14 +19,18 @@ class MortgageStep:
     status: str
     evidence_ref: str | None = None
     human_code: str | None = None
+    environment: str = "LAB"
+    version: str = "1.0.0"
 
     def validate(self) -> None:
-        if not self.company_id.strip():
-            raise ValueError("company_id required")
+        if not self.company_id.strip() or not self.version.strip():
+            raise ValueError("company_id and version required")
         if self.engine_id not in MORTGAGE_SEQUENCE:
             raise ValueError("non-canonical mortgage engine")
         if self.status not in VALID_STATUS:
             raise ValueError("invalid status")
+        if self.environment not in VALID_ENVIRONMENTS:
+            raise ValueError("invalid environment")
         if self.status == "GREEN" and not (self.evidence_ref and self.evidence_ref.strip()):
             raise ValueError("GREEN requires evidence_ref")
         if self.status == "HUMAN_REQUIRED" and self.human_code not in HUMAN_CODES:
@@ -33,11 +38,15 @@ class MortgageStep:
 
 
 class MortgagePipeline:
-    def __init__(self, company_id: str) -> None:
-        if not company_id.strip():
-            raise ValueError("company_id required")
+    def __init__(self, company_id: str, environment: str = "LAB", version: str = "1.0.0") -> None:
+        if not company_id.strip() or not version.strip():
+            raise ValueError("company_id and version required")
+        if environment not in VALID_ENVIRONMENTS:
+            raise ValueError("invalid environment")
         self.company_id = company_id
-        self._steps = {e: MortgageStep(company_id, e, "PENDING") for e in MORTGAGE_SEQUENCE}
+        self.environment = environment
+        self.version = version
+        self._steps = {e: MortgageStep(company_id, e, "PENDING", environment=environment, version=version) for e in MORTGAGE_SEQUENCE}
 
     def next_engine(self) -> str | None:
         for engine_id in MORTGAGE_SEQUENCE:
@@ -49,6 +58,8 @@ class MortgagePipeline:
         step.validate()
         if step.company_id != self.company_id:
             raise ValueError("cross-company update denied")
+        if step.environment != self.environment or step.version != self.version:
+            raise ValueError("cross-scope mortgage update denied")
         idx = MORTGAGE_SEQUENCE.index(step.engine_id)
         if any(self._steps[e].status != "GREEN" for e in MORTGAGE_SEQUENCE[:idx]):
             raise ValueError("mortgage dependency not green")
