@@ -66,10 +66,14 @@ class NextLoopTests(unittest.TestCase):
         r=connectors.ConnectorRegistry(); r.register(connectors.ConnectorCapability('b','c','post','BROWSER','LAB')); r.register(connectors.ConnectorCapability('a','c','post','OFFICIAL_API','LAB'))
         self.assertEqual(r.route('c','post','LAB').connector_id,'a')
 
-    def test_gateway_human_fallback(self):
-        r=gateway.GatewayRouter({'status':'SUP-001'}); q=gateway.GatewayRequest('u','c','global','status','r1')
-        self.assertEqual(r.route(q)['engine_id'],'SUP-001')
+    def test_gateway_human_fallback_and_scope(self):
+        r=gateway.GatewayRouter({'status':'SUP-001'}); q=gateway.GatewayRequest('u','c','global','status','r1',environment='PROD',version='2.1.0')
+        routed=r.route(q)
+        self.assertEqual(routed['engine_id'],'SUP-001')
+        self.assertEqual(routed['environment'],'PROD')
+        self.assertEqual(routed['version'],'2.1.0')
         q2=gateway.GatewayRequest('u','c','global','unknown','r2'); self.assertEqual(r.route(q2)['status'],'HUMAN_REQUIRED')
+        with self.assertRaises(ValueError): gateway.GatewayRequest('u','c','global','status','r3',environment='INVALID').validate()
 
     def test_console_history_is_company_scoped_and_green_is_evidenced(self):
         h=history.ConsoleHistory()
