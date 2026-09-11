@@ -47,7 +47,9 @@ class EvidenceStore:
             raise ValueError("duplicate evidence_id") from exc
         return evidence_id
 
-    def list_engine(self, *, company_id: str, engine_id: str, environment: str | None = None) -> tuple[dict, ...]:
+    def list_engine(self, *, company_id: str, engine_id: str, environment: str | None = None, version: str | None = None) -> tuple[dict, ...]:
+        if not all(isinstance(value, str) and value.strip() for value in (company_id, engine_id)):
+            raise ValueError("company_id and engine_id required")
         query = "SELECT evidence_id, company_id, engine_id, version, environment, kind, reference, metadata_json FROM evidence WHERE company_id=? AND engine_id=?"
         args: list[str] = [company_id, engine_id]
         if environment is not None:
@@ -55,6 +57,11 @@ class EvidenceStore:
                 raise ValueError("invalid environment")
             query += " AND environment=?"
             args.append(environment)
+        if version is not None:
+            if not isinstance(version, str) or not version.strip():
+                raise ValueError("version must be a non-empty string")
+            query += " AND version=?"
+            args.append(version)
         query += " ORDER BY rowid"
         rows = []
         for row in self.conn.execute(query, args):
