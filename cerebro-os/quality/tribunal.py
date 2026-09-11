@@ -23,6 +23,7 @@ class TribunalDecision:
     company_id: str = "GLOBAL"
     environment: str = "LAB"
     evidence_refs: dict[str, str] | None = None
+    version: str = "1.0.0"
 
     def missing(self) -> tuple[str, ...]:
         return tuple(gate for gate in REQUIRED_GATES if not self.gates.get(gate, False))
@@ -33,7 +34,7 @@ class TribunalDecision:
 
     @property
     def approved(self) -> bool:
-        if not self.engine_id.strip() or not self.company_id.strip():
+        if not self.engine_id.strip() or not self.company_id.strip() or not self.version.strip():
             return False
         if self.environment not in VALID_ENVIRONMENTS:
             return False
