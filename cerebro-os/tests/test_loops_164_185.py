@@ -34,10 +34,16 @@ class T(unittest.TestCase):
  def test_180_training_bootstrap(self):self.assertEqual('GREEN',x.TrainingBootstrap('c','ds','vocab','score',False).status);self.assertEqual('BLOCKED',x.TrainingBootstrap('c','ds','v','s',True).status)
  def test_181_engine_activation(self):
   req,opt=x.activation_matrix('finance',(x.ActivationRule('*',('CORE-001',),()),x.ActivationRule('finance',('VIA-001',),('SEO-001',))));self.assertEqual(('CORE-001','VIA-001'),req);self.assertEqual(('SEO-001',),opt)
- def test_182_company_deployment(self):self.assertTrue(x.CompanyDeployment(True,True,True,True,True).promotable);self.assertFalse(x.CompanyDeployment(True,True,False,True,True).promotable)
- def test_183_company_health(self):self.assertEqual('GREEN',x.CompanyHealth('c',True,True,True,True).status)
+ def test_182_company_deployment(self):
+  self.assertTrue(x.CompanyDeployment(True,True,True,True,True,('preprod','tests','integrations','rollback','health')).promotable)
+  self.assertFalse(x.CompanyDeployment(True,True,True,True,True).promotable)
+  self.assertFalse(x.CompanyDeployment(True,True,False,True,True,('e',)).promotable)
+ def test_183_company_health(self):
+  self.assertEqual('GREEN',x.CompanyHealth('c',True,True,True,True,('health-evidence',)).status)
+  self.assertEqual('RED',x.CompanyHealth('c',True,True,True,True).status)
  def test_184_company_backup(self):
-  b=x.CompanyBackupPack('c','m','cfg','schema','kb',True);self.assertTrue(b.green);self.assertTrue(b.digest)
+  b=x.CompanyBackupPack('c','m','cfg','schema','kb',True,'restore-evidence');self.assertTrue(b.green);self.assertTrue(b.digest)
+  self.assertFalse(x.CompanyBackupPack('c','m','cfg','schema','kb',True).green)
  def test_185_company_offboarding(self):
   p=x.OffboardingPlan('c','exp',True,True,True,'ret',False);self.assertEqual('HUMAN_REQUIRED',p.status());self.assertEqual('GREEN',x.OffboardingPlan('c','exp',True,True,True,'ret',True).status())
 if __name__=='__main__':unittest.main()
