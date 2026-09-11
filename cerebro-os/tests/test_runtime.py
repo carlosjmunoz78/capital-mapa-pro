@@ -18,7 +18,7 @@ class RuntimeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             EventEnvelope(event_type="engine.test", engine_id="EVT-001", company_id="fenix-capital", environment="DEV").to_dict()
 
-    def test_queue_is_idempotent_within_tenant_scope(self):
+    def test_queue_is_idempotent_within_full_runtime_scope(self):
         q = JobQueue()
         job = Job(job_id="J1", request_id="R1", company_id="A", engine_id="JOB-001", action="test", payload={})
         self.assertTrue(q.enqueue(job))
@@ -27,7 +27,9 @@ class RuntimeTests(unittest.TestCase):
         self.assertTrue(q.enqueue(other_tenant))
         other_env = Job(job_id="J1", request_id="R3", company_id="A", engine_id="JOB-001", action="test", payload={}, environment="PROD", version="2.0.0")
         self.assertTrue(q.enqueue(other_env))
-        self.assertEqual(len(q), 3)
+        other_version = Job(job_id="J1", request_id="R4", company_id="A", engine_id="JOB-001", action="test", payload={}, environment="LAB", version="2.0.0")
+        self.assertTrue(q.enqueue(other_version))
+        self.assertEqual(len(q), 4)
 
     def test_queue_rejects_invalid_scope(self):
         q = JobQueue()
