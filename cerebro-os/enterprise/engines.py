@@ -37,11 +37,15 @@ def rank_candidates(candidates: Iterable[Candidate], weights: Mapping[str,float]
 # HR-003
 ONBOARDING=("ACCOUNTS","PERMISSIONS","TRAINING","SHADOWING","READINESS")
 class EmployeeOnboarding:
-    def __init__(self): self.done=set()
-    def complete(self,step:str):
+    def __init__(self):
+        self.done=set()
+        self.evidence={}
+    def complete(self,step:str,evidence_ref:str|None=None):
         if step not in ONBOARDING: raise ValueError("unknown onboarding step")
         i=ONBOARDING.index(step)
         if any(x not in self.done for x in ONBOARDING[:i]): raise ValueError("onboarding dependency incomplete")
+        if not evidence_ref or not evidence_ref.strip(): raise ValueError("onboarding completion requires evidence_ref")
+        self.evidence[step]=evidence_ref.strip()
         self.done.add(step)
     def next(self): return next((x for x in ONBOARDING if x not in self.done),None)
 
@@ -116,19 +120,23 @@ def compliance_status(controls:Iterable[ComplianceControl])->str:
 # DPO-001
 @dataclass(frozen=True)
 class PrivacyRequest:
-    request_type:str; identity_verified:bool; lawful_basis:bool; sensitive:bool
+    request_type:str; identity_verified:bool; lawful_basis:bool; sensitive:bool; identity_evidence_ref:str=''; lawful_basis_evidence_ref:str=''
     def decision(self):
         if not self.identity_verified or not self.lawful_basis: return "BLOCKED",None
+        if not self.identity_evidence_ref.strip() or not self.lawful_basis_evidence_ref.strip(): return "BLOCKED",None
         if self.sensitive or self.request_type in {"DELETE","EXPORT"}: return "HUMAN_REQUIRED","LEGAL_REQUIRED"
         return "GREEN",None
 
 # CONS-001
 @dataclass(frozen=True)
 class ConsentDocument:
-    document_id:str; generated:bool; sent:bool; signed:bool; archived:bool; human_signature_required:bool
+    document_id:str; generated:bool; sent:bool; signed:bool; archived:bool; human_signature_required:bool; generated_evidence_ref:str=''; sent_evidence_ref:str=''; signed_evidence_ref:str=''; archived_evidence_ref:str=''
     def status(self):
+        if not self.document_id.strip(): return "RED",None
         if self.human_signature_required and not self.signed: return "HUMAN_REQUIRED","SIGNATURE_REQUIRED"
-        return (("GREEN",None) if all((self.generated,self.sent,self.signed,self.archived)) else ("RED",None))
+        flags=(self.generated,self.sent,self.signed,self.archived)
+        refs=(self.generated_evidence_ref,self.sent_evidence_ref,self.signed_evidence_ref,self.archived_evidence_ref)
+        return (("GREEN",None) if all(flags) and all(x.strip() for x in refs) else ("RED",None))
 
 # INV-001
 @dataclass(frozen=True)
