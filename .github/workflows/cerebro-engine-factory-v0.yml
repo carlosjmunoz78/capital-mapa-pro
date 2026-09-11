@@ -1,0 +1,29 @@
+name: CEREBRO Engine Factory V0
+
+on:
+  push:
+    branches:
+      - cerebro-engine-factory-v0
+  pull_request:
+    paths:
+      - 'cerebro-os/**'
+      - '.github/workflows/cerebro-engine-factory-v0.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run unit tests
+        run: python -m unittest discover -s cerebro-os/tests -v
+      - name: Smoke scaffold
+        run: |
+          tmpdir="$(mktemp -d)"
+          python cerebro-os/factory/factory.py SMOKE-001 "Smoke Engine" "$tmpdir"
+          test -f "$tmpdir/engines/SMOKE-001/manifest.json"
