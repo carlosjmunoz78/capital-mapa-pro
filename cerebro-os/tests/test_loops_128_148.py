@@ -16,8 +16,9 @@ class T(unittest.TestCase):
   c=p.LegacyContract('CRM','1.0',('r',),('w',),'snap');self.assertFalse(c.change_allowed(True,True,True));self.assertTrue(c.change_allowed(True,True,True,{'tests':'ci:1','rollback':'rb:1','scope':'scope:1'}))
  def test_130_data_contract_multicompany(self):
   c=data.DataContract('DATA-001','case','1.0',True,'schema','APP',('CRM',));self.assertTrue(c.safe_for_multicompany())
- def test_131_api_gateway_routes_known_and_escalates_missing(self):
-  r=conn.ConnectorRegistry();r.register(conn.ConnectorCapability('api','read','OFFICIAL_API'));g=gw.Gateway({'API-001'},r);self.assertEqual('ROUTED',g.route(gw.GatewayRequest('f','API-001','read'))['status']);self.assertEqual('HUMAN_REQUIRED',g.route(gw.GatewayRequest('f','X','read'))['status'])
+ def test_131_api_gateway_routes_known_escalates_missing_and_is_version_scoped(self):
+  r=conn.ConnectorRegistry();r.register(conn.ConnectorCapability('generic','read','OFFICIAL_API'));r.register(conn.ConnectorCapability('v2','read','OFFICIAL_API','f',True,'PROD','2.0.0'));g=gw.Gateway({'API-001'},r)
+  self.assertEqual('generic',g.route(gw.GatewayRequest('f','API-001','read'))['connector_id']);self.assertEqual('v2',g.route(gw.GatewayRequest('f','API-001','read','PROD','2.0.0'))['connector_id']);self.assertEqual('generic',g.route(gw.GatewayRequest('f','API-001','read','PROD','1.0.0'))['connector_id']);self.assertEqual('HUMAN_REQUIRED',g.route(gw.GatewayRequest('f','X','read'))['status'])
  def test_132_dependency_graph_orders_and_rejects_cycle(self):
   g=deps.DependencyGraph();g.add('DATA-001',[]);g.add('API-001',['DATA-001']);self.assertLess(g.order().index('DATA-001'),g.order().index('API-001'))
   with self.assertRaises(ValueError):g.add('DATA-001',['API-001'])
