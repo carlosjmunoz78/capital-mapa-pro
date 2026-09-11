@@ -25,13 +25,17 @@ class Loops41To50Tests(unittest.TestCase):
         self.assertEqual("cash", store.get("fenix", "priority").value)
         self.assertIsNone(store.get("other", "priority"))
 
-    def test_loop42_orchestrator_orders_by_dependencies_and_priority(self):
+    def test_loop42_orchestrator_orders_by_dependencies_priority_and_evidence(self):
         orch = cp.Orchestrator("fenix")
         orch.add(cp.OrchestratedTask("a", "fenix", 10))
         orch.add(cp.OrchestratedTask("b", "fenix", 100, ("a",)))
         orch.add(cp.OrchestratedTask("c", "fenix", 50))
         self.assertEqual(("c", "a"), orch.ready())
-        orch.attempt("a", True)
+        with self.assertRaises(ValueError):
+            orch.attempt("a", True)
+        self.assertEqual(("c", "a"), orch.ready())
+        orch.attempt("a", True, "evidence:task:a")
+        self.assertEqual("evidence:task:a", orch.completion_evidence("a"))
         self.assertEqual(("b", "c"), orch.ready())
         with self.assertRaises(ValueError):
             orch.add(cp.OrchestratedTask("x", "other", 1))
