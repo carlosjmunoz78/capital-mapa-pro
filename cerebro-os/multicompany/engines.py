@@ -147,26 +147,30 @@ def activation_matrix(sector:str,rules:Iterable[ActivationRule])->tuple[tuple[st
 @dataclass(frozen=True)
 class CompanyDeployment:
     preprod_green:bool; tests_green:bool; integrations_green:bool; rollback_verified:bool; health_green:bool
+    evidence_refs:tuple[str,...]=()
     @property
-    def promotable(self): return all((self.preprod_green,self.tests_green,self.integrations_green,self.rollback_verified,self.health_green))
+    def promotable(self):
+        return bool(self.evidence_refs) and all((self.preprod_green,self.tests_green,self.integrations_green,self.rollback_verified,self.health_green))
 
 # COMP-HLT-001
 @dataclass(frozen=True)
 class CompanyHealth:
     company_id:str; sla_green:bool; errors_green:bool; cost_green:bool; engines_green:bool
+    evidence_refs:tuple[str,...]=()
     @property
-    def status(self):return 'GREEN' if self.company_id.strip() and all((self.sla_green,self.errors_green,self.cost_green,self.engines_green)) else 'RED'
+    def status(self):return 'GREEN' if self.company_id.strip() and self.evidence_refs and all((self.sla_green,self.errors_green,self.cost_green,self.engines_green)) else 'RED'
 
 # COMP-BKP-001
 @dataclass(frozen=True)
 class CompanyBackupPack:
     company_id:str; manifest_ref:str; config_ref:str; schema_ref:str; knowledge_ref:str; restore_verified:bool
+    restore_evidence_ref:str=''
     @property
     def digest(self):
         if not all((self.company_id.strip(),self.manifest_ref.strip(),self.config_ref.strip(),self.schema_ref.strip(),self.knowledge_ref.strip())):raise ValueError('backup pack incomplete')
         return sha256(repr((self.company_id,self.manifest_ref,self.config_ref,self.schema_ref,self.knowledge_ref)).encode()).hexdigest()
     @property
-    def green(self): return bool(self.restore_verified and self.digest)
+    def green(self): return bool(self.restore_verified and self.restore_evidence_ref.strip() and self.digest)
 
 # COMP-OFF-001
 @dataclass(frozen=True)
