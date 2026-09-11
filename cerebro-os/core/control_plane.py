@@ -58,6 +58,7 @@ class Orchestrator:
         self._tasks: dict[str, OrchestratedTask] = {}
         self._completed: set[str] = set()
         self._attempts: dict[str, int] = {}
+        self._evidence: dict[str, str] = {}
 
     def add(self, task: OrchestratedTask) -> None:
         if task.company_id != self.company_id:
@@ -85,7 +86,7 @@ class Orchestrator:
             result.append(task_id)
         return tuple(result)
 
-    def attempt(self, task_id: str, success: bool) -> None:
+    def attempt(self, task_id: str, success: bool, evidence_ref: str | None = None) -> None:
         if task_id not in self._tasks:
             raise ValueError("unknown task")
         task = self._tasks[task_id]
@@ -93,7 +94,15 @@ class Orchestrator:
             raise ValueError("dependencies not complete")
         self._attempts[task_id] = self._attempts.get(task_id, 0) + 1
         if success:
+            if not (evidence_ref and evidence_ref.strip()):
+                raise ValueError("successful task completion requires evidence_ref")
+            self._evidence[task_id] = evidence_ref.strip()
             self._completed.add(task_id)
+
+    def completion_evidence(self, task_id: str) -> str | None:
+        if task_id not in self._tasks:
+            raise ValueError("unknown task")
+        return self._evidence.get(task_id)
 
 
 # HEX-001
