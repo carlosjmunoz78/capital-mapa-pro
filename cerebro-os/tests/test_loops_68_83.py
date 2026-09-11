@@ -66,11 +66,13 @@ class Loops68To83Tests(unittest.TestCase):
         self.assertEqual(("GREEN", "NO_ACTION"), c.RetentionDecision(.2, .8, "CALL").decision())
         self.assertEqual(("HUMAN_REQUIRED", "MONEY_LIMIT"), c.RetentionDecision(.9, .8, "OFFER", 5, 0).decision())
 
-    def test_loop79_postsale_is_ordered(self):
+    def test_loop79_postsale_is_ordered_and_evidenced(self):
         flow = c.PostSaleFlow(); self.assertEqual("CLOSE", flow.next_step())
-        with self.assertRaises(ValueError): flow.complete("REVIEW")
-        for step in c.POST_STEPS: flow.complete(step)
+        with self.assertRaises(ValueError): flow.complete("REVIEW", "e:review")
+        with self.assertRaises(ValueError): flow.complete("CLOSE")
+        for step in c.POST_STEPS: flow.complete(step, f"e:{step}")
         self.assertIsNone(flow.next_step())
+        self.assertEqual("e:CLOSE", flow.evidence("CLOSE"))
 
     def test_loop80_referral_eligibility_is_rule_based(self):
         self.assertEqual("GREEN", c.referral_eligibility(satisfaction=.9, successful_outcome=True, min_satisfaction=.8))
