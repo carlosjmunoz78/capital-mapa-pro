@@ -38,24 +38,31 @@ class NextLoopTests(unittest.TestCase):
         pre_refs={'tests':'ci:pre','evaluation':'eval:pre','rollback':'rb:pre','backup':'bk:pre'}
         self.assertEqual(s.transition('PREPROD_GREEN',gates_green=True,rollback_verified=True,backup_verified=True,evidence_refs=pre_refs),'PREPROD_GREEN')
 
-    def test_outbox_idempotency_and_delivery_evidence(self):
+    def test_outbox_idempotency_and_delivery_evidence_are_full_scope_scoped(self):
         o=outbox.Outbox(); e=outbox.OutboxEvent('e1','c1','x','done','1.0','ref','k1')
         self.assertTrue(o.enqueue(e)); self.assertFalse(o.enqueue(e))
-        with self.assertRaises(ValueError): o.mark_delivered('k1','')
-        o.mark_delivered('k1','evidence:delivery:k1')
-        self.assertEqual(o.delivery_evidence['k1'],'evidence:delivery:k1')
+        other_version=outbox.OutboxEvent('e2','c1','x','done','2.0','ref2','k1')
+        other_env=outbox.OutboxEvent('e3','c1','x','done','1.0','ref3','k1','PROD')
+        self.assertTrue(o.enqueue(other_version)); self.assertTrue(o.enqueue(other_env))
+        with self.assertRaises(ValueError): o.mark_delivered(e,'')
+        o.mark_delivered(e,'evidence:delivery:k1')
+        self.assertEqual(o.delivery_evidence[e.scope_key],'evidence:delivery:k1')
         self.assertFalse(o.enqueue(e))
-        with self.assertRaises(ValueError): o.mark_delivered('missing','evidence:x')
+        missing=outbox.OutboxEvent('missing','c1','x','done','1.0','ref','missing')
+        with self.assertRaises(ValueError): o.mark_delivered(missing,'evidence:x')
 
-    def test_job_store_idempotency_and_success_evidence(self):
+    def test_job_store_idempotency_and_success_evidence_are_full_scope_scoped(self):
         s=jobs.JobStore(); j=jobs.JobSpec('j1','c1','e1','ik')
         self.assertTrue(s.reserve(j)); self.assertFalse(s.reserve(j))
-        with self.assertRaises(ValueError): s.complete('ik','')
-        s.complete('ik','evidence:job:ik')
-        self.assertEqual(s.states['ik'],'SUCCESS')
-        self.assertEqual(s.evidence_refs['ik'],'evidence:job:ik')
-        with self.assertRaises(ValueError): s.complete('ik','evidence:second')
-        with self.assertRaises(ValueError): jobs.JobStore().complete('missing','evidence:x')
+        other_version=jobs.JobSpec('j2','c1','e1','ik',environment='LAB',version='2.0.0')
+        self.assertTrue(s.reserve(other_version))
+        with self.assertRaises(ValueError): s.complete(j,'')
+        s.complete(j,'evidence:job:ik')
+        self.assertEqual(s.states[j.scope_key],'SUCCESS')
+        self.assertEqual(s.evidence_refs[j.scope_key],'evidence:job:ik')
+        with self.assertRaises(ValueError): s.complete(j,'evidence:second')
+        missing=jobs.JobSpec('missing','c1','e1','missing')
+        with self.assertRaises(ValueError): jobs.JobStore().complete(missing,'evidence:x')
 
     def test_broker_never_resolves_secret(self):
         h=vault.CredentialHandle('c1','a1','github','CEREBRO/FENIX/API_TOKEN','LAB')
