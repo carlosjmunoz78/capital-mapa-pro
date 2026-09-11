@@ -74,7 +74,8 @@ class LoopsFourToSixTests(unittest.TestCase):
         self.assertTrue(green["ready"])
         blocked = backup_mod.backup_gate(company_id="fenix-capital", backup_verified=True, restore_verified=True, rebuild_verified=False, rollback_verified=True)
         self.assertFalse(blocked["ready"])
-        ready = backup_mod.backup_gate(company_id="fenix-capital", backup_verified=True, restore_verified=True, rebuild_verified=True, rollback_verified=True)
+        evidence = {name: f"test-evidence:{name}" for name in backup_mod.CHECKS}
+        ready = backup_mod.backup_gate(company_id="fenix-capital", backup_verified=True, restore_verified=True, rebuild_verified=True, rollback_verified=True, evidence_refs=evidence)
         self.assertTrue(ready["ready"])
 
     def test_loop6_console_pipeline_only_routes_through_gateway_and_audits(self):
