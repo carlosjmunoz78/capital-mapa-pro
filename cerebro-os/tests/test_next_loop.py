@@ -30,9 +30,14 @@ class NextLoopTests(unittest.TestCase):
         with self.assertRaises(ValueError): s.transition('PREPROD_GREEN',gates_green=False,rollback_verified=True,backup_verified=True)
         self.assertEqual(s.transition('PREPROD_GREEN',gates_green=True,rollback_verified=True,backup_verified=True),'PREPROD_GREEN')
 
-    def test_outbox_idempotency(self):
+    def test_outbox_idempotency_and_delivery_evidence(self):
         o=outbox.Outbox(); e=outbox.OutboxEvent('e1','c1','x','done','1.0','ref','k1')
-        self.assertTrue(o.enqueue(e)); self.assertFalse(o.enqueue(e)); o.mark_delivered('k1'); self.assertFalse(o.enqueue(e))
+        self.assertTrue(o.enqueue(e)); self.assertFalse(o.enqueue(e))
+        with self.assertRaises(ValueError): o.mark_delivered('k1','')
+        o.mark_delivered('k1','evidence:delivery:k1')
+        self.assertEqual(o.delivery_evidence['k1'],'evidence:delivery:k1')
+        self.assertFalse(o.enqueue(e))
+        with self.assertRaises(ValueError): o.mark_delivered('missing','evidence:x')
 
     def test_job_store_idempotency_and_success_evidence(self):
         s=jobs.JobStore(); j=jobs.JobSpec('j1','c1','e1','ik')
