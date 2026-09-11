@@ -45,10 +45,17 @@ def aggregate(
     values = tuple(results)
     if not values:
         return False
-    if company_id is not None and any(item.company_id != company_id for item in values):
+    for item in values:
+        item.validate()
+    companies = {item.company_id for item in values}
+    environments = {item.environment for item in values}
+    versions = {item.version for item in values}
+    if len(companies) != 1 or len(environments) != 1 or len(versions) != 1:
         return False
-    if environment is not None and any(item.environment != environment for item in values):
+    if company_id is not None and companies != {company_id}:
         return False
-    if version is not None and any(item.version != version for item in values):
+    if environment is not None and environments != {environment}:
+        return False
+    if version is not None and versions != {version}:
         return False
     return all(item.passed for item in values)
