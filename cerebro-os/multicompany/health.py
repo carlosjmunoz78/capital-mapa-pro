@@ -24,7 +24,6 @@ def company_health(*, company_id: str, required_engines: tuple[str, ...], engine
     scope_mismatch = tuple(sorted(
         engine_id for engine_id in required_engines
         if engine_states.get(engine_id) == "GREEN"
-        and evidence_scopes
         and (
             evidence_scopes.get(engine_id, {}).get("company_id") != company_id
             or evidence_scopes.get(engine_id, {}).get("environment") != environment
