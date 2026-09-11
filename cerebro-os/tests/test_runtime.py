@@ -15,6 +15,8 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(data["company_id"], "fenix-capital")
         self.assertEqual(data["environment"], "LAB")
         self.assertTrue(data["request_id"])
+        with self.assertRaises(ValueError):
+            EventEnvelope(event_type="engine.test", engine_id="EVT-001", company_id="fenix-capital", environment="DEV").to_dict()
 
     def test_queue_is_idempotent_within_tenant_scope(self):
         q = JobQueue()
@@ -43,11 +45,14 @@ class RuntimeTests(unittest.TestCase):
         second = q.pop()
         self.assertFalse(q.retry(second))
 
-    def test_audit_contract_includes_cost_and_policy(self):
-        record = AuditRecord(request_id="R", company_id="A", engine_id="AUD-001", version="0.1.0", environment="LAB", action="x", policy_result="ALLOW", result="SUCCESS", duration_ms=1)
+    def test_audit_contract_includes_cost_policy_and_evidence(self):
+        with self.assertRaises(ValueError):
+            AuditRecord(request_id="R", company_id="A", engine_id="AUD-001", version="0.1.0", environment="LAB", action="x", policy_result="ALLOW", result="SUCCESS", duration_ms=1).to_dict()
+        record = AuditRecord(request_id="R", company_id="A", engine_id="AUD-001", version="0.1.0", environment="LAB", action="x", policy_result="ALLOW", result="SUCCESS", duration_ms=1, evidence_ref="ci://run/1")
         data = record.to_dict()
         self.assertEqual(data["cost_eur"], 0.0)
         self.assertEqual(data["policy_result"], "ALLOW")
+        self.assertEqual(data["evidence_ref"], "ci://run/1")
 
 if __name__ == "__main__":
     unittest.main()
