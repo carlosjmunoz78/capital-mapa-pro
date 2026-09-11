@@ -11,8 +11,18 @@ PROMOTION_BY_ENVIRONMENT = {
     "PROD": "PROD_CANDIDATE",
 }
 
+EXECUTION_EVIDENCE_KEYS = (
+    "route",
+    "policy",
+    "supervisor",
+    "tribunal",
+    "promotion",
+)
 
-def control_decision(*, route_status: str, policy_decision: str, supervisor_state: str, tribunal_approved: bool, promotion_decision: str, environment: str = "LAB") -> dict:
+
+def control_decision(*, route_status: str, policy_decision: str, supervisor_state: str,
+                     tribunal_approved: bool, promotion_decision: str,
+                     environment: str = "LAB", evidence_refs: dict[str, str] | None = None) -> dict:
     if environment not in PROMOTION_BY_ENVIRONMENT:
         raise ValueError("invalid environment")
     if policy_decision == "DENY":
@@ -28,6 +38,12 @@ def control_decision(*, route_status: str, policy_decision: str, supervisor_stat
     expected_promotion = PROMOTION_BY_ENVIRONMENT[environment]
     if promotion_decision != expected_promotion:
         return {"status": "BLOCKED", "reason": "PROMOTION_SCOPE_MISMATCH"}
+
+    refs = evidence_refs or {}
+    missing = tuple(key for key in EXECUTION_EVIDENCE_KEYS if not str(refs.get(key, "")).strip())
+    if missing:
+        return {"status": "BLOCKED", "reason": "EVIDENCE_MISSING", "missing": missing}
+
     return {"status": "ALLOW_EXECUTION", "reason": "CONTROL_PLANE_GREEN"}
 
 
