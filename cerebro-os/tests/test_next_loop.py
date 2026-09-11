@@ -25,10 +25,18 @@ class NextLoopTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             g.add('GOV-001',['FACT-001'])
 
-    def test_promotion_requires_gates(self):
-        s=prom.PromotionState(); s.transition('LAB_GREEN',gates_green=True,rollback_verified=True,backup_verified=True)
-        with self.assertRaises(ValueError): s.transition('PREPROD_GREEN',gates_green=False,rollback_verified=True,backup_verified=True)
-        self.assertEqual(s.transition('PREPROD_GREEN',gates_green=True,rollback_verified=True,backup_verified=True),'PREPROD_GREEN')
+    def test_promotion_requires_gates_and_scoped_evidence(self):
+        s=prom.PromotionState()
+        with self.assertRaises(ValueError):
+            s.transition('LAB_GREEN',gates_green=True,rollback_verified=True,backup_verified=True)
+        lab_refs={'tests':'ci:lab','evaluation':'eval:lab'}
+        s.transition('LAB_GREEN',gates_green=True,rollback_verified=True,backup_verified=True,evidence_refs=lab_refs)
+        with self.assertRaises(ValueError):
+            s.transition('PREPROD_GREEN',gates_green=False,rollback_verified=True,backup_verified=True,evidence_refs={'tests':'ci:pre','evaluation':'eval:pre','rollback':'rb:pre','backup':'bk:pre'})
+        with self.assertRaises(ValueError):
+            s.transition('PREPROD_GREEN',gates_green=True,rollback_verified=True,backup_verified=True,evidence_refs={'tests':'ci:pre','evaluation':'eval:pre'})
+        pre_refs={'tests':'ci:pre','evaluation':'eval:pre','rollback':'rb:pre','backup':'bk:pre'}
+        self.assertEqual(s.transition('PREPROD_GREEN',gates_green=True,rollback_verified=True,backup_verified=True,evidence_refs=pre_refs),'PREPROD_GREEN')
 
     def test_outbox_idempotency_and_delivery_evidence(self):
         o=outbox.Outbox(); e=outbox.OutboxEvent('e1','c1','x','done','1.0','ref','k1')
