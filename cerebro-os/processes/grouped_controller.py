@@ -11,21 +11,18 @@ VALID_ENVIRONMENTS = {"LAB", "PREPROD", "PROD"}
 
 
 class GroupedProcessController:
-    def __init__(self, *, company_id: str = "GLOBAL", environment: str = "LAB") -> None:
-        if not company_id.strip():
-            raise ValueError("company_id required")
+    def __init__(self, *, company_id: str = "GLOBAL", environment: str = "LAB", version: str = "1.0.0") -> None:
+        if not company_id.strip() or not version.strip():
+            raise ValueError("company_id and version required")
         if environment not in VALID_ENVIRONMENTS:
             raise ValueError("invalid environment")
         self.company_id = company_id
         self.environment = environment
-        self._family_status = {
-            family: "PENDING"
-            for macro in MACRO_ORDER
-            for family in MACRO_LOOPS[macro]
-        }
+        self.version = version
+        self._family_status = {family: "PENDING" for macro in MACRO_ORDER for family in MACRO_LOOPS[macro]}
         self._evidence: dict[str, tuple[str, ...]] = {family: () for family in self._family_status}
 
-    def update_family(self, family: str, status: str, *, evidence_refs=(), company_id: str | None = None, environment: str | None = None) -> None:
+    def update_family(self, family: str, status: str, *, evidence_refs=(), company_id: str | None = None, environment: str | None = None, version: str | None = None) -> None:
         if family not in self._family_status:
             raise ValueError("unknown process family")
         if status not in {"GREEN", "RED", "BLOCKED", "HUMAN_REQUIRED", "IN_PROGRESS"}:
@@ -34,6 +31,8 @@ class GroupedProcessController:
             raise ValueError("cross-company update denied")
         if environment is not None and environment != self.environment:
             raise ValueError("cross-environment update denied")
+        if version is not None and version != self.version:
+            raise ValueError("cross-version update denied")
         refs = tuple(ref for ref in evidence_refs if isinstance(ref, str) and ref.strip())
         if status == "GREEN" and not refs:
             raise ValueError("GREEN requires evidence_refs")
@@ -80,6 +79,7 @@ class GroupedProcessController:
                 "evidence_refs": self._evidence[family],
                 "company_id": self.company_id,
                 "environment": self.environment,
+                "version": self.version,
             }
             for family, status in self._family_status.items()
         }
