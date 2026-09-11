@@ -23,21 +23,26 @@ class CoreValue:
     value: str
     version: str
     provenance_ref: str
+    environment: str = "LAB"
 
 
 class CoreState:
     def __init__(self) -> None:
-        self._values: dict[tuple[str, str], CoreValue] = {}
+        self._values: dict[tuple[str, str, str, str], CoreValue] = {}
 
     def put(self, item: CoreValue) -> None:
         if not all((item.company_id.strip(), item.key.strip(), item.version.strip(), item.provenance_ref.strip())):
             raise ValueError("core value scope, key, version and provenance are required")
-        self._values[(item.company_id, item.key)] = item
+        if item.environment not in ENVIRONMENTS:
+            raise ValueError("invalid environment")
+        self._values[(item.company_id, item.environment, item.version, item.key)] = item
 
-    def get(self, company_id: str, key: str) -> CoreValue | None:
-        if not company_id.strip():
-            raise ValueError("company_id required")
-        return self._values.get((company_id, key))
+    def get(self, company_id: str, key: str, environment: str = "LAB", version: str = "1.0.0") -> CoreValue | None:
+        if not company_id.strip() or not key.strip() or not version.strip():
+            raise ValueError("company_id, key and version required")
+        if environment not in ENVIRONMENTS:
+            raise ValueError("invalid environment")
+        return self._values.get((company_id, environment, version, key))
 
 
 # ORCH-001
@@ -48,13 +53,19 @@ class OrchestratedTask:
     priority: int
     dependencies: tuple[str, ...] = ()
     max_attempts: int = 3
+    environment: str = "LAB"
+    version: str = "1.0.0"
 
 
 class Orchestrator:
-    def __init__(self, company_id: str) -> None:
-        if not company_id.strip():
-            raise ValueError("company_id required")
+    def __init__(self, company_id: str, environment: str = "LAB", version: str = "1.0.0") -> None:
+        if not company_id.strip() or not version.strip():
+            raise ValueError("company_id and version required")
+        if environment not in ENVIRONMENTS:
+            raise ValueError("invalid environment")
         self.company_id = company_id
+        self.environment = environment
+        self.version = version
         self._tasks: dict[str, OrchestratedTask] = {}
         self._completed: set[str] = set()
         self._attempts: dict[str, int] = {}
@@ -63,6 +74,10 @@ class Orchestrator:
     def add(self, task: OrchestratedTask) -> None:
         if task.company_id != self.company_id:
             raise ValueError("cross-company task denied")
+        if task.environment != self.environment or task.version != self.version:
+            raise ValueError("cross-scope task denied")
+        if task.environment not in ENVIRONMENTS or not task.version.strip():
+            raise ValueError("invalid task scope")
         if not task.task_id.strip() or task.max_attempts < 1:
             raise ValueError("invalid task")
         if task.task_id in self._tasks:
@@ -92,6 +107,8 @@ class Orchestrator:
         task = self._tasks[task_id]
         if not all(dep in self._completed for dep in task.dependencies):
             raise ValueError("dependencies not complete")
+        if self._attempts.get(task_id, 0) >= task.max_attempts:
+            raise ValueError("max attempts exceeded")
         self._attempts[task_id] = self._attempts.get(task_id, 0) + 1
         if success:
             if not (evidence_ref and evidence_ref.strip()):
@@ -113,18 +130,30 @@ class HumanException:
     reason: str
     evidence_ref: str
     priority: int = 50
+    environment: str = "LAB"
+    version: str = "1.0.0"
 
 
 class HumanExceptionQueue:
-    def __init__(self, company_id: str) -> None:
+    def __init__(self, company_id: str, environment: str = "LAB", version: str = "1.0.0") -> None:
+        if not company_id.strip() or not version.strip():
+            raise ValueError("company_id and version required")
+        if environment not in ENVIRONMENTS:
+            raise ValueError("invalid environment")
         self.company_id = company_id
+        self.environment = environment
+        self.version = version
         self._items: list[HumanException] = []
 
     def emit(self, item: HumanException) -> None:
         if item.company_id != self.company_id:
             raise ValueError("cross-company exception denied")
+        if item.environment != self.environment or item.version != self.version:
+            raise ValueError("cross-scope exception denied")
         if item.reason not in HUMAN_REASONS:
             raise ValueError("non-canonical human reason")
+        if item.environment not in ENVIRONMENTS or not item.version.strip():
+            raise ValueError("invalid exception scope")
         if not item.engine_id.strip() or not item.evidence_ref.strip():
             raise ValueError("engine_id and evidence_ref required")
         self._items.append(item)
@@ -203,19 +232,26 @@ class Ownership:
     owner: str
     approver: str
     backup_owner: str
+    company_id: str = "GLOBAL"
+    environment: str = "LAB"
+    version: str = "1.0.0"
 
 
 class OwnershipRegistry:
     def __init__(self) -> None:
-        self._items: dict[str, Ownership] = {}
+        self._items: dict[tuple[str, str, str, str], Ownership] = {}
 
     def set(self, item: Ownership) -> None:
-        if not all((item.engine_id.strip(), item.owner.strip(), item.approver.strip(), item.backup_owner.strip())):
+        if not all((item.engine_id.strip(), item.owner.strip(), item.approver.strip(), item.backup_owner.strip(), item.company_id.strip(), item.version.strip())):
             raise ValueError("complete ownership required")
-        self._items[item.engine_id] = item
+        if item.environment not in ENVIRONMENTS:
+            raise ValueError("invalid environment")
+        self._items[(item.company_id, item.environment, item.version, item.engine_id)] = item
 
-    def get(self, engine_id: str) -> Ownership | None:
-        return self._items.get(engine_id)
+    def get(self, engine_id: str, company_id: str = "GLOBAL", environment: str = "LAB", version: str = "1.0.0") -> Ownership | None:
+        if environment not in ENVIRONMENTS:
+            raise ValueError("invalid environment")
+        return self._items.get((company_id, environment, version, engine_id))
 
 
 # OBJ-001
