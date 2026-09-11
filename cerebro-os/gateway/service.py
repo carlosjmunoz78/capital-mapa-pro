@@ -9,10 +9,11 @@ class GatewayRequest:
     engine_id: str
     capability: str
     environment: str = "LAB"
+    version: str = "1.0.0"
 
     def validate(self) -> None:
-        if not self.company_id or not self.engine_id or not self.capability:
-            raise ValueError("company_id, engine_id and capability are required")
+        if not self.company_id or not self.engine_id or not self.capability or not self.version:
+            raise ValueError("company_id, engine_id, capability and version are required")
         if self.environment not in {"LAB", "PREPROD", "PROD"}:
             raise ValueError("invalid environment")
 
@@ -30,7 +31,7 @@ class Gateway:
         allowed, reason = self.policy_check(request)
         if not allowed:
             return {"status": "HUMAN_REQUIRED", "reason": reason or "POLICY_CONFLICT"}
-        connector = self.connector_registry.route(request.capability, request.company_id)
+        connector = self.connector_registry.route(request.capability, request.company_id, request.environment)
         if connector is None:
             return {"status": "HUMAN_REQUIRED", "reason": "LOW_CONFIDENCE"}
         return {
@@ -40,4 +41,5 @@ class Gateway:
             "connector_id": connector.connector_id,
             "route_type": connector.route_type,
             "environment": request.environment,
+            "version": request.version,
         }
