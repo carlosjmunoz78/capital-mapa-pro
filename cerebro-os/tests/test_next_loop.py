@@ -63,9 +63,12 @@ class NextLoopTests(unittest.TestCase):
         self.assertEqual(r.route(q)['engine_id'],'SUP-001')
         q2=gateway.GatewayRequest('u','c','global','unknown','r2'); self.assertEqual(r.route(q2)['status'],'HUMAN_REQUIRED')
 
-    def test_console_history_is_company_scoped(self):
-        h=history.ConsoleHistory(); h.append(history.HistoryEntry('r1','c1','e1','GREEN','ref')); h.append(history.HistoryEntry('r2','c2','e1','GREEN','ref'))
+    def test_console_history_is_company_scoped_and_green_is_evidenced(self):
+        h=history.ConsoleHistory()
+        with self.assertRaises(ValueError): h.append(history.HistoryEntry('r0','c1','e1','GREEN'))
+        h.append(history.HistoryEntry('r1','c1','e1','GREEN','ref:1')); h.append(history.HistoryEntry('r2','c2','e1','GREEN','ref:2'))
         self.assertEqual(len(h.by_company('c1')),1)
+        self.assertEqual(h.by_company('c1')[0].evidence_ref,'ref:1')
 
     def test_mass_scaffold_plan_rejects_duplicates(self):
         p=mass.MassScaffoldPlan([mass.EngineSpec('A','a'),mass.EngineSpec('B','b')]); self.assertEqual(len(p.output_paths()),2)
