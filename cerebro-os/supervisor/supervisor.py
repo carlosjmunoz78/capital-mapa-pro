@@ -19,10 +19,11 @@ class EngineHealth:
     company_id: str = "GLOBAL"
     environment: str = "LAB"
     evidence_refs: tuple[str, ...] = ()
+    version: str = "1.0.0"
 
     @property
     def state(self) -> str:
-        if not self.engine_id.strip() or not self.company_id.strip():
+        if not self.engine_id.strip() or not self.company_id.strip() or not self.version.strip():
             return RED
         if self.environment not in VALID_ENVIRONMENTS:
             return RED
@@ -37,7 +38,5 @@ class EngineHealth:
         )
         if not all(checks):
             return RED
-        # Every positive health dimension must be backed by one concrete ref.
-        # Positional refs keep this lightweight while preventing boolean-only GREEN.
         refs = tuple(ref for ref in self.evidence_refs if isinstance(ref, str) and ref.strip())
         return GREEN if len(refs) >= len(REQUIRED_EVIDENCE) else RED
