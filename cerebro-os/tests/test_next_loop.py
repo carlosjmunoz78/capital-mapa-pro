@@ -34,9 +34,15 @@ class NextLoopTests(unittest.TestCase):
         o=outbox.Outbox(); e=outbox.OutboxEvent('e1','c1','x','done','1.0','ref','k1')
         self.assertTrue(o.enqueue(e)); self.assertFalse(o.enqueue(e)); o.mark_delivered('k1'); self.assertFalse(o.enqueue(e))
 
-    def test_job_store_idempotency(self):
+    def test_job_store_idempotency_and_success_evidence(self):
         s=jobs.JobStore(); j=jobs.JobSpec('j1','c1','e1','ik')
-        self.assertTrue(s.reserve(j)); self.assertFalse(s.reserve(j)); s.complete('ik'); self.assertEqual(s.states['ik'],'SUCCESS')
+        self.assertTrue(s.reserve(j)); self.assertFalse(s.reserve(j))
+        with self.assertRaises(ValueError): s.complete('ik','')
+        s.complete('ik','evidence:job:ik')
+        self.assertEqual(s.states['ik'],'SUCCESS')
+        self.assertEqual(s.evidence_refs['ik'],'evidence:job:ik')
+        with self.assertRaises(ValueError): s.complete('ik','evidence:second')
+        with self.assertRaises(ValueError): jobs.JobStore().complete('missing','evidence:x')
 
     def test_broker_never_resolves_secret(self):
         h=vault.CredentialHandle('c1','a1','github','CEREBRO/FENIX/API_TOKEN','LAB')
