@@ -14,8 +14,10 @@ sys.modules[spec.name] = mod
 spec.loader.exec_module(mod)
 
 
-def all_refs() -> dict[str, str]:
-    return {name: f"evidence:{name}" for name in mod.CHECKS}
+def all_refs(company="fenix", environment="LAB", version="1.0.0") -> dict[str, str]:
+    refs = {name: f"evidence:{name}" for name in mod.CHECKS}
+    refs.update({"company_id":company,"environment":environment,"version":version})
+    return refs
 
 
 def test_true_booleans_without_evidence_are_not_ready():
@@ -28,6 +30,7 @@ def test_true_booleans_without_evidence_are_not_ready():
     )
     assert result["ready"] is False
     assert set(result["missing_evidence"]) == set(mod.CHECKS)
+    assert result["scope_match"] is False
 
 
 def test_missing_restore_remains_explicit_even_with_other_evidence():
@@ -44,15 +47,23 @@ def test_missing_restore_remains_explicit_even_with_other_evidence():
     assert result["missing"] == ("restore_verified",)
 
 
-def test_complete_recovery_proof_is_ready():
+def test_complete_recovery_proof_is_ready_only_in_exact_scope():
     result = mod.backup_gate(
         company_id="fenix",
         backup_verified=True,
         restore_verified=True,
         rebuild_verified=True,
         rollback_verified=True,
-        evidence_refs=all_refs(),
+        evidence_refs=all_refs("fenix","PROD","2.0.0"),
+        environment="PROD",
+        version="2.0.0",
     )
     assert result["ready"] is True
     assert result["missing"] == ()
     assert result["missing_evidence"] == ()
+    wrong = mod.backup_gate(
+        company_id="fenix", backup_verified=True, restore_verified=True, rebuild_verified=True, rollback_verified=True,
+        evidence_refs=all_refs("fenix","PROD","1.0.0"), environment="PROD", version="2.0.0",
+    )
+    assert wrong["ready"] is False
+    assert wrong["scope_match"] is False
