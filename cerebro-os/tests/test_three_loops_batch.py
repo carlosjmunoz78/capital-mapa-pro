@@ -112,15 +112,25 @@ class ThreeGroupedLoopsTests(unittest.TestCase):
             control.validate_human_reason("RANDOM_REASON")
 
     def test_loop3_onboarding_red_retry_then_full_green(self):
-        executor = onboarding.OnboardingExecutor("fenix-capital")
+        executor = onboarding.OnboardingExecutor("fenix-capital", environment="LAB", version="2.0.0")
         first = executor.next_phase()
         executor.mark_red(first, "temporary scanner error")
         self.assertEqual("RED", executor.state)
         executor.retry(first)
         self.assertEqual("IN_PROGRESS", executor.state)
+        with self.assertRaises(ValueError):
+            executor.mark_green(first, evidence_refs=("e",), version="1.0.0")
+        with self.assertRaises(ValueError):
+            executor.mark_green(first, evidence_refs=("e",), environment="PROD")
         while executor.next_phase() is not None:
             phase = executor.next_phase()
-            executor.mark_green(phase, evidence_refs=(f"evidence:{phase}",))
+            executor.mark_green(
+                phase,
+                evidence_refs=(f"evidence:{phase}",),
+                company_id="fenix-capital",
+                environment="LAB",
+                version="2.0.0",
+            )
         self.assertEqual("GREEN", executor.state)
         self.assertEqual(len(onboarding.CANONICAL_PHASES), len(executor.completed))
 
