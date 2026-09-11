@@ -7,6 +7,8 @@ VALID_STATES = {
     "DIGITAL_FOUNDATION_READY", "SEO_SOCIAL_READY", "CRM_READY", "APP_READY",
     "AUTOMATIONS_READY", "TRAINING_READY", "PREPROD_READY", "PRODUCTION", "OPTIMIZING"
 }
+VALID_ENVIRONMENTS = {"LAB", "PREPROD", "PROD"}
+
 
 @dataclass(frozen=True)
 class CompanyRecord:
@@ -17,9 +19,9 @@ class CompanyRecord:
     version: str = "0.1.0"
 
     def validate(self) -> None:
-        if not self.company_id.strip():
-            raise ValueError("company_id required")
+        if not all((self.company_id.strip(), self.legal_name.strip(), self.version.strip())):
+            raise ValueError("company_id, legal_name and version required")
         if self.state not in VALID_STATES:
             raise ValueError(f"invalid company state: {self.state}")
-        if self.environment not in {"LAB", "PREPROD", "PROD"}:
+        if self.environment not in VALID_ENVIRONMENTS:
             raise ValueError(f"invalid environment: {self.environment}")
