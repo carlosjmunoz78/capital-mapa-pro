@@ -12,13 +12,19 @@ from command import ConsoleCommand
 
 class MultiCompanyConsoleTests(unittest.TestCase):
     def test_company_record_validates(self):
-        record = CompanyRecord(company_id="fenix-capital", legal_name="Fénix Capital")
+        record = CompanyRecord(company_id="fenix-capital", legal_name="Fénix Capital", environment="PROD", version="2.0.0")
         record.validate()
 
-    def test_invalid_company_state_rejected(self):
-        record = CompanyRecord(company_id="x", legal_name="X", state="INVALID")
-        with self.assertRaises(ValueError):
-            record.validate()
+    def test_invalid_company_identity_scope_or_state_rejected(self):
+        for record in (
+            CompanyRecord(company_id="x", legal_name="X", state="INVALID"),
+            CompanyRecord(company_id="", legal_name="X"),
+            CompanyRecord(company_id="x", legal_name=""),
+            CompanyRecord(company_id="x", legal_name="X", version=""),
+            CompanyRecord(company_id="x", legal_name="X", environment="DEV"),
+        ):
+            with self.assertRaises(ValueError):
+                record.validate()
 
     def test_console_requires_company_context(self):
         command = ConsoleCommand(user_id="u1", company_id="fenix-capital", context_type="global", context_id=None, message="estado")
