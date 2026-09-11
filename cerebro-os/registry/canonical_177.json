@@ -1,0 +1,1136 @@
+{
+  "schema_version": "1.0.0",
+  "source": "FENIX_CEREBRO_MASTER_MOTORES_LENGUAJE_IA_V2_2026-09-07.md",
+  "source_date": "2026-09-07",
+  "engine_count": 177,
+  "note": "documented_status is documentary source state, not live operational evidence.",
+  "engines": [
+    {
+      "engine_id": "CORE-001",
+      "name": "CEREBRO Core",
+      "layer": "L0",
+      "documented_status": "OPERATIVO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "GOV-001",
+      "name": "Engine Registry / Registro Maestro de Motores",
+      "layer": "L0",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "ORCH-001",
+      "name": "Orquestador Maestro",
+      "layer": "L0",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "POL-001",
+      "name": "Policy Engine",
+      "layer": "L0",
+      "documented_status": "DEFINIDO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "HEX-001",
+      "name": "Human Exception Engine",
+      "layer": "L0",
+      "documented_status": "DEFINIDO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "DEC-001",
+      "name": "Decision Engine / Motor de Decisión",
+      "layer": "L0",
+      "documented_status": "PARCIAL",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "SEM-001",
+      "name": "Semantic Router",
+      "layer": "L0",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "OWN-001",
+      "name": "Ownership / Dueño de Motor",
+      "layer": "L0",
+      "documented_status": "DEFINIDO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "OBJ-001",
+      "name": "Objective Engine",
+      "layer": "L0",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "ADR-001",
+      "name": "Architecture Decision Record Engine",
+      "layer": "L0",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "CFG-001",
+      "name": "Config / Feature Flags Engine",
+      "layer": "L0",
+      "documented_status": "PARCIAL",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "VER-001",
+      "name": "Versioning / Compatibility Engine",
+      "layer": "L0",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "FACT-001",
+      "name": "Fábrica de Motores CEREBRO",
+      "layer": "L0",
+      "documented_status": "PRIORIDAD_0",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "KNW-001",
+      "name": "Knowledge Engine / Fuente de Verdad",
+      "layer": "L1",
+      "documented_status": "PARCIAL",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "PRV-001",
+      "name": "Provenance / Evidencia Engine",
+      "layer": "L1",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "LRN-001",
+      "name": "Learning Engine / Aprendizaje por Precedentes",
+      "layer": "L1",
+      "documented_status": "PARCIAL",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "TRN-001",
+      "name": "Training Engine",
+      "layer": "L1",
+      "documented_status": "OPERATIVO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "EVA-001",
+      "name": "Evaluation Engine",
+      "layer": "L1",
+      "documented_status": "PARCIAL",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "JDG-001",
+      "name": "Tribunal / Judge Engine",
+      "layer": "L1",
+      "documented_status": "PARCIAL",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "RSH-001",
+      "name": "Research Engine",
+      "layer": "L1",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "UPD-001",
+      "name": "Knowledge Update Engine",
+      "layer": "L1",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "OBS-001",
+      "name": "Knowledge Obsolescence Engine",
+      "layer": "L1",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "RAG-001",
+      "name": "RAG / Retrieval Engine",
+      "layer": "L1",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "CACHE-001",
+      "name": "Knowledge Cache Engine",
+      "layer": "L1",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "IAM-001",
+      "name": "Identidad y Permisos Humanos/Agentes",
+      "layer": "L2",
+      "documented_status": "PARCIAL",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "SEC-002",
+      "name": "Secrets Engine",
+      "layer": "L2",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "AUD-001",
+      "name": "Audit Engine",
+      "layer": "L2",
+      "documented_status": "PARCIAL",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "QA-001",
+      "name": "Quality Assurance Engine",
+      "layer": "L2",
+      "documented_status": "PARCIAL",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "SUP-001",
+      "name": "Supervisor Engine",
+      "layer": "L2",
+      "documented_status": "OPERATIVO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "OBSERV-001",
+      "name": "Observability Engine",
+      "layer": "L2",
+      "documented_status": "PARCIAL",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "ERR-001",
+      "name": "Error Handling Engine",
+      "layer": "L2",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "HEAL-001",
+      "name": "Self-Healing Engine",
+      "layer": "L2",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "BCP-001",
+      "name": "Business Continuity / Backup Engine",
+      "layer": "L2",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "RBLD-001",
+      "name": "Rebuild Engine",
+      "layer": "L2",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "INC-001",
+      "name": "Incident Engine",
+      "layer": "L2",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "LEAD-001",
+      "name": "Lead Scoring",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "MKT-001",
+      "name": "Marketing Orchestrator",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "ADS-001",
+      "name": "Ads Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "CONTENT-001",
+      "name": "Content Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "SOC-001",
+      "name": "Social Media Engine",
+      "layer": "L3",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "EMAIL-001",
+      "name": "Email Marketing Engine",
+      "layer": "L3",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "REP-001",
+      "name": "Reputation Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "CRM-001",
+      "name": "CRM Engine",
+      "layer": "L3",
+      "documented_status": "OPERATIVO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "COMMS-001",
+      "name": "Customer Communications Engine",
+      "layer": "L3",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "NPS-001",
+      "name": "NPS / Feedback Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "RET-001",
+      "name": "Retention Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "REF-001",
+      "name": "Referral Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "WEB-001",
+      "name": "Web / Captación Engine",
+      "layer": "L3",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "SEO-001",
+      "name": "SEO Engine",
+      "layer": "L3",
+      "documented_status": "OPERATIVO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "LOCSEO-001",
+      "name": "Local SEO Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "KW-001",
+      "name": "Keyword Research Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "COMP-001",
+      "name": "Competitor Intelligence Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "MKTINT-001",
+      "name": "Market Intelligence Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "FUNNEL-001",
+      "name": "Funnel Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "ATTR-001",
+      "name": "Attribution Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "OFFR-001",
+      "name": "Offer Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "PRICE-001",
+      "name": "Pricing Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "CRO-001",
+      "name": "Conversion Rate Optimization Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "LAND-001",
+      "name": "Landing Page Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "BRAND-001",
+      "name": "Brand Engine",
+      "layer": "L3",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "DESIGN-001",
+      "name": "Design Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "VIDEO-001",
+      "name": "Video Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "IMG-001",
+      "name": "Image Engine",
+      "layer": "L3",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "DOC-001",
+      "name": "Document Engine",
+      "layer": "L4",
+      "documented_status": "OPERATIVO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "OCR-001",
+      "name": "OCR Engine",
+      "layer": "L4",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "EXP-001",
+      "name": "Expedientes Engine",
+      "layer": "L4",
+      "documented_status": "OPERATIVO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "MORT-001",
+      "name": "Mortgage Workflow Engine",
+      "layer": "L4",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "BANK-001",
+      "name": "Bank Matching Engine",
+      "layer": "L4",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "RISK-001",
+      "name": "Mortgage Risk Engine",
+      "layer": "L4",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "FEAS-001",
+      "name": "Viability / Feasibility Engine",
+      "layer": "L4",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "SIM-001",
+      "name": "Mortgage Simulation Engine",
+      "layer": "L4",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "APR-001",
+      "name": "Approval / Conditions Engine",
+      "layer": "L4",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "SIGN-001",
+      "name": "Signature Workflow Engine",
+      "layer": "L4",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "NOTIF-001",
+      "name": "Notifications Engine",
+      "layer": "L4",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "SLA-001",
+      "name": "SLA Engine",
+      "layer": "L4",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "CASE-001",
+      "name": "Case State Machine Engine",
+      "layer": "L4",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "FRAUD-001",
+      "name": "Fraud / Anomaly Engine",
+      "layer": "L4",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "VAL-001",
+      "name": "Valuation Engine",
+      "layer": "L4",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "PROP-001",
+      "name": "Property Intelligence Engine",
+      "layer": "L4",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "MAP-001",
+      "name": "Map / Geo Engine",
+      "layer": "L4",
+      "documented_status": "OPERATIVO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "VIS-001",
+      "name": "Visit / Field Operations Engine",
+      "layer": "L4",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "CAL-001",
+      "name": "Calendar / Scheduling Engine",
+      "layer": "L4",
+      "documented_status": "PARCIAL",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "APP-001",
+      "name": "App Fénix Engine",
+      "layer": "L4",
+      "documented_status": "OPERATIVO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "RRHH-001",
+      "name": "RRHH / People Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "REC-001",
+      "name": "Recruiting Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "ONB-001",
+      "name": "Employee Onboarding Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "PERF-001",
+      "name": "Performance Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "LEGAL-001",
+      "name": "Legal Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "COMP-LEGAL-001",
+      "name": "Legal Compliance Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "FISC-001",
+      "name": "Fiscal / Tax Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "ACC-001",
+      "name": "Accounting Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "BILL-001",
+      "name": "Billing Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "COLL-001",
+      "name": "Collections Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "TREAS-001",
+      "name": "Treasury Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "VEN-001",
+      "name": "Vendor Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "PROC-001",
+      "name": "Procurement Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "KPI-001",
+      "name": "KPI Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "MGMT-001",
+      "name": "Management Reporting Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "CASH-001",
+      "name": "Cash Flow Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "BUD-001",
+      "name": "Budget Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "PLAN-001",
+      "name": "Business Planning Engine",
+      "layer": "L5",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "RUNTIME-001",
+      "name": "Shared Engine Runtime",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "EVT-001",
+      "name": "Events Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "JOB-001",
+      "name": "Jobs / Scheduler Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "API-001",
+      "name": "Internal API Gateway",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "DATA-001",
+      "name": "Data Contracts Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "DBOFF-001",
+      "name": "Database Offload Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "STOROFF-001",
+      "name": "Storage Offload Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "FREE-001",
+      "name": "Zero-Cost Resource Broker",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "FINOPS-001",
+      "name": "FinOps Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "AIBUD-001",
+      "name": "AI Budget Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "ROUTE-001",
+      "name": "AI Model Router",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "LOCAL-001",
+      "name": "Local-First Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "INT-001",
+      "name": "Integrations Engine",
+      "layer": "L6",
+      "documented_status": "PARCIAL",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "MCP-001",
+      "name": "MCP / Tool Adapter Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "BROWSE-001",
+      "name": "Browser Automation Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "DEP-001",
+      "name": "Deployment Engine",
+      "layer": "L6",
+      "documented_status": "PARCIAL",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "MIG-001",
+      "name": "Migration Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "FF-001",
+      "name": "Feature Flag Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "ARCH-001",
+      "name": "Architecture Engine",
+      "layer": "L6",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "LAB-TRD",
+      "name": "Trading LAB",
+      "layer": "L7",
+      "documented_status": "OPERATIVO",
+      "company_scope": "GLOBAL_ONLY"
+    },
+    {
+      "engine_id": "INN-001",
+      "name": "Innovation Engine",
+      "layer": "L7",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "OPP-001",
+      "name": "Opportunity Engine",
+      "layer": "L7",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "STRAT-001",
+      "name": "Strategy Engine",
+      "layer": "L7",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "EXPAND-001",
+      "name": "Expansion Engine",
+      "layer": "L7",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "CAN-001",
+      "name": "Cannibalization / Conflict Engine",
+      "layer": "L7",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "SIMLAB-001",
+      "name": "Simulation LAB",
+      "layer": "L7",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "BENCH-001",
+      "name": "Benchmark Engine",
+      "layer": "L7",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_OR_SCOPED"
+    },
+    {
+      "engine_id": "COMP-REG-001",
+      "name": "Company Registry",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_ONLY"
+    },
+    {
+      "engine_id": "COMP-ONB-001",
+      "name": "Company Onboarding Orchestrator",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_ONLY"
+    },
+    {
+      "engine_id": "BDISC-001",
+      "name": "Business Discovery Engine",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "DFSCAN-001",
+      "name": "Digital Footprint Scanner",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "WAUD-001",
+      "name": "Web Audit Engine",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "KWR-001",
+      "name": "Keyword Research Bootstrap",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "SOCAUD-001",
+      "name": "Social Media Audit Engine",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "LOCALP-001",
+      "name": "Local Presence Engine",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "BMD-001",
+      "name": "Business Model Discovery",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "PROC-INT-001",
+      "name": "Internal Process Discovery",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "KBOOT-001",
+      "name": "Knowledge Bootstrap",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "SEOBOOT-001",
+      "name": "SEO Bootstrap",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "SOCBOOT-001",
+      "name": "Social Bootstrap",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "MKTBOOT-001",
+      "name": "Marketing Bootstrap",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "CRMBOOT-001",
+      "name": "CRM Bootstrap",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "APPBOOT-001",
+      "name": "App Bootstrap",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "AUTBOOT-001",
+      "name": "Automation Bootstrap",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "TRNBOOT-001",
+      "name": "Training Bootstrap",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "ENGACT-001",
+      "name": "Engine Activation Orchestrator",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_ONLY"
+    },
+    {
+      "engine_id": "TENANT-001",
+      "name": "Tenant Isolation Engine",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_ONLY"
+    },
+    {
+      "engine_id": "COMP-DEP-001",
+      "name": "Company Deployment Engine",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_ONLY"
+    },
+    {
+      "engine_id": "COMP-HLT-001",
+      "name": "Company Health Engine",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_ONLY"
+    },
+    {
+      "engine_id": "COMP-BKP-001",
+      "name": "Company Backup/Rebuild Engine",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_ONLY"
+    },
+    {
+      "engine_id": "COMP-OFF-001",
+      "name": "Company Offboarding Engine",
+      "layer": "L8",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "GLOBAL_ONLY"
+    },
+    {
+      "engine_id": "CONSOLE-001",
+      "name": "CEREBRO Console",
+      "layer": "L9",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "CHAT-001",
+      "name": "CEREBRO Chat Engine",
+      "layer": "L9",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "CTX-001",
+      "name": "Context Selector / Loader",
+      "layer": "L9",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "CMD-001",
+      "name": "Command Interpreter",
+      "layer": "L9",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "ACTGW-001",
+      "name": "Action Gateway",
+      "layer": "L9",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "DIRUI-001",
+      "name": "Dirección UI Engine",
+      "layer": "L9",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "TIMELINE-001",
+      "name": "CEREBRO Activity Timeline",
+      "layer": "L9",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "WHY-001",
+      "name": "Explain / Por Qué Engine",
+      "layer": "L9",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    },
+    {
+      "engine_id": "VOICEUI-001",
+      "name": "Voice Interface Local-First",
+      "layer": "L9",
+      "documented_status": "PLANIFICADO",
+      "company_scope": "MULTI_COMPANY"
+    }
+  ]
+}
