@@ -25,6 +25,10 @@ backup_mod = load("l46_backup", "multicompany/backup_gate.py")
 pipeline_mod = load("l46_pipeline", "console/pipeline.py")
 
 
+def scopes(*engine_ids, company_id="fenix-capital", environment="LAB", version="1.0.0"):
+    return {engine_id:{"company_id":company_id,"environment":environment,"version":version} for engine_id in engine_ids}
+
+
 class LoopsFourToSixTests(unittest.TestCase):
     def test_loop4_capability_activation_is_deterministic_and_canonical(self):
         ids = canonical.canonical_engine_ids()
@@ -54,6 +58,7 @@ class LoopsFourToSixTests(unittest.TestCase):
             required_engines=("COMP-REG-001", "TENANT-001", "SUP-001"),
             engine_states={"COMP-REG-001": "GREEN", "TENANT-001": "GREEN", "SUP-001": "RED"},
             evidence_refs={"COMP-REG-001": ("e1",), "TENANT-001": ("e2",)},
+            evidence_scopes=scopes("COMP-REG-001","TENANT-001"),
         )
         self.assertEqual("RED", result["state"])
         self.assertEqual(("SUP-001",), result["not_green"])
@@ -62,6 +67,7 @@ class LoopsFourToSixTests(unittest.TestCase):
             required_engines=("COMP-REG-001", "TENANT-001"),
             engine_states={"COMP-REG-001": "GREEN", "TENANT-001": "GREEN"},
             evidence_refs={"COMP-REG-001": ("e1",), "TENANT-001": ("e2",)},
+            evidence_scopes=scopes("COMP-REG-001","TENANT-001"),
         )
         self.assertEqual("GREEN", green["state"])
         no_evidence = health_mod.company_health(
@@ -84,6 +90,7 @@ class LoopsFourToSixTests(unittest.TestCase):
         blocked = backup_mod.backup_gate(company_id="fenix-capital", backup_verified=True, restore_verified=True, rebuild_verified=False, rollback_verified=True)
         self.assertFalse(blocked["ready"])
         evidence = {name: f"test-evidence:{name}" for name in backup_mod.CHECKS}
+        evidence.update({"company_id":"fenix-capital","environment":"LAB","version":"1.0.0"})
         ready = backup_mod.backup_gate(company_id="fenix-capital", backup_verified=True, restore_verified=True, rebuild_verified=True, rollback_verified=True, evidence_refs=evidence)
         self.assertTrue(ready["ready"])
 
