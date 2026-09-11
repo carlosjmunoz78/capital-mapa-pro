@@ -28,7 +28,13 @@ class ResilienceVersioningDataOnboardingTests(unittest.TestCase):
         self.assertFalse(contract.compatible_with("0.9.9"))
 
     def test_data_contract_requires_consumer_and_company_scope(self):
-        contract = data.DataContract("DATA-001", "engine-event", "1.0.0", True, "schemas/event.json", "EVT-001", ("AUD-001",))
+        unsafe = data.DataContract("DATA-001", "engine-event", "1.0.0", True, "schemas/event.json", "EVT-001", ("AUD-001",))
+        unsafe.validate()
+        self.assertFalse(unsafe.safe_for_multicompany())
+        contract = data.DataContract(
+            "DATA-001", "engine-event", "1.0.0", True, "schemas/event.json", "EVT-001", ("AUD-001",),
+            ("company_id", "engine_id", "environment", "version"),
+        )
         contract.validate()
         self.assertTrue(contract.safe_for_multicompany())
 
