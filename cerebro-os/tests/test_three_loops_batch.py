@@ -100,7 +100,8 @@ class ThreeGroupedLoopsTests(unittest.TestCase):
         executor.retry(first)
         self.assertEqual("IN_PROGRESS", executor.state)
         while executor.next_phase() is not None:
-            executor.mark_green(executor.next_phase())
+            phase = executor.next_phase()
+            executor.mark_green(phase, evidence_refs=(f"evidence:{phase}",))
         self.assertEqual("GREEN", executor.state)
         self.assertEqual(len(onboarding.CANONICAL_PHASES), len(executor.completed))
 
