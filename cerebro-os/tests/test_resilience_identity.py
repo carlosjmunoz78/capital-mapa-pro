@@ -12,9 +12,12 @@ from model import CredentialRef, Connector
 
 class ResilienceIdentityTests(unittest.TestCase):
     def test_recovery_plan_requires_all_verified(self):
-        not_ready = RecoveryPlan(True, True, True, False, True, True)
+        evidence = {"backup": "backup:e", "restore": "restore:e", "rollback": "rollback:e", "rebuild": "rebuild:e"}
+        not_ready = RecoveryPlan(True, True, True, False, True, True, evidence)
         self.assertFalse(not_ready.promotion_ready())
-        ready = RecoveryPlan(True, True, True, True, True, True)
+        boolean_only = RecoveryPlan(True, True, True, True, True, True)
+        self.assertFalse(boolean_only.promotion_ready())
+        ready = RecoveryPlan(True, True, True, True, True, True, evidence)
         self.assertTrue(ready.promotion_ready())
 
     def test_credential_ref_rejects_embedded_secret_value(self):
