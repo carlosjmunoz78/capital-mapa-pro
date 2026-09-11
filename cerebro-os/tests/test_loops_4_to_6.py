@@ -29,117 +29,61 @@ def scopes(*engine_ids, company_id="fenix-capital", environment="LAB", version="
     return {engine_id:{"company_id":company_id,"environment":environment,"version":version} for engine_id in engine_ids}
 
 
+def dep_evidence(*engine_ids, company_id="fenix-capital", environment="LAB", version="1.0.0"):
+    return {engine_id:{"company_id":company_id,"environment":environment,"version":version,"evidence_ref":f"e:{engine_id}"} for engine_id in engine_ids}
+
+
 class LoopsFourToSixTests(unittest.TestCase):
     def test_loop4_capability_activation_is_deterministic_and_canonical(self):
         ids = canonical.canonical_engine_ids()
         planner = planner_mod.CapabilityActivationPlanner(ids)
-        planner.add_rule(
-            name="base_company",
-            predicate=lambda profile: bool(profile.get("authorized")),
-            required=("COMP-REG-001", "TENANT-001", "SUP-001", "COMP-BKP-001"),
-            optional=("CONSOLE-001",),
-        )
-        planner.add_rule(
-            name="digital_presence",
-            predicate=lambda profile: profile.get("has_web") is True,
-            required=("SCAN-001", "WAUD-001", "KW-001"),
-            optional=("SEO-001", "SOCAUD-001"),
-        )
+        planner.add_rule(name="base_company", predicate=lambda profile: bool(profile.get("authorized")), required=("COMP-REG-001", "TENANT-001", "SUP-001", "COMP-BKP-001"), optional=("CONSOLE-001",))
+        planner.add_rule(name="digital_presence", predicate=lambda profile: profile.get("has_web") is True, required=("SCAN-001", "WAUD-001", "KW-001"), optional=("SEO-001", "SOCAUD-001"))
         plan = planner.plan({"authorized": True, "has_web": True})
-        self.assertIn("COMP-REG-001", plan["required"])
-        self.assertIn("SCAN-001", plan["required"])
-        self.assertIn("CONSOLE-001", plan["optional"])
-        with self.assertRaises(ValueError):
-            planner.add_rule(name="bad", predicate=lambda profile: True, required=("NOT-AN-ENGINE",))
+        self.assertIn("COMP-REG-001", plan["required"]); self.assertIn("SCAN-001", plan["required"]); self.assertIn("CONSOLE-001", plan["optional"])
+        with self.assertRaises(ValueError): planner.add_rule(name="bad", predicate=lambda profile: True, required=("NOT-AN-ENGINE",))
 
     def test_loop5_company_health_requires_every_required_engine_green(self):
-        result = health_mod.company_health(
-            company_id="fenix-capital",
-            required_engines=("COMP-REG-001", "TENANT-001", "SUP-001"),
-            engine_states={"COMP-REG-001": "GREEN", "TENANT-001": "GREEN", "SUP-001": "RED"},
-            evidence_refs={"COMP-REG-001": ("e1",), "TENANT-001": ("e2",)},
-            evidence_scopes=scopes("COMP-REG-001","TENANT-001"),
-        )
-        self.assertEqual("RED", result["state"])
-        self.assertEqual(("SUP-001",), result["not_green"])
-        green = health_mod.company_health(
-            company_id="fenix-capital",
-            required_engines=("COMP-REG-001", "TENANT-001"),
-            engine_states={"COMP-REG-001": "GREEN", "TENANT-001": "GREEN"},
-            evidence_refs={"COMP-REG-001": ("e1",), "TENANT-001": ("e2",)},
-            evidence_scopes=scopes("COMP-REG-001","TENANT-001"),
-        )
+        result = health_mod.company_health(company_id="fenix-capital", required_engines=("COMP-REG-001", "TENANT-001", "SUP-001"), engine_states={"COMP-REG-001": "GREEN", "TENANT-001": "GREEN", "SUP-001": "RED"}, evidence_refs={"COMP-REG-001": ("e1",), "TENANT-001": ("e2",)}, evidence_scopes=scopes("COMP-REG-001","TENANT-001"))
+        self.assertEqual("RED", result["state"]); self.assertEqual(("SUP-001",), result["not_green"])
+        green = health_mod.company_health(company_id="fenix-capital", required_engines=("COMP-REG-001", "TENANT-001"), engine_states={"COMP-REG-001": "GREEN", "TENANT-001": "GREEN"}, evidence_refs={"COMP-REG-001": ("e1",), "TENANT-001": ("e2",)}, evidence_scopes=scopes("COMP-REG-001","TENANT-001"))
         self.assertEqual("GREEN", green["state"])
-        no_evidence = health_mod.company_health(
-            company_id="fenix-capital",
-            required_engines=("COMP-REG-001",),
-            engine_states={"COMP-REG-001": "GREEN"},
-        )
-        self.assertEqual("RED", no_evidence["state"])
-        self.assertEqual(("COMP-REG-001",), no_evidence["green_without_evidence"])
+        no_evidence = health_mod.company_health(company_id="fenix-capital", required_engines=("COMP-REG-001",), engine_states={"COMP-REG-001": "GREEN"})
+        self.assertEqual("RED", no_evidence["state"]); self.assertEqual(("COMP-REG-001",), no_evidence["green_without_evidence"])
 
     def test_loop5_dependency_and_backup_readiness(self):
         canonical_ids = set(canonical.canonical_engine_ids())
         dependencies = {"RUNTIME-001": ("FACT-001", "GOV-001"), "EVT-001": ("RUNTIME-001",)}
         deps_mod.validate_dependency_ids(canonical_ids=canonical_ids, dependencies=dependencies)
-        red = deps_mod.dependency_readiness(active_engines={"RUNTIME-001", "FACT-001"}, dependencies=dependencies)
-        self.assertFalse(red["ready"])
-        self.assertIn("GOV-001", red["missing_dependencies"]["RUNTIME-001"])
-        green = deps_mod.dependency_readiness(active_engines={"GOV-001", "FACT-001", "RUNTIME-001", "EVT-001"}, dependencies=dependencies)
+        red = deps_mod.dependency_readiness(active_engines={"RUNTIME-001", "FACT-001"}, dependencies=dependencies, evidence_by_engine=dep_evidence("RUNTIME-001","FACT-001"), company_id="fenix-capital")
+        self.assertFalse(red["ready"]); self.assertIn("GOV-001", red["missing_dependencies"]["RUNTIME-001"])
+        active={"GOV-001", "FACT-001", "RUNTIME-001", "EVT-001"}
+        green = deps_mod.dependency_readiness(active_engines=active, dependencies=dependencies, evidence_by_engine=dep_evidence(*active), company_id="fenix-capital")
         self.assertTrue(green["ready"])
+        no_evidence = deps_mod.dependency_readiness(active_engines=active, dependencies=dependencies, company_id="fenix-capital")
+        self.assertFalse(no_evidence["ready"]); self.assertTrue(no_evidence["evidence_missing"])
+        wrong_version = deps_mod.dependency_readiness(active_engines=active, dependencies=dependencies, evidence_by_engine=dep_evidence(*active, version="1.0.0"), company_id="fenix-capital", version="2.0.0")
+        self.assertFalse(wrong_version["ready"]); self.assertTrue(wrong_version["scope_mismatch"])
         blocked = backup_mod.backup_gate(company_id="fenix-capital", backup_verified=True, restore_verified=True, rebuild_verified=False, rollback_verified=True)
         self.assertFalse(blocked["ready"])
-        evidence = {name: f"test-evidence:{name}" for name in backup_mod.CHECKS}
-        evidence.update({"company_id":"fenix-capital","environment":"LAB","version":"1.0.0"})
+        evidence = {name: f"test-evidence:{name}" for name in backup_mod.CHECKS}; evidence.update({"company_id":"fenix-capital","environment":"LAB","version":"1.0.0"})
         ready = backup_mod.backup_gate(company_id="fenix-capital", backup_verified=True, restore_verified=True, rebuild_verified=True, rollback_verified=True, evidence_refs=evidence)
         self.assertTrue(ready["ready"])
 
     def test_loop6_console_pipeline_only_routes_through_gateway_and_audits(self):
         audits = []
-        def gateway_route(command):
-            return {
-                "status": "ROUTED",
-                "engine_id": "SUP-001",
-                "company_id": command["company_id"],
-                "environment": command["environment"],
-                "version": command["version"],
-            }
+        def gateway_route(command): return {"status":"ROUTED","engine_id":"SUP-001","company_id":command["company_id"],"environment":command["environment"],"version":command["version"]}
         pipeline = pipeline_mod.ConsolePipeline(gateway_route, audits.append)
-        command = {
-            "request_id": "req-1",
-            "user_id": "user-1",
-            "company_id": "fenix-capital",
-            "context_type": "company",
-            "message": "status",
-            "environment": "LAB",
-            "version": "1.0.0",
-        }
+        command = {"request_id":"req-1","user_id":"user-1","company_id":"fenix-capital","context_type":"company","message":"status","environment":"LAB","version":"1.0.0"}
         result = pipeline.execute(command)
-        self.assertEqual("ROUTED", result["status"])
-        self.assertEqual(("CONSOLE", "GATEWAY", "POLICY", "ENGINE", "AUDIT"), result["path"])
-        self.assertEqual("fenix-capital", audits[0]["company_id"])
-        self.assertEqual("LAB", audits[0]["environment"])
-        self.assertEqual("1.0.0", audits[0]["version"])
-        self.assertEqual("ROUTED", audits[0]["gateway_status"])
-        with self.assertRaises(ValueError):
-            pipeline.execute({"request_id": "req-2"})
-        with self.assertRaises(ValueError):
-            pipeline.execute({**command, "environment": "DEV"})
-
-        bad_company = pipeline_mod.ConsolePipeline(
-            lambda c: {"status": "ROUTED", "company_id": "other", "environment": c["environment"], "version": c["version"]},
-            audits.append,
-        )
-        with self.assertRaises(ValueError):
-            bad_company.execute(command)
-
-        bad_env = pipeline_mod.ConsolePipeline(
-            lambda c: {"status": "ROUTED", "company_id": c["company_id"], "environment": "PROD", "version": c["version"]},
-            audits.append,
-        )
-        with self.assertRaises(ValueError):
-            bad_env.execute(command)
+        self.assertEqual("ROUTED", result["status"]); self.assertEqual(("CONSOLE", "GATEWAY", "POLICY", "ENGINE", "AUDIT"), result["path"])
+        self.assertEqual("fenix-capital", audits[0]["company_id"]); self.assertEqual("LAB", audits[0]["environment"]); self.assertEqual("1.0.0", audits[0]["version"]); self.assertEqual("ROUTED", audits[0]["gateway_status"])
+        with self.assertRaises(ValueError): pipeline.execute({"request_id":"req-2"})
+        with self.assertRaises(ValueError): pipeline.execute({**command,"environment":"DEV"})
+        bad_company = pipeline_mod.ConsolePipeline(lambda c:{"status":"ROUTED","company_id":"other","environment":c["environment"],"version":c["version"]},audits.append)
+        with self.assertRaises(ValueError): bad_company.execute(command)
+        bad_env = pipeline_mod.ConsolePipeline(lambda c:{"status":"ROUTED","company_id":c["company_id"],"environment":"PROD","version":c["version"]},audits.append)
+        with self.assertRaises(ValueError): bad_env.execute(command)
 
 
-if __name__ == "__main__":
-    unittest.main()
+if __name__ == "__main__": unittest.main()
