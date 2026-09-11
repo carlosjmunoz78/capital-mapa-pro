@@ -224,14 +224,23 @@ POST_STEPS = ("CLOSE", "FOLLOW_UP", "REVIEW", "REFERRAL", "REFINANCE_WATCH")
 class PostSaleFlow:
     def __init__(self) -> None:
         self._done: set[str] = set()
+        self._evidence: dict[str, str] = {}
 
-    def complete(self, step: str) -> None:
+    def complete(self, step: str, evidence_ref: str | None = None) -> None:
         if step not in POST_STEPS:
             raise ValueError("unknown post-sale step")
         idx = POST_STEPS.index(step)
         if any(previous not in self._done for previous in POST_STEPS[:idx]):
             raise ValueError("post-sale dependency incomplete")
+        if not evidence_ref or not evidence_ref.strip():
+            raise ValueError("post-sale completion requires evidence_ref")
+        self._evidence[step] = evidence_ref.strip()
         self._done.add(step)
+
+    def evidence(self, step: str) -> str | None:
+        if step not in POST_STEPS:
+            raise ValueError("unknown post-sale step")
+        return self._evidence.get(step)
 
     def next_step(self) -> str | None:
         return next((s for s in POST_STEPS if s not in self._done), None)
