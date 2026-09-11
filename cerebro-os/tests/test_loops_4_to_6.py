@@ -90,7 +90,13 @@ class LoopsFourToSixTests(unittest.TestCase):
     def test_loop6_console_pipeline_only_routes_through_gateway_and_audits(self):
         audits = []
         def gateway_route(command):
-            return {"status": "ROUTED", "engine_id": "SUP-001", "company_id": command["company_id"]}
+            return {
+                "status": "ROUTED",
+                "engine_id": "SUP-001",
+                "company_id": command["company_id"],
+                "environment": command["environment"],
+                "version": command["version"],
+            }
         pipeline = pipeline_mod.ConsolePipeline(gateway_route, audits.append)
         command = {
             "request_id": "req-1",
@@ -98,14 +104,34 @@ class LoopsFourToSixTests(unittest.TestCase):
             "company_id": "fenix-capital",
             "context_type": "company",
             "message": "status",
+            "environment": "LAB",
+            "version": "1.0.0",
         }
         result = pipeline.execute(command)
         self.assertEqual("ROUTED", result["status"])
         self.assertEqual(("CONSOLE", "GATEWAY", "POLICY", "ENGINE", "AUDIT"), result["path"])
         self.assertEqual("fenix-capital", audits[0]["company_id"])
+        self.assertEqual("LAB", audits[0]["environment"])
+        self.assertEqual("1.0.0", audits[0]["version"])
         self.assertEqual("ROUTED", audits[0]["gateway_status"])
         with self.assertRaises(ValueError):
             pipeline.execute({"request_id": "req-2"})
+        with self.assertRaises(ValueError):
+            pipeline.execute({**command, "environment": "DEV"})
+
+        bad_company = pipeline_mod.ConsolePipeline(
+            lambda c: {"status": "ROUTED", "company_id": "other", "environment": c["environment"], "version": c["version"]},
+            audits.append,
+        )
+        with self.assertRaises(ValueError):
+            bad_company.execute(command)
+
+        bad_env = pipeline_mod.ConsolePipeline(
+            lambda c: {"status": "ROUTED", "company_id": c["company_id"], "environment": "PROD", "version": c["version"]},
+            audits.append,
+        )
+        with self.assertRaises(ValueError):
+            bad_env.execute(command)
 
 
 if __name__ == "__main__":
