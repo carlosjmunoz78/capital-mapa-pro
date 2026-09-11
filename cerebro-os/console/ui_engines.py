@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, Mapping
 
+VALID_ENVIRONMENTS={'LAB','PREPROD','PROD'}
+
 # CONSOLE-001
 @dataclass(frozen=True)
 class ConsoleSession:
@@ -37,12 +39,15 @@ def classify_command(text:str)->tuple[str,str|None]:
 # ACTGW-001
 @dataclass(frozen=True)
 class ActionEnvelope:
-    request_id:str; company_id:str; engine_id:str; action:str; idempotency_key:str; policy_allowed:bool; iam_allowed:bool; audit_ref:str; preview_required:bool=False; preview_approved:bool=False
+    request_id:str; company_id:str; engine_id:str; action:str; idempotency_key:str; policy_allowed:bool; iam_allowed:bool; audit_ref:str
+    preview_required:bool=False; preview_approved:bool=False; environment:str='LAB'; version:str='1.0.0'; policy_evidence_ref:str=''; iam_evidence_ref:str=''
     def decision(self):
-        if not all((self.request_id.strip(),self.company_id.strip(),self.engine_id.strip(),self.action.strip(),self.idempotency_key.strip(),self.audit_ref.strip())):return 'RED'
+        if not all((self.request_id.strip(),self.company_id.strip(),self.engine_id.strip(),self.action.strip(),self.idempotency_key.strip(),self.audit_ref.strip(),self.version.strip())):return 'RED'
+        if self.environment not in VALID_ENVIRONMENTS:return 'RED'
         if not self.policy_allowed:return 'HUMAN_REQUIRED'
         if not self.iam_allowed:return 'BLOCKED'
         if self.preview_required and not self.preview_approved:return 'BLOCKED'
+        if not self.policy_evidence_ref.strip() or not self.iam_evidence_ref.strip():return 'BLOCKED'
         return 'GREEN'
 
 # DIRUI-001
