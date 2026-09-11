@@ -17,11 +17,19 @@ records = load("cerebro_observability", "observability/records.py")
 supervisor = load("cerebro_supervisor", "supervisor/supervisor.py")
 
 class QualityObservabilityTests(unittest.TestCase):
-    def test_evaluation_needs_evidence(self):
+    def test_evaluation_needs_evidence_and_scope(self):
         result = evaluation.EvaluationResult("FACT-001", 1.0, 0.9, ())
         self.assertFalse(result.passed)
-        evidenced = evaluation.EvaluationResult("FACT-001", 1.0, 0.9, ("ci://run/1",))
+        evidenced = evaluation.EvaluationResult(
+            "FACT-001", 1.0, 0.9, ("ci://run/1",),
+            company_id="fenix-capital", environment="PROD", version="2.0.0",
+        )
         self.assertTrue(evidenced.passed)
+        self.assertTrue(evaluation.aggregate((evidenced,), company_id="fenix-capital", environment="PROD", version="2.0.0"))
+        self.assertFalse(evaluation.aggregate((evidenced,), company_id="other", environment="PROD", version="2.0.0"))
+        self.assertFalse(evaluation.aggregate((evidenced,), company_id="fenix-capital", environment="LAB", version="2.0.0"))
+        with self.assertRaises(ValueError):
+            evaluation.EvaluationResult("FACT-001", 1.0, 0.9, ("e",), environment="DEV").validate()
 
     def test_tribunal_rejects_missing_gate(self):
         gates = {gate: True for gate in tribunal.REQUIRED_GATES}
