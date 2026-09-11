@@ -11,7 +11,10 @@ class T(unittest.TestCase):
  def test_189_command(self):
   self.assertEqual(('GREEN','STATUS'),u.classify_command('estado motores'));self.assertEqual(('HUMAN_REQUIRED','LOW_CONFIDENCE'),u.classify_command('???'))
  def test_190_action_gateway(self):
-  a=u.ActionEnvelope('r','f','VIA-001','run','k',True,True,'audit');self.assertEqual('GREEN',a.decision());self.assertEqual('HUMAN_REQUIRED',u.ActionEnvelope('r','f','VIA-001','run','k',False,True,'audit').decision())
+  a=u.ActionEnvelope('r','f','VIA-001','run','k',True,True,'audit',environment='LAB',version='1.0.0',policy_evidence_ref='policy:1',iam_evidence_ref='iam:1');self.assertEqual('GREEN',a.decision())
+  self.assertEqual('BLOCKED',u.ActionEnvelope('r','f','VIA-001','run','k',True,True,'audit').decision())
+  self.assertEqual('HUMAN_REQUIRED',u.ActionEnvelope('r','f','VIA-001','run','k',False,True,'audit').decision())
+  self.assertEqual('RED',u.ActionEnvelope('r','f','VIA-001','run','k',True,True,'audit',environment='DEV',policy_evidence_ref='p',iam_evidence_ref='i').decision())
  def test_191_director(self):u.DirectorView(1,0,2,3,0,'next').validate()
  def test_192_timeline(self):
   rows=(u.TimelineEvent('f','A','GREEN',0,'e'),u.TimelineEvent('g','B','RED',0,'e'));self.assertEqual(1,len(u.timeline(rows,'f')))
