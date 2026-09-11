@@ -14,8 +14,9 @@ class T(unittest.TestCase):
   c=p.LegacyContract('APP','1.0',('r',),('w',),'snap');c.validate();self.assertFalse(c.change_allowed(True,False,True));self.assertFalse(c.change_allowed(True,True,True));self.assertTrue(c.change_allowed(True,True,True,{'tests':'ci:1','rollback':'rb:1','scope':'scope:1'}))
  def test_129_crm_wrapper_preserves_snapshot_and_gates_change(self):
   c=p.LegacyContract('CRM','1.0',('r',),('w',),'snap');self.assertFalse(c.change_allowed(True,True,True));self.assertTrue(c.change_allowed(True,True,True,{'tests':'ci:1','rollback':'rb:1','scope':'scope:1'}))
- def test_130_data_contract_multicompany(self):
-  c=data.DataContract('DATA-001','case','1.0',True,'schema','APP',('CRM',));self.assertTrue(c.safe_for_multicompany())
+ def test_130_data_contract_multicompany_requires_canonical_scope_fields(self):
+  unsafe=data.DataContract('DATA-001','case','1.0',True,'schema','APP',('CRM',));self.assertFalse(unsafe.safe_for_multicompany())
+  safe=data.DataContract('DATA-001','case','1.0',True,'schema','APP',('CRM',),('company_id','engine_id','environment','version'));self.assertTrue(safe.safe_for_multicompany())
  def test_131_api_gateway_routes_known_escalates_missing_and_is_version_scoped(self):
   r=conn.ConnectorRegistry();r.register(conn.ConnectorCapability('generic','read','OFFICIAL_API'));r.register(conn.ConnectorCapability('v2','read','OFFICIAL_API','f',True,'PROD','2.0.0'));g=gw.Gateway({'API-001'},r)
   self.assertEqual('generic',g.route(gw.GatewayRequest('f','API-001','read'))['connector_id']);self.assertEqual('v2',g.route(gw.GatewayRequest('f','API-001','read','PROD','2.0.0'))['connector_id']);self.assertEqual('generic',g.route(gw.GatewayRequest('f','API-001','read','PROD','1.0.0'))['connector_id']);self.assertEqual('HUMAN_REQUIRED',g.route(gw.GatewayRequest('f','X','read'))['status'])
