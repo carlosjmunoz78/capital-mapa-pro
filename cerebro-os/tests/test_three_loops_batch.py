@@ -134,18 +134,24 @@ class ThreeGroupedLoopsTests(unittest.TestCase):
         self.assertEqual("GREEN", executor.state)
         self.assertEqual(len(onboarding.CANONICAL_PHASES), len(executor.completed))
 
-    def test_loop3_company_backup_bundle_detects_tampering(self):
+    def test_loop3_company_backup_bundle_detects_tampering_and_is_scope_isolated(self):
         files = {
             "registry/company.json": b'{"company_id":"fenix-capital"}',
             "config/runtime.json": b'{"environment":"LAB"}',
         }
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
-            manifest_path = bundle.write_bundle(root, "fenix-capital", files)
+            manifest_path = bundle.write_bundle(root, "fenix-capital", files, version="2.0.0", environment="LAB")
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual("LAB", manifest["environment"])
+            self.assertEqual("2.0.0", manifest["version"])
             self.assertTrue(bundle.verify_bundle(root, manifest))
-            (root / "fenix-capital" / "config" / "runtime.json").write_bytes(b"tampered")
+            self.assertTrue(str(manifest_path).endswith("fenix-capital/LAB/2.0.0/backup_manifest.json"))
+            tamper_path = root / "fenix-capital" / "LAB" / "2.0.0" / "config" / "runtime.json"
+            tamper_path.write_bytes(b"tampered")
             self.assertFalse(bundle.verify_bundle(root, manifest))
+            with self.assertRaises(ValueError):
+                bundle.write_bundle(root, "fenix-capital", files, environment="INVALID")
 
 
 if __name__ == "__main__":
