@@ -10,7 +10,7 @@ spec = importlib.util.spec_from_file_location("system_gate_scope", ROOT / "regis
 gate = importlib.util.module_from_spec(spec)
 sys.modules["system_gate_scope"] = gate
 spec.loader.exec_module(gate)
-ids = tuple(json.loads((ROOT / "registry/canonical_177.json").read_text(encoding="utf-8")))
+ids = tuple(json.loads((ROOT / "registry/canonical_177.json").read_text(encoding="utf-8"))["engine_ids"])
 
 
 class SystemGateVersionScopeTests(unittest.TestCase):
