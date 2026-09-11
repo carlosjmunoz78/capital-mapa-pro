@@ -28,8 +28,16 @@ class Loop19KnowledgeTests(unittest.TestCase):
         idx.upsert(knowledge.KnowledgeRecord("c2", "r2", "hipoteca fija otra empresa", "src:2", "2026-09-10T00:00:00+00:00"))
         self.assertEqual(("r1",), idx.retrieve("c1", "hipoteca fija"))
         idx.upsert(knowledge.KnowledgeRecord("c1", "r1", "hipoteca variable euribor", "src:1", "2026-09-11T00:00:00+00:00", "1.0.1"))
-        self.assertEqual((), idx.retrieve("c1", "hipoteca fija"))
-        self.assertEqual(("r1",), idx.retrieve("c1", "hipoteca variable"))
+        self.assertEqual(("r1",), idx.retrieve("c1", "hipoteca fija", version="1.0.0"))
+        self.assertEqual(("r1",), idx.retrieve("c1", "hipoteca variable", version="1.0.1"))
+
+    def test_knowledge_scope_is_environment_and_version_isolated(self):
+        idx = knowledge.KnowledgeIndex()
+        idx.upsert(knowledge.KnowledgeRecord("c1", "same", "dato prod", "src:p", "2026-09-11T00:00:00+00:00", "2.0.0", "PROD"))
+        idx.upsert(knowledge.KnowledgeRecord("c1", "same", "dato lab", "src:l", "2026-09-11T00:00:00+00:00", "2.0.0", "LAB"))
+        self.assertEqual(("same",), idx.retrieve("c1", "prod", environment="PROD", version="2.0.0"))
+        self.assertEqual((), idx.retrieve("c1", "prod", environment="LAB", version="2.0.0"))
+        self.assertEqual((), idx.retrieve("c1", "prod", environment="PROD", version="1.0.0"))
 
     def test_freshness_flags_old_records(self):
         idx = knowledge.KnowledgeIndex()
@@ -47,6 +55,15 @@ class Loop20DiscoveryTests(unittest.TestCase):
         self.assertEqual("HUMAN_REQUIRED", run.engine_status("KW-001"))
         with self.assertRaises(ValueError):
             run.add(discovery.DiscoveryFinding("other", "WAUD-001", "site", "evidence:web:2", 0.99))
+
+    def test_discovery_rejects_cross_environment_or_version(self):
+        run = discovery.DiscoveryRun("fenix", "PROD", "2.0.0")
+        with self.assertRaises(ValueError):
+            run.add(discovery.DiscoveryFinding("fenix", "SCAN-001", "site", "e", .99, environment="LAB", version="2.0.0"))
+        with self.assertRaises(ValueError):
+            run.add(discovery.DiscoveryFinding("fenix", "SCAN-001", "site", "e", .99, environment="PROD", version="1.0.0"))
+        run.add(discovery.DiscoveryFinding("fenix", "SCAN-001", "site", "e:prod", .99, environment="PROD", version="2.0.0"))
+        self.assertEqual("GREEN", run.engine_status("SCAN-001"))
 
 
 class Loop21GrowthTests(unittest.TestCase):
