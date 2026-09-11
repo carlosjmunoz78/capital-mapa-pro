@@ -29,14 +29,14 @@ class Job:
             raise ValueError("max_attempts must be positive")
 
     @property
-    def idempotency_scope(self) -> tuple[str, str, str, str]:
-        return (self.company_id, self.environment, self.engine_id, self.job_id)
+    def idempotency_scope(self) -> tuple[str, str, str, str, str]:
+        return (self.company_id, self.environment, self.version, self.engine_id, self.job_id)
 
 
 class JobQueue:
     def __init__(self) -> None:
         self._queue: deque[Job] = deque()
-        self._seen: set[tuple[str, str, str, str]] = set()
+        self._seen: set[tuple[str, str, str, str, str]] = set()
 
     def enqueue(self, job: Job) -> bool:
         job.validate()
