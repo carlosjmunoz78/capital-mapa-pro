@@ -55,14 +55,17 @@ class GroupedNextLoops(unittest.TestCase):
 
     def test_loop_bootstrap_retries_failed_phase_and_preserves_canonical_order(self):
         ids = set(canonical.canonical_engine_ids())
-        state = bootstrap.BootstrapState("fenix-capital", ("COMP-REG-001", "KBOOT-001"))
+        state = bootstrap.BootstrapState("fenix-capital", ("COMP-REG-001", "KBOOT-001"), environment="LAB", version="2.0.0")
         state.validate(ids)
         self.assertEqual("company_registry", state.next_phase())
         failed = bootstrap.advance(state, "company_registry", False)
         self.assertEqual("company_registry", failed.next_phase())
-        recovered = bootstrap.advance(failed, "company_registry", True)
+        with self.assertRaises(ValueError):
+            bootstrap.advance(failed, "company_registry", True)
+        recovered = bootstrap.advance(failed, "company_registry", True, evidence_ref="evidence:company_registry", version="2.0.0")
         self.assertEqual(("company_registry",), recovered.completed_phases)
         self.assertEqual("business_discovery", recovered.next_phase())
+        self.assertEqual("evidence:company_registry", dict(recovered.evidence_by_phase)["company_registry"])
         recovered.validate(ids)
         with self.assertRaises(ValueError):
             bootstrap.BootstrapState("fenix", ("NOT-A-CANONICAL-ID",)).validate(ids)
