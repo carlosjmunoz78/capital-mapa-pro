@@ -88,12 +88,18 @@ class NextLoopTests(unittest.TestCase):
         q2=gateway.GatewayRequest('u','c','global','unknown','r2'); self.assertEqual(r.route(q2)['status'],'HUMAN_REQUIRED')
         with self.assertRaises(ValueError): gateway.GatewayRequest('u','c','global','status','r3',environment='INVALID').validate()
 
-    def test_console_history_is_company_scoped_and_green_is_evidenced(self):
+    def test_console_history_is_full_scope_scoped_and_green_is_evidenced(self):
         h=history.ConsoleHistory()
         with self.assertRaises(ValueError): h.append(history.HistoryEntry('r0','c1','e1','GREEN'))
-        h.append(history.HistoryEntry('r1','c1','e1','GREEN','ref:1')); h.append(history.HistoryEntry('r2','c2','e1','GREEN','ref:2'))
-        self.assertEqual(len(h.by_company('c1')),1)
-        self.assertEqual(h.by_company('c1')[0].evidence_ref,'ref:1')
+        h.append(history.HistoryEntry('r1','c1','e1','GREEN','ref:1','LAB','1.0.0'))
+        h.append(history.HistoryEntry('r2','c1','e1','GREEN','ref:2','PROD','2.0.0'))
+        h.append(history.HistoryEntry('r3','c2','e1','GREEN','ref:3','LAB','1.0.0'))
+        self.assertEqual(len(h.by_company('c1')),2)
+        lab=h.by_scope('c1','e1','LAB','1.0.0')
+        self.assertEqual(len(lab),1); self.assertEqual(lab[0].evidence_ref,'ref:1')
+        prod=h.by_scope('c1','e1','PROD','2.0.0')
+        self.assertEqual(len(prod),1); self.assertEqual(prod[0].evidence_ref,'ref:2')
+        with self.assertRaises(ValueError): h.append(history.HistoryEntry('r4','c1','e1','GREEN','ref','DEV','1.0.0'))
 
     def test_mass_scaffold_plan_rejects_duplicates(self):
         p=mass.MassScaffoldPlan([mass.EngineSpec('A','a'),mass.EngineSpec('B','b')]); self.assertEqual(len(p.output_paths()),2)
