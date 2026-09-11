@@ -76,9 +76,22 @@ class NextLoopTests(unittest.TestCase):
         gw = gateway_mod.Gateway({"SUP-001"}, registry)
         routed = gw.route(gateway_mod.GatewayRequest("fenix", "SUP-001", "status.read"))
         self.assertEqual("ROUTED", routed["status"])
+        self.assertEqual("LAB", routed["environment"])
+        self.assertEqual("1.0.0", routed["version"])
         blocked = gateway_mod.Gateway({"SUP-001"}, registry, policy_check=lambda request: (False, "POLICY_CONFLICT"))
         result = blocked.route(gateway_mod.GatewayRequest("fenix", "SUP-001", "status.read"))
         self.assertEqual({"status": "HUMAN_REQUIRED", "reason": "POLICY_CONFLICT"}, result)
+
+    def test_gateway_never_routes_lab_only_connector_into_prod(self):
+        registry = conn_mod.ConnectorRegistry()
+        registry.register(conn_mod.ConnectorCapability("lab-api", "status.read", "OFFICIAL_API", environment="LAB"))
+        registry.register(conn_mod.ConnectorCapability("prod-browser", "status.read", "BROWSER", environment="PROD"))
+        gw = gateway_mod.Gateway({"SUP-001"}, registry)
+        routed = gw.route(gateway_mod.GatewayRequest("fenix", "SUP-001", "status.read", environment="PROD", version="2.0.0"))
+        self.assertEqual("ROUTED", routed["status"])
+        self.assertEqual("prod-browser", routed["connector_id"])
+        self.assertEqual("PROD", routed["environment"])
+        self.assertEqual("2.0.0", routed["version"])
 
     def test_executable_backup_restore_and_rebuild(self):
         with tempfile.TemporaryDirectory() as td:
