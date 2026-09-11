@@ -53,6 +53,7 @@ class LoopsFourToSixTests(unittest.TestCase):
             company_id="fenix-capital",
             required_engines=("COMP-REG-001", "TENANT-001", "SUP-001"),
             engine_states={"COMP-REG-001": "GREEN", "TENANT-001": "GREEN", "SUP-001": "RED"},
+            evidence_refs={"COMP-REG-001": ("e1",), "TENANT-001": ("e2",)},
         )
         self.assertEqual("RED", result["state"])
         self.assertEqual(("SUP-001",), result["not_green"])
@@ -60,8 +61,16 @@ class LoopsFourToSixTests(unittest.TestCase):
             company_id="fenix-capital",
             required_engines=("COMP-REG-001", "TENANT-001"),
             engine_states={"COMP-REG-001": "GREEN", "TENANT-001": "GREEN"},
+            evidence_refs={"COMP-REG-001": ("e1",), "TENANT-001": ("e2",)},
         )
         self.assertEqual("GREEN", green["state"])
+        no_evidence = health_mod.company_health(
+            company_id="fenix-capital",
+            required_engines=("COMP-REG-001",),
+            engine_states={"COMP-REG-001": "GREEN"},
+        )
+        self.assertEqual("RED", no_evidence["state"])
+        self.assertEqual(("COMP-REG-001",), no_evidence["green_without_evidence"])
 
     def test_loop5_dependency_and_backup_readiness(self):
         canonical_ids = set(canonical.canonical_engine_ids())
