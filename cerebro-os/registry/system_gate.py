@@ -7,19 +7,19 @@ ALLOWED_STATES_BY_ENVIRONMENT = {
 }
 
 
-def system_readiness(*, canonical_ids, matrix, environment: str = "LAB", company_id: str | None = None) -> dict:
+def system_readiness(*, canonical_ids, matrix, environment: str = "LAB", company_id: str | None = None, version: str | None = None) -> dict:
     """Evaluate one explicit system scope.
 
-    The gate defaults to LAB only for backwards compatibility with the canonical
-    177 LAB test. PREPROD/PROD can never inherit LAB_GREEN as system green.
-    When company_id is provided, rows from another tenant are rejected from the
-    evaluated scope instead of being silently counted.
+    PREPROD/PROD can never inherit LAB_GREEN. Company/environment/version filters
+    fail closed when a row belongs to another scope, preventing cross-release green.
     """
     canonical = tuple(canonical_ids)
     if len(canonical) != 177 or len(set(canonical)) != 177:
         raise ValueError("system gate requires exactly 177 unique canonical engines")
     if environment not in ALLOWED_STATES_BY_ENVIRONMENT:
         raise ValueError("invalid environment")
+    if version is not None and not version.strip():
+        raise ValueError("version must be non-empty")
 
     by_id: dict[str, dict] = {}
     duplicate_rows: list[str] = []
@@ -30,10 +30,14 @@ def system_readiness(*, canonical_ids, matrix, environment: str = "LAB", company
             continue
         row_env = row.get("environment")
         row_company = row.get("company_id")
+        row_version = row.get("version")
         if row_env not in {None, environment}:
             out_of_scope_rows.append(engine_id)
             continue
         if company_id is not None and row_company not in {None, company_id}:
+            out_of_scope_rows.append(engine_id)
+            continue
+        if version is not None and row_version not in {None, version}:
             out_of_scope_rows.append(engine_id)
             continue
         if engine_id in by_id:
@@ -43,11 +47,7 @@ def system_readiness(*, canonical_ids, matrix, environment: str = "LAB", company
 
     missing_rows = tuple(engine_id for engine_id in canonical if engine_id not in by_id)
     allowed_states = ALLOWED_STATES_BY_ENVIRONMENT[environment]
-    not_green = tuple(
-        engine_id
-        for engine_id in canonical
-        if engine_id in by_id and by_id[engine_id].get("state") not in allowed_states
-    )
+    not_green = tuple(engine_id for engine_id in canonical if engine_id in by_id and by_id[engine_id].get("state") not in allowed_states)
     green_count = len(canonical) - len(missing_rows) - len(not_green)
     scope_errors = tuple(sorted(set(duplicate_rows + out_of_scope_rows)))
     return {
@@ -59,4 +59,5 @@ def system_readiness(*, canonical_ids, matrix, environment: str = "LAB", company
         "scope_errors": scope_errors,
         "environment": environment,
         "company_id": company_id,
+        "version": version,
     }
