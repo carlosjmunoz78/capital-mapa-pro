@@ -33,11 +33,13 @@ class Loops55To67Tests(unittest.TestCase):
         self.assertEqual("SECURITY_INCIDENT", incident.human_reason)
 
     def test_loop58_self_repair_requires_reversible_precheck_and_rollback(self):
-        ok = r.RepairAction("a", True, True, True, "rb:1")
+        ok = r.RepairAction("a", True, True, True, "rb:1", "pre:e", "post:e")
         self.assertTrue(ok.allowed)
         self.assertEqual("GREEN", ok.result)
-        bad = r.RepairAction("a", False, True, True, "rb:1")
+        bad = r.RepairAction("a", False, True, True, "rb:1", "pre:e", "post:e")
         self.assertEqual("BLOCKED", bad.result)
+        no_post_evidence = r.RepairAction("a", True, True, True, "rb:1", "pre:e", "")
+        self.assertEqual("ROLLBACK_REQUIRED", no_post_evidence.result)
 
     def test_loop59_security_enforces_scopes_and_high_risk_review(self):
         self.assertEqual("ALLOW", r.security_decision(r.SecurityRequest("fenix", frozenset({"read"}), frozenset({"read"}))))
@@ -72,12 +74,14 @@ class Loops55To67Tests(unittest.TestCase):
         old = r.RegressionBaseline("c1", "b1")
         self.assertEqual("GREEN", r.regression_status(old, old))
         self.assertEqual("RED", r.regression_status(old, r.RegressionBaseline("c1", "b2")))
-        self.assertEqual("GREEN", r.regression_status(old, r.RegressionBaseline("c1", "b2"), True))
+        self.assertEqual("RED", r.regression_status(old, r.RegressionBaseline("c1", "b2"), True))
+        self.assertEqual("GREEN", r.regression_status(old, r.RegressionBaseline("c1", "b2"), True, "approval:e"))
 
     def test_loop66_continuity_requires_backup_restore_rebuild_alternate_runtime_runbook(self):
-        ready = r.ContinuityReadiness(True, True, True, True, "runbook:1")
+        ready = r.ContinuityReadiness(True, True, True, True, "runbook:1", ("backup:e", "restore:e", "rebuild:e", "alternate:e"))
         self.assertTrue(ready.green)
-        self.assertFalse(r.ContinuityReadiness(True, False, True, True, "runbook:1").green)
+        self.assertFalse(r.ContinuityReadiness(True, False, True, True, "runbook:1", ("backup:e", "restore:e", "rebuild:e", "alternate:e")).green)
+        self.assertFalse(r.ContinuityReadiness(True, True, True, True, "runbook:1").green)
 
     def test_loop67_crisis_high_risk_requires_human(self):
         self.assertEqual(("HUMAN_REQUIRED", "HIGH_RISK"), r.CrisisAssessment("fenix", "HIGH", "company", "e").decision())
