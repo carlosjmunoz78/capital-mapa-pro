@@ -51,6 +51,12 @@ class QualityObservabilityTests(unittest.TestCase):
             evidence_ref="ci://run/1", duration_ms=12, cost_eur=0.0,
         )
         record.validate()
+        with self.assertRaises(ValueError):
+            records.ExecutionRecord(
+                company_id="fenix-capital", engine_id="FACT-001", version="0.1.0",
+                environment="DEV", action="scaffold", result="success",
+                evidence_ref="ci://run/1", duration_ms=12,
+            ).validate()
 
     def test_supervisor_requires_all_green(self):
         red = supervisor.EngineHealth("FACT-001", True, True, True, False, True)
