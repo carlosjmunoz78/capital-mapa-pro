@@ -22,7 +22,11 @@ class T(unittest.TestCase):
   self.assertEqual('GREEN',s.market_intelligence((s.MarketSignal('rate',2,'official',.9),))[0]);self.assertEqual('HUMAN_REQUIRED',s.market_intelligence((s.MarketSignal('rate',2,'x',.2),))[0])
  def test_161_expansion(self):
   rows=(s.CityScore('A',10,2,5,5,2,5),s.CityScore('B',5,4,5,5,4,5));w={'demand':1,'competition':1,'partner_fit':1,'seo':1,'cost':1,'capacity':1};self.assertEqual(('A','B'),s.rank_cities(rows,w))
- def test_162_franchise(self):self.assertTrue(s.ReplicationReadiness(True,True,True,True,'cfg').green)
+ def test_162_franchise(self):
+  self.assertFalse(s.ReplicationReadiness(True,True,True,True,'cfg').green)
+  self.assertTrue(s.ReplicationReadiness(True,True,True,True,'cfg','config:e','rebuild:e','tenant:e','engines:e').green)
  def test_163_venture(self):
-  self.assertEqual(('SCALE',None),s.VentureCase('x',True,True,1,True,0,0).decision());self.assertEqual(('HUMAN_REQUIRED','MONEY_LIMIT'),s.VentureCase('x',True,True,1,True,2,1).decision())
+  self.assertEqual(('BLOCKED',None),s.VentureCase('x',True,True,1,True,0,0).decision())
+  evidenced=s.VentureCase('x',True,True,1,True,0,0,'research:e','mvp:e','experiment:e','economics:e')
+  self.assertEqual(('SCALE',None),evidenced.decision());self.assertEqual(('HUMAN_REQUIRED','MONEY_LIMIT'),s.VentureCase('x',True,True,1,True,2,1).decision())
 if __name__=='__main__':unittest.main()
