@@ -38,10 +38,16 @@ class ResilienceVersioningDataOnboardingTests(unittest.TestCase):
         contract.validate()
         self.assertTrue(contract.safe_for_multicompany())
 
-    def test_onboarding_order_and_completion(self):
-        plan = onboarding.CompanyOnboardingPlan("fenix-capital")
+    def test_onboarding_order_completion_and_scope(self):
+        plan = onboarding.CompanyOnboardingPlan("fenix-capital", environment="PROD", version="2.0.0")
         self.assertEqual(plan.next_phase(()), "company_registry")
         self.assertIsNone(plan.next_phase(plan.phases))
+        with self.assertRaises(ValueError):
+            onboarding.CompanyOnboardingPlan("fenix-capital", environment="INVALID").validate()
+        with self.assertRaises(ValueError):
+            onboarding.CompanyOnboardingPlan("fenix-capital", version="").validate()
+        with self.assertRaises(ValueError):
+            plan.next_phase(("unknown_phase",))
 
 if __name__ == "__main__":
     unittest.main()
