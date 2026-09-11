@@ -8,24 +8,27 @@ VALID_ENVIRONMENTS={'LAB','PREPROD','PROD'}
 # CONSOLE-001
 @dataclass(frozen=True)
 class ConsoleSession:
-    user_id:str; company_id:str; context_type:str; context_id:str|None; message:str
+    user_id:str; company_id:str; context_type:str; context_id:str|None; message:str; environment:str='LAB'; version:str='1.0.0'
     def validate(self):
-        if not all((self.user_id.strip(),self.company_id.strip(),self.context_type.strip(),self.message.strip())):raise ValueError('console session requires user/company/context/message')
+        if not all((self.user_id.strip(),self.company_id.strip(),self.context_type.strip(),self.message.strip(),self.version.strip())):raise ValueError('console session requires user/company/context/message/version')
+        if self.environment not in VALID_ENVIRONMENTS:raise ValueError('invalid environment')
 
 # CHAT-001
 @dataclass(frozen=True)
 class NormalizedRequest:
-    user_id:str; company_id:str; context_ref:str; permissions:frozenset[str]; input_type:str; content_ref:str
+    user_id:str; company_id:str; context_ref:str; permissions:frozenset[str]; input_type:str; content_ref:str; environment:str='LAB'; version:str='1.0.0'
     def validate(self):
         if self.input_type not in {'TEXT','FILE','VOICE'}:raise ValueError('unsupported input type')
-        if not all((self.user_id.strip(),self.company_id.strip(),self.context_ref.strip(),self.content_ref.strip())):raise ValueError('normalized request fields required')
+        if not all((self.user_id.strip(),self.company_id.strip(),self.context_ref.strip(),self.content_ref.strip(),self.version.strip())):raise ValueError('normalized request fields required')
+        if self.environment not in VALID_ENVIRONMENTS:raise ValueError('invalid environment')
 
 # CTX-001
 @dataclass(frozen=True)
 class ContextPackage:
-    company_id:str; entity_refs:tuple[str,...]; engine_refs:tuple[str,...]; history_refs:tuple[str,...]; permissions:frozenset[str]; provenance_refs:tuple[str,...]
+    company_id:str; entity_refs:tuple[str,...]; engine_refs:tuple[str,...]; history_refs:tuple[str,...]; permissions:frozenset[str]; provenance_refs:tuple[str,...]; environment:str='LAB'; version:str='1.0.0'
     def validate(self,max_refs:int=100):
-        if not self.company_id.strip() or not self.provenance_refs:raise ValueError('context scope/provenance required')
+        if not self.company_id.strip() or not self.provenance_refs or not self.version.strip():raise ValueError('context scope/provenance required')
+        if self.environment not in VALID_ENVIRONMENTS:raise ValueError('invalid environment')
         if sum(map(len,(self.entity_refs,self.engine_refs,self.history_refs)))>max_refs:raise ValueError('context size limit exceeded')
 
 # CMD-001
@@ -60,26 +63,27 @@ class DirectorView:
 # TIMELINE-001
 @dataclass(frozen=True)
 class TimelineEvent:
-    company_id:str; engine_id:str; result:str; cost_eur:float; evidence_ref:str; repaired:bool=False
+    company_id:str; engine_id:str; result:str; cost_eur:float; evidence_ref:str; repaired:bool=False; environment:str='LAB'; version:str='1.0.0'
 
-def timeline(events:Iterable[TimelineEvent],company_id:str)->tuple[TimelineEvent,...]:
-    rows=tuple(e for e in events if e.company_id==company_id)
-    if any(not e.engine_id.strip() or not e.evidence_ref.strip() or e.cost_eur<0 for e in rows):raise ValueError('invalid timeline event')
+def timeline(events:Iterable[TimelineEvent],company_id:str,environment:str|None=None,version:str|None=None)->tuple[TimelineEvent,...]:
+    rows=tuple(e for e in events if e.company_id==company_id and (environment is None or e.environment==environment) and (version is None or e.version==version))
+    if any(not e.engine_id.strip() or not e.evidence_ref.strip() or not e.version.strip() or e.environment not in VALID_ENVIRONMENTS or e.cost_eur<0 for e in rows):raise ValueError('invalid timeline event')
     return rows
 
 # WHY-001
 @dataclass(frozen=True)
 class Explanation:
-    decision_id:str; rules:tuple[str,...]; sources:tuple[str,...]; data_refs:tuple[str,...]; confidence:float; alternatives:tuple[str,...]; version:str; engine_id:str
+    decision_id:str; rules:tuple[str,...]; sources:tuple[str,...]; data_refs:tuple[str,...]; confidence:float; alternatives:tuple[str,...]; version:str; engine_id:str; company_id:str='GLOBAL'; environment:str='LAB'
     def validate(self):
-        if not all((self.decision_id.strip(),self.sources,self.data_refs,self.version.strip(),self.engine_id.strip())):raise ValueError('explanation provenance required')
+        if not all((self.decision_id.strip(),self.sources,self.data_refs,self.version.strip(),self.engine_id.strip(),self.company_id.strip())):raise ValueError('explanation provenance required')
+        if self.environment not in VALID_ENVIRONMENTS:raise ValueError('invalid environment')
         if not 0<=self.confidence<=1:raise ValueError('confidence normalized')
 
 # VOICEUI-001
 @dataclass(frozen=True)
 class VoiceInput:
-    company_id:str; audio_ref:str; local_transcript:str; consent:bool
+    company_id:str; audio_ref:str; local_transcript:str; consent:bool; environment:str='LAB'; version:str='1.0.0'
     def to_chat(self):
-        if not self.company_id.strip() or not self.audio_ref.strip() or not self.local_transcript.strip():return 'RED',None
+        if not self.company_id.strip() or not self.audio_ref.strip() or not self.local_transcript.strip() or not self.version.strip() or self.environment not in VALID_ENVIRONMENTS:return 'RED',None
         if not self.consent:return 'HUMAN_REQUIRED','LEGAL_REQUIRED'
         return 'GREEN',self.local_transcript
