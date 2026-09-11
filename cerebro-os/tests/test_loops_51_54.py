@@ -20,7 +20,7 @@ learn = load("learning_control_51_54", "learning/control.py")
 
 class Loops51To54Tests(unittest.TestCase):
     def test_loop51_learning_generates_candidates_but_never_autopromotes(self):
-        engine = learn.LearningEngine("fenix")
+        engine = learn.LearningEngine("fenix", "LAB", "1.0.0")
         for i in range(3):
             engine.record(learn.OutcomeEvent("fenix", "mortgage", "ask_more_docs", "approved", f"e:{i}", True))
         candidates = engine.candidates(3)
@@ -29,15 +29,22 @@ class Loops51To54Tests(unittest.TestCase):
         self.assertTrue(candidates[0].sensitive)
         with self.assertRaises(ValueError):
             engine.record(learn.OutcomeEvent("other", "mortgage", "x", "y", "e"))
+        with self.assertRaises(ValueError):
+            engine.record(learn.OutcomeEvent("fenix", "mortgage", "x", "y", "e", environment="PROD"))
 
-    def test_loop52_training_is_reproducible_and_never_prod_direct(self):
+    def test_loop52_training_is_reproducible_evidenced_and_never_prod_direct(self):
         reg = learn.TrainingRegistry()
         run = learn.TrainingRun("r1", "fenix", "SALE-001", "ds-1", "git-1", "LAB", (("accuracy", 0.9),), "ci:1")
         reg.register(run)
         with self.assertRaises(ValueError):
-            reg.promote_champion("r1", tribunal_approved=False, reproducible=True)
-        reg.promote_champion("r1", tribunal_approved=True, reproducible=True)
-        self.assertEqual("r1", reg.champion("fenix", "SALE-001").run_id)
+            reg.promote_champion("r1", tribunal_approved=False, reproducible=True, evidence_refs={"tribunal":"t","reproducibility":"r"})
+        with self.assertRaises(ValueError):
+            reg.promote_champion("r1", tribunal_approved=True, reproducible=True)
+        evidence={"tribunal":"tribunal:1","reproducibility":"ci:repro:1"}
+        reg.promote_champion("r1", tribunal_approved=True, reproducible=True, evidence_refs=evidence)
+        self.assertEqual("r1", reg.champion("fenix", "SALE-001", "LAB", "git-1").run_id)
+        self.assertEqual(evidence, reg.promotion_evidence("r1"))
+        self.assertIsNone(reg.champion("fenix", "SALE-001", "PREPROD", "git-1"))
         with self.assertRaises(ValueError):
             learn.TrainingRun("r2", "fenix", "SALE-001", "ds", "git", "PROD", (), "e").validate()
 
