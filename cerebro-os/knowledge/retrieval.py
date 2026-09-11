@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from hashlib import sha256
-from typing import Iterable
 
 
 @dataclass(frozen=True)
@@ -47,6 +46,8 @@ class KnowledgeIndex:
     def retrieve(self, company_id: str, query: str, limit: int = 5) -> tuple[str, ...]:
         if not company_id.strip() or not query.strip():
             raise ValueError("company_id and query are required")
+        if limit < 1:
+            raise ValueError("limit must be positive")
         cache_key = (company_id, query.strip().lower())
         if cache_key in self._cache:
             return self._cache[cache_key]
@@ -56,14 +57,17 @@ class KnowledgeIndex:
             if cid != company_id:
                 continue
             haystack = record.text.lower()
+            if not all(term in haystack for term in terms):
+                continue
             score = sum(haystack.count(term) for term in terms)
-            if score:
-                scored.append((score, rid))
+            scored.append((score, rid))
         result = tuple(rid for _, rid in sorted(scored, key=lambda x: (-x[0], x[1]))[:limit])
         self._cache[cache_key] = result
         return result
 
     def stale(self, company_id: str, max_age_seconds: int, now: datetime | None = None) -> tuple[str, ...]:
+        if max_age_seconds < 0:
+            raise ValueError("max_age_seconds cannot be negative")
         now = now or datetime.now(timezone.utc)
         stale_ids: list[str] = []
         for (cid, rid), record in self._records.items():
