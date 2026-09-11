@@ -17,6 +17,8 @@ Evidence-first PROD audit. Remediation only when reversible and contract-preserv
 - All 38 active Edge Functions inventoried; no additional hardcoded secret found in inspected source.
 - Six missing FK indexes added additively; advisor now has 0 unindexed foreign-key findings.
 - Make hygiene loop: active TEMP/TEST/PRE-PROD scenarios found in the current active inventory were deactivated without deleting configuration/history. Post-change searches return 0 active names matching `TEMP`, `TEST` or `PRE-PROD`. CORE/MASTER/PROD scenarios were preserved.
+- 2026-09-12 live advisor rerun confirms the same security shape: 40 intentional RLS-no-policy INFO, 1 `pg_net` WARN, 24 authenticated SECURITY DEFINER WARN, 1 leaked-password WARN. Performance still has no unindexed-FK warning; remaining notices are unused-index INFO plus Auth absolute connection allocation INFO.
+- 2026-09-12 `pg_net` dependency recheck: extension is still in `public`, `extrelocatable=false`, owns 28 extension objects. No Fénix trigger definition references `net.*`; no `cron` schema exists. The only non-extension function body matching `net.*` is Supabase helper `extensions.grant_pg_net_access`, so no application caller was identified by database-side dependency scan.
 
 ## EXISTING / intentional architectural warnings
 - 40 `fenix_prod` tables: RLS enabled/no policy is an intentional closed-table pattern; no direct anon/authenticated table grants.
@@ -25,7 +27,8 @@ Evidence-first PROD audit. Remediation only when reversible and contract-preserv
 
 ## PARTIAL / pending external or destructive dependency closure
 - Make WordPress shared secret remains present in scenarios 9694504 and 9694499. Scenario 9694504 is now inactive as part of PRE-PROD retirement; 9694499 was already inactive. History shows executions only on 2026-08-22 and no retained headers/IP identifying the caller. With both scenarios inactive there is no active Make webhook consumer to preserve, but rotation/removal is still blocked until the external caller/dependency is identified or formally retired. Do not print/commit the value.
-- `pg_net` is in `public`, non-relocatable, with extension-owned objects; no Fénix caller found. Drop/recreate blocked pending backup/dependency/restore evidence.
+- Make connector reconnect is currently required before the remaining inactive-test scenario inventory and live connection-consumer mapping can be completed. This is an external connector-access block, not a green result.
+- `pg_net` is in `public`, non-relocatable, with 28 extension-owned objects. Database-side caller scan found no Fénix trigger/function/cron caller, but drop/recreate remains blocked pending a verified backup/restore path because removal is destructive and `extrelocatable=false`.
 - Supabase Auth leaked-password protection disabled; connector cannot mutate Auth config. No new subscription solely to silence warning.
 - Legacy anon and modern publishable keys both active; deployed frontend inventory incomplete, so no blind revocation.
 - Auth DB connection allocation absolute-count advisory remains informational.
@@ -42,6 +45,17 @@ Security: 40 intentional RLS INFO; 1 `pg_net` WARN; 24 intentional authenticated
 - Stage/task/chat validation: restore prior function body if demonstrated regression.
 - FK indexes: drop only named additive indexes if demonstrated regression.
 - Social lead secret: active credential in Vault; former credential intentionally invalidated.
+
+## `pg_net` controlled-removal gate
+Do not execute destructive removal until all gates are evidenced:
+1. provider/database backup reference captured;
+2. dependency snapshot stored;
+3. SQL/object export sufficient to rebuild extension-adjacent state;
+4. restore/rebuild drill executed outside PROD;
+5. extension reinstall path verified for the exact Supabase/Postgres environment;
+6. OLD vs NEW smoke confirms App/CRM/Edge behavior unchanged;
+7. rollback/reinstall procedure timed and documented.
+Until then the correct state is `PARTIAL_CONTROLLED`, not RED-by-force and not GREEN-by-prose.
 
 ## Promotion rule
 No warning becomes GREEN by documentation alone. GREEN requires live contract/permission/version/test/advisor evidence. External/destructive unknowns remain PARTIAL.
