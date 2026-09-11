@@ -11,8 +11,8 @@ VALID_ENVIRONMENTS = {"LAB", "PREPROD", "PROD"}
 class SQLiteRuntimeStore:
     """Zero-additional-cost persistence for events/jobs/audit history.
 
-    Runtime identity and idempotency are scoped by company, engine and environment so
-    one tenant cannot suppress another tenant's legitimate record.
+    Runtime identity and idempotency are scoped by company, engine, environment and
+    version so one tenant or release cannot suppress another legitimate record.
     """
 
     def __init__(self, path: str | Path):
@@ -36,10 +36,10 @@ class SQLiteRuntimeStore:
               payload_json TEXT NOT NULL,
               status TEXT NOT NULL DEFAULT 'PENDING',
               created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              UNIQUE(kind, idempotency_key, company_id, engine_id, environment)
+              UNIQUE(kind, idempotency_key, company_id, engine_id, environment, version)
             );
             CREATE INDEX IF NOT EXISTS idx_runtime_company_engine
-              ON runtime_records(company_id, engine_id, environment, kind);
+              ON runtime_records(company_id, engine_id, environment, version, kind);
             """
         )
 
@@ -47,8 +47,9 @@ class SQLiteRuntimeStore:
         existing = self.conn.execute(
             "SELECT sql FROM sqlite_master WHERE type='table' AND name='runtime_records'"
         ).fetchone()
-        old_global_idempotency = bool(existing and existing[0] and "UNIQUE(kind, idempotency_key)" in existing[0])
-        if old_global_idempotency:
+        sql = existing[0] if existing and existing[0] else ""
+        legacy_scope = bool(sql) and "UNIQUE(kind, idempotency_key, company_id, engine_id, environment, version)" not in sql
+        if legacy_scope:
             self.conn.execute("ALTER TABLE runtime_records RENAME TO runtime_records_legacy")
             self._create_runtime_table()
             self.conn.execute(
