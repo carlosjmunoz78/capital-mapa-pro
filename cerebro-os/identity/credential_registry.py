@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
 
 FORBIDDEN_SECRET_FIELDS = {"password", "passwords", "token", "tokens", "api_key", "api_keys", "secret", "secret_value", "raw_secret"}
@@ -34,7 +34,6 @@ class CredentialRegistry:
         return cls(json.loads(Path(path).read_text(encoding="utf-8")))
 
     def validate(self) -> None:
-        encoded = json.dumps(self.payload).lower()
         # Structural guard: explicit secret-bearing keys are forbidden anywhere.
         def walk(value):
             if isinstance(value, dict):
@@ -79,6 +78,31 @@ class CredentialRegistry:
             self.connection(int(row["connection_id"]))
             for row in self.payload.get("make_connections", [])
             if row.get("app") == app
+        )
+
+    def duplicate_label_candidates(self) -> dict[tuple[str, str], tuple[MakeConnectionRef, ...]]:
+        """Return same-app/same-label groups for live usage audit.
+
+        Matching labels are only candidates for consolidation. This method never
+        treats them as safe-to-delete because consumer usage must be verified in
+        Make before any connection is retired.
+        """
+        groups: dict[tuple[str, str], list[MakeConnectionRef]] = defaultdict(list)
+        for row in self.payload.get("make_connections", []):
+            ref = self.connection(int(row["connection_id"]))
+            groups[(ref.app, ref.label)].append(ref)
+        return {
+            key: tuple(sorted(rows, key=lambda item: item.connection_id))
+            for key, rows in groups.items()
+            if len(rows) > 1
+        }
+
+    def incomplete_audit_scopes(self) -> tuple[str, ...]:
+        """List audit scopes that are not explicitly AUDITED yet."""
+        return tuple(
+            scope
+            for scope, state in self.payload.get("audit_scope", {}).items()
+            if not str(state).startswith("AUDITED")
         )
 
     def secret_reference(self, credential_id: str) -> str | None:
