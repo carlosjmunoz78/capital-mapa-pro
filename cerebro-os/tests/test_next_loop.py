@@ -62,9 +62,15 @@ class NextLoopTests(unittest.TestCase):
         result=vault.CredentialBroker().resolve(h); self.assertFalse(result['resolved'])
         with self.assertRaises(ValueError): vault.CredentialHandle('c1','a1','x','token=abc','LAB').validate()
 
-    def test_connector_priority(self):
-        r=connectors.ConnectorRegistry(); r.register(connectors.ConnectorCapability('b','c','post','BROWSER','LAB')); r.register(connectors.ConnectorCapability('a','c','post','OFFICIAL_API','LAB'))
+    def test_connector_priority_and_version_scope(self):
+        r=connectors.ConnectorRegistry()
+        r.register(connectors.ConnectorCapability('b','c','post','BROWSER','LAB'))
+        r.register(connectors.ConnectorCapability('a','c','post','OFFICIAL_API','LAB'))
+        r.register(connectors.ConnectorCapability('v2','c','post','OFFICIAL_API','LAB',version='2.0.0'))
         self.assertEqual(r.route('c','post','LAB').connector_id,'a')
+        self.assertEqual(r.route('c','post','LAB','2.0.0').connector_id,'v2')
+        self.assertIsNone(r.route('c','post','PROD','1.0.0'))
+        with self.assertRaises(ValueError):r.route('c','post','DEV','1.0.0')
 
     def test_gateway_human_fallback_and_scope(self):
         r=gateway.GatewayRouter({'status':'SUP-001'}); q=gateway.GatewayRequest('u','c','global','status','r1',environment='PROD',version='2.1.0')
