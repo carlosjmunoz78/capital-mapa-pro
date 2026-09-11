@@ -68,6 +68,15 @@ class Loop21GrowthTests(unittest.TestCase):
         self.assertEqual("SEOBOOT-001", boot.next_engine())
         self.assertEqual("RED", boot.system_status())
 
+    def test_bootstrap_rejects_cross_environment_or_version(self):
+        boot = growth.GrowthBootstrap("fenix", "PROD", "2.0.0")
+        with self.assertRaises(ValueError):
+            boot.update(growth.BootstrapStep("fenix", "SEOBOOT-001", "GREEN", "e", "LAB", "2.0.0"))
+        with self.assertRaises(ValueError):
+            boot.update(growth.BootstrapStep("fenix", "SEOBOOT-001", "GREEN", "e", "PROD", "1.0.0"))
+        boot.update(growth.BootstrapStep("fenix", "SEOBOOT-001", "GREEN", "e:prod", "PROD", "2.0.0"))
+        self.assertEqual("SOCBOOT-001", boot.next_engine())
+
 
 if __name__ == "__main__":
     unittest.main()
