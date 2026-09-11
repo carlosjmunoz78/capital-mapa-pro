@@ -4,31 +4,34 @@ from dataclasses import dataclass
 from hashlib import sha256
 from typing import Iterable, Mapping
 
-VALID_ENVIRONMENTS={'LAB','PREPROD','PROD'}
-
-def _scope_ok(company_id:str, environment:str, version:str)->bool:
-    return bool(company_id.strip() and version.strip() and environment in VALID_ENVIRONMENTS)
-
 # COMP-REG-001
 @dataclass(frozen=True)
 class CompanyManifest:
     company_id:str; name:str; domains:tuple[str,...]; sector:str; country:str; owner:str; environments:tuple[str,...]; active_engines:tuple[str,...]
     def validate(self):
         if not all((self.company_id.strip(),self.name.strip(),self.sector.strip(),self.country.strip(),self.owner.strip())): raise ValueError('company identity required')
-        if not self.environments or any(e not in VALID_ENVIRONMENTS for e in self.environments): raise ValueError('invalid environments')
+        if not self.environments or any(e not in {'LAB','PREPROD','PROD'} for e in self.environments): raise ValueError('invalid environments')
 
 # COMP-ONB-001
 ONBOARDING_PHASES=('SCAN','KNOWLEDGE','SEO','SOCIAL','MARKETING','CRM','APP','AUTOMATIONS','TRAINING','SUPERVISOR','BACKUP')
 class CompanyOnboarding:
     def __init__(self,company_id:str,environment:str='LAB',version:str='1.0.0'):
-        if not _scope_ok(company_id,environment,version):raise ValueError('invalid onboarding scope')
-        self.company_id=company_id;self.environment=environment;self.version=version;self.states={x:'PENDING' for x in ONBOARDING_PHASES}
+        if not company_id.strip() or not version.strip():raise ValueError('company_id/version required')
+        if environment not in {'LAB','PREPROD','PROD'}:raise ValueError('invalid environment')
+        self.company_id=company_id;self.environment=environment;self.version=version
+        self.states={x:'PENDING' for x in ONBOARDING_PHASES}
+        self.evidence_refs={x:'' for x in ONBOARDING_PHASES}
     def next(self): return next((x for x in ONBOARDING_PHASES if self.states[x]!='GREEN'),None)
-    def update(self,phase:str,status:str):
+    def update(self,phase:str,status:str,*,evidence_ref:str='',company_id:str|None=None,environment:str|None=None,version:str|None=None):
         if phase not in self.states or status not in {'GREEN','RED','BLOCKED','HUMAN_REQUIRED'}:raise ValueError('invalid phase/status')
+        if company_id is not None and company_id!=self.company_id:raise ValueError('cross-company update denied')
+        if environment is not None and environment!=self.environment:raise ValueError('cross-environment update denied')
+        if version is not None and version!=self.version:raise ValueError('cross-version update denied')
         i=ONBOARDING_PHASES.index(phase)
         if status=='GREEN' and any(self.states[x]!='GREEN' for x in ONBOARDING_PHASES[:i]):raise ValueError('phase dependency incomplete')
+        if status=='GREEN' and not evidence_ref.strip():raise ValueError('GREEN requires evidence_ref')
         self.states[phase]=status
+        self.evidence_refs[phase]=evidence_ref.strip() if status=='GREEN' else ''
 
 # SCAN-001
 @dataclass(frozen=True)
@@ -95,9 +98,9 @@ def process_map_status(nodes:Iterable[ProcessNode])->str:
 # KBOOT-001
 @dataclass(frozen=True)
 class BootstrapKnowledge:
-    company_id:str; namespace:str; source_refs:tuple[str,...]; rules_count:int; glossary_count:int; environment:str='LAB'; version:str='1.0.0'
+    company_id:str; namespace:str; source_refs:tuple[str,...]; rules_count:int; glossary_count:int
     @property
-    def green(self): return bool(_scope_ok(self.company_id,self.environment,self.version) and self.namespace.startswith(self.company_id+':') and self.source_refs and self.rules_count>=0 and self.glossary_count>=0)
+    def green(self): return bool(self.company_id.strip() and self.namespace.startswith(self.company_id+':') and self.source_refs and self.rules_count>=0 and self.glossary_count>=0)
 
 # SEOBOOT-001
 @dataclass(frozen=True)
@@ -125,21 +128,20 @@ class MarketingBootstrap:
 # CRMBOOT-001 / APPBOOT-001 / AUTBOOT-001 shared scaffold
 @dataclass(frozen=True)
 class CompanyScaffold:
-    company_id:str; kind:str; config_ref:str; tenant_isolated:bool; tests_green:bool; environment:str; version:str='1.0.0'
+    company_id:str; kind:str; config_ref:str; tenant_isolated:bool; tests_green:bool; environment:str
     def status(self):
         if self.kind not in {'CRM','APP','AUTOMATION'}:raise ValueError('invalid scaffold kind')
-        if not _scope_ok(self.company_id,self.environment,self.version):return 'RED'
         if self.environment=='PROD':return 'BLOCKED'
-        return 'GREEN' if self.config_ref.strip() and self.tenant_isolated and self.tests_green else 'RED'
+        return 'GREEN' if self.company_id.strip() and self.config_ref.strip() and self.tenant_isolated and self.tests_green else 'RED'
 
 # TRNBOOT-001
 @dataclass(frozen=True)
 class TrainingBootstrap:
-    company_id:str; dataset_ref:str; vocabulary_ref:str; scorecard_ref:str; cross_company_data:bool; environment:str='LAB'; version:str='1.0.0'
+    company_id:str; dataset_ref:str; vocabulary_ref:str; scorecard_ref:str; cross_company_data:bool
     @property
     def status(self):
         if self.cross_company_data:return 'BLOCKED'
-        return 'GREEN' if _scope_ok(self.company_id,self.environment,self.version) and all((self.dataset_ref.strip(),self.vocabulary_ref.strip(),self.scorecard_ref.strip())) else 'RED'
+        return 'GREEN' if all((self.company_id.strip(),self.dataset_ref.strip(),self.vocabulary_ref.strip(),self.scorecard_ref.strip())) else 'RED'
 
 # ENGACT-001
 @dataclass(frozen=True)
@@ -155,10 +157,12 @@ def activation_matrix(sector:str,rules:Iterable[ActivationRule])->tuple[tuple[st
 @dataclass(frozen=True)
 class CompanyDeployment:
     preprod_green:bool; tests_green:bool; integrations_green:bool; rollback_verified:bool; health_green:bool
-    evidence_refs:tuple[str,...]=(); company_id:str=''; environment:str=''; version:str=''
+    evidence_refs:tuple[str,...]=(); company_id:str='GLOBAL'; environment:str='PREPROD'; version:str='1.0.0'
     @property
     def promotable(self):
-        return bool(_scope_ok(self.company_id,self.environment,self.version) and self.environment=='PROD' and self.evidence_refs and all((self.preprod_green,self.tests_green,self.integrations_green,self.rollback_verified,self.health_green)))
+        if not self.company_id.strip() or not self.version.strip() or self.environment not in {'PREPROD','PROD'}:return False
+        refs=tuple(ref for ref in self.evidence_refs if isinstance(ref,str) and ref.strip())
+        return len(refs)>=5 and all((self.preprod_green,self.tests_green,self.integrations_green,self.rollback_verified,self.health_green))
 
 # COMP-HLT-001
 @dataclass(frozen=True)
@@ -166,7 +170,10 @@ class CompanyHealth:
     company_id:str; sla_green:bool; errors_green:bool; cost_green:bool; engines_green:bool
     evidence_refs:tuple[str,...]=(); environment:str='LAB'; version:str='1.0.0'
     @property
-    def status(self):return 'GREEN' if _scope_ok(self.company_id,self.environment,self.version) and self.evidence_refs and all((self.sla_green,self.errors_green,self.cost_green,self.engines_green)) else 'RED'
+    def status(self):
+        if not self.company_id.strip() or not self.version.strip() or self.environment not in {'LAB','PREPROD','PROD'}:return 'RED'
+        refs=tuple(ref for ref in self.evidence_refs if isinstance(ref,str) and ref.strip())
+        return 'GREEN' if len(refs)>=4 and all((self.sla_green,self.errors_green,self.cost_green,self.engines_green)) else 'RED'
 
 # COMP-BKP-001
 @dataclass(frozen=True)
@@ -175,7 +182,8 @@ class CompanyBackupPack:
     restore_evidence_ref:str=''; environment:str='LAB'; version:str='1.0.0'
     @property
     def digest(self):
-        if not _scope_ok(self.company_id,self.environment,self.version) or not all((self.manifest_ref.strip(),self.config_ref.strip(),self.schema_ref.strip(),self.knowledge_ref.strip())):raise ValueError('backup pack incomplete or invalid scope')
+        if not all((self.company_id.strip(),self.manifest_ref.strip(),self.config_ref.strip(),self.schema_ref.strip(),self.knowledge_ref.strip(),self.version.strip())):raise ValueError('backup pack incomplete')
+        if self.environment not in {'LAB','PREPROD','PROD'}:raise ValueError('invalid environment')
         return sha256(repr((self.company_id,self.environment,self.version,self.manifest_ref,self.config_ref,self.schema_ref,self.knowledge_ref)).encode()).hexdigest()
     @property
     def green(self): return bool(self.restore_verified and self.restore_evidence_ref.strip() and self.digest)
@@ -183,8 +191,7 @@ class CompanyBackupPack:
 # COMP-OFF-001
 @dataclass(frozen=True)
 class OffboardingPlan:
-    company_id:str; export_ref:str; accesses_revoked:bool; jobs_stopped:bool; audit_retained:bool; retention_policy_ref:str; final_approval:bool; environment:str='PROD'; version:str='1.0.0'
+    company_id:str; export_ref:str; accesses_revoked:bool; jobs_stopped:bool; audit_retained:bool; retention_policy_ref:str; final_approval:bool
     def status(self):
-        if not _scope_ok(self.company_id,self.environment,self.version):return 'RED'
         if not self.final_approval:return 'HUMAN_REQUIRED'
-        return 'GREEN' if all((self.export_ref.strip(),self.accesses_revoked,self.jobs_stopped,self.audit_retained,self.retention_policy_ref.strip())) else 'RED'
+        return 'GREEN' if all((self.company_id.strip(),self.export_ref.strip(),self.accesses_revoked,self.jobs_stopped,self.audit_retained,self.retention_policy_ref.strip())) else 'RED'
