@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: cerebro-engine-factory-v0-${{ github.ref }}
+  group: cerebro-engine-factory-v0-v2-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
