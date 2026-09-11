@@ -45,14 +45,15 @@ class NextLoopTests(unittest.TestCase):
             self.assertTrue(all((p / "manifest.json").exists() for p in created))
             self.assertTrue(all((p / "ops" / "rollback.md").exists() for p in created))
 
-    def test_sqlite_runtime_persistence_is_idempotent_and_tenant_scoped(self):
+    def test_sqlite_runtime_persistence_is_idempotent_and_full_scope_scoped(self):
         with tempfile.TemporaryDirectory() as td:
             db = store_mod.SQLiteRuntimeStore(Path(td) / "runtime.db")
             self.assertTrue(db.put(kind="EVENT", idempotency_key="k1", company_id="c1", engine_id="EVT-001", version="0.1.0", environment="LAB", payload={"x": 1}))
             self.assertFalse(db.put(kind="EVENT", idempotency_key="k1", company_id="c1", engine_id="EVT-001", version="0.1.0", environment="LAB", payload={"x": 2}))
             self.assertTrue(db.put(kind="EVENT", idempotency_key="k1", company_id="c2", engine_id="EVT-001", version="0.1.0", environment="LAB", payload={"x": 3}))
             self.assertTrue(db.put(kind="EVENT", idempotency_key="k1", company_id="c1", engine_id="EVT-001", version="0.1.0", environment="PROD", payload={"x": 4}))
-            self.assertEqual(2, len(db.list_for_company("c1")))
+            self.assertTrue(db.put(kind="EVENT", idempotency_key="k1", company_id="c1", engine_id="EVT-001", version="0.2.0", environment="LAB", payload={"x": 5}))
+            self.assertEqual(3, len(db.list_for_company("c1")))
             self.assertEqual(1, len(db.list_for_company("c2")))
             with self.assertRaises(ValueError):
                 db.put(kind="EVENT", idempotency_key="k2", company_id="c1", engine_id="EVT-001", version="0.1.0", environment="DEV", payload={})
