@@ -1,8 +1,23 @@
 from __future__ import annotations
 
 
-def loop_transition(*, state: str, audit_complete: bool = False, missing=(), safe_autofix_remaining=(), review_required=(), tests_green: bool = False, evidence_present: bool = False) -> dict:
+def loop_transition(
+    *,
+    state: str,
+    audit_complete: bool = False,
+    missing=(),
+    safe_autofix_remaining=(),
+    review_required=(),
+    tests_green: bool = False,
+    evidence_present: bool = False,
+) -> dict:
+    # A claimed green state is only terminal when the minimum proof is present.
+    # This prevents stale/prose-only state from short-circuiting the loop.
     if state in {"LAB_GREEN", "CONFIRMED_OPERATIONAL"}:
+        if not tests_green:
+            return {"phase": "TEST", "result": "IN_PROGRESS"}
+        if not evidence_present:
+            return {"phase": "EVIDENCE", "result": "IN_PROGRESS"}
         return {"phase": "DONE", "result": "GREEN"}
     if state == "HUMAN_REQUIRED":
         return {"phase": "STOP", "result": "HUMAN_REQUIRED"}
@@ -30,11 +45,16 @@ def system_loop_status(*, canonical_count: int, green_count: int, blocked_count:
         raise ValueError("counts cannot be negative")
     if green_count > canonical_count:
         raise ValueError("green_count cannot exceed canonical_count")
+    if blocked_count + human_count > canonical_count - green_count:
+        raise ValueError("blocked/human counts cannot exceed non-green engines")
+
     pending = canonical_count - green_count
-    if pending == 0:
-        state = "GREEN"
-    elif human_count:
+    if human_count:
         state = "HUMAN_REQUIRED"
+    elif blocked_count:
+        state = "RED"
+    elif pending == 0:
+        state = "GREEN"
     else:
         state = "RED"
     return {
