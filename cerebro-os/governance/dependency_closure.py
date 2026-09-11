@@ -3,7 +3,10 @@ from __future__ import annotations
 
 class DependencyClosure:
     def __init__(self, canonical_ids):
-        self.canonical = set(canonical_ids)
+        canonical = tuple(canonical_ids)
+        if len(canonical) != len(set(canonical)):
+            raise ValueError("canonical_ids must be unique")
+        self.canonical = set(canonical)
         self.edges: dict[str, tuple[str, ...]] = {}
 
     def add(self, engine_id: str, dependencies=()):
@@ -56,11 +59,15 @@ class DependencyClosure:
         return tuple(result)
 
     def audit(self):
+        self._assert_acyclic()
         referenced = {dep for deps in self.edges.values() for dep in deps}
         registered = set(self.edges)
+        unmapped = tuple(sorted(self.canonical - registered))
+        dependency_only = tuple(sorted(referenced - registered))
         return {
-            "valid": True,
+            "valid": not unmapped and not dependency_only,
             "nodes_defined": len(registered),
             "dependencies_referenced": len(referenced),
-            "unmapped_canonical": tuple(sorted(self.canonical - registered)),
+            "unmapped_canonical": unmapped,
+            "dependency_only_nodes": dependency_only,
         }
