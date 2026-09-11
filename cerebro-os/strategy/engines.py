@@ -14,7 +14,7 @@ def strategy_recommend(options:Iterable[StrategicOption])->tuple[str,str|None]:
     if not rows:return 'RED',None
     if any(not x.evidence_refs or x.confidence<.75 for x in rows):return 'HUMAN_REQUIRED','LOW_CONFIDENCE'
     best=max(rows,key=lambda x:(x.upside-x.downside,x.confidence,x.option_id))
-    return 'HUMAN_REQUIRED',best.option_id  # major strategy stays human decision
+    return 'HUMAN_REQUIRED',best.option_id
 
 # FRC-001
 def simple_forecast(history:Iterable[float],horizon:int=1)->tuple[float,...]:
@@ -98,14 +98,21 @@ def rank_cities(rows:Iterable[CityScore],weights:Mapping[str,float])->tuple[str,
 @dataclass(frozen=True)
 class ReplicationReadiness:
     config_ready:bool; rebuild_verified:bool; tenant_isolation:bool; minimum_engines_green:bool; territory_config_ref:str
+    config_evidence_ref:str=''; rebuild_evidence_ref:str=''; tenant_evidence_ref:str=''; engines_evidence_ref:str=''
     @property
-    def green(self):return all((self.config_ready,self.rebuild_verified,self.tenant_isolation,self.minimum_engines_green,bool(self.territory_config_ref.strip())))
+    def green(self):
+        gates=(self.config_ready,self.rebuild_verified,self.tenant_isolation,self.minimum_engines_green,bool(self.territory_config_ref.strip()))
+        evidence=(self.config_evidence_ref,self.rebuild_evidence_ref,self.tenant_evidence_ref,self.engines_evidence_ref)
+        return all(gates) and all(str(ref).strip() for ref in evidence)
 
 # VENT-001
 @dataclass(frozen=True)
 class VentureCase:
     idea:str; research_green:bool; mvp_green:bool; unit_economics:float; experiment_green:bool; requested_cost:float; approved_cost:float
+    research_evidence_ref:str=''; mvp_evidence_ref:str=''; experiment_evidence_ref:str=''; economics_evidence_ref:str=''
     def decision(self):
         if self.requested_cost>self.approved_cost:return 'HUMAN_REQUIRED','MONEY_LIMIT'
         if not all((self.idea.strip(),self.research_green,self.mvp_green,self.experiment_green)):return 'RED',None
+        evidence=(self.research_evidence_ref,self.mvp_evidence_ref,self.experiment_evidence_ref,self.economics_evidence_ref)
+        if not all(str(ref).strip() for ref in evidence):return 'BLOCKED',None
         return ('SCALE',None) if self.unit_economics>0 else ('KILL',None)
