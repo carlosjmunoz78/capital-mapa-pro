@@ -31,7 +31,12 @@ class Gateway:
         allowed, reason = self.policy_check(request)
         if not allowed:
             return {"status": "HUMAN_REQUIRED", "reason": reason or "POLICY_CONFLICT"}
-        connector = self.connector_registry.route(request.capability, request.company_id, request.environment)
+        connector = self.connector_registry.route(
+            request.capability,
+            request.company_id,
+            request.environment,
+            request.version,
+        )
         if connector is None:
             return {"status": "HUMAN_REQUIRED", "reason": "LOW_CONFIDENCE"}
         return {
