@@ -26,13 +26,15 @@ class QualityObservabilityTests(unittest.TestCase):
     def test_tribunal_rejects_missing_gate(self):
         gates = {gate: True for gate in tribunal.REQUIRED_GATES}
         gates["rollback"] = False
-        decision = tribunal.TribunalDecision("FACT-001", gates)
+        evidence = {gate: f"e:{gate}" for gate in tribunal.REQUIRED_GATES}
+        decision = tribunal.TribunalDecision("FACT-001", gates, evidence_refs=evidence)
         self.assertFalse(decision.approved)
         self.assertEqual(decision.missing(), ("rollback",))
 
     def test_tribunal_approves_all_gates(self):
         gates = {gate: True for gate in tribunal.REQUIRED_GATES}
-        self.assertTrue(tribunal.TribunalDecision("FACT-001", gates).approved)
+        evidence = {gate: f"e:{gate}" for gate in tribunal.REQUIRED_GATES}
+        self.assertTrue(tribunal.TribunalDecision("FACT-001", gates, evidence_refs=evidence).approved)
 
     def test_observability_record_validates(self):
         record = records.ExecutionRecord(
@@ -44,7 +46,8 @@ class QualityObservabilityTests(unittest.TestCase):
 
     def test_supervisor_requires_all_green(self):
         red = supervisor.EngineHealth("FACT-001", True, True, True, False, True)
-        green = supervisor.EngineHealth("FACT-001", True, True, True, True, True)
+        evidence = ("tests:e", "evaluation:e", "tribunal:e", "rollback:e", "observability:e")
+        green = supervisor.EngineHealth("FACT-001", True, True, True, True, True, evidence_refs=evidence)
         self.assertEqual(red.state, supervisor.RED)
         self.assertEqual(green.state, supervisor.GREEN)
 
