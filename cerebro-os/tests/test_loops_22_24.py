@@ -41,6 +41,15 @@ class Loop22CommercialTests(unittest.TestCase):
         self.assertEqual("GREEN", pipe.status())
         self.assertIsNone(pipe.next_engine())
 
+    def test_commercial_rejects_cross_environment_or_version(self):
+        pipe = commercial.CommercialPipeline("fenix", environment="PROD", version="2.0.0")
+        with self.assertRaises(ValueError):
+            pipe.update(commercial.CommercialStep("fenix", "LEAD-001", "GREEN", "e", .99, "LAB", "2.0.0"))
+        with self.assertRaises(ValueError):
+            pipe.update(commercial.CommercialStep("fenix", "LEAD-001", "GREEN", "e", .99, "PROD", "1.0.0"))
+        pipe.update(commercial.CommercialStep("fenix", "LEAD-001", "GREEN", "e:prod", .99, "PROD", "2.0.0"))
+        self.assertEqual("SALE-001", pipe.next_engine())
+
 
 class Loop23MortgageTests(unittest.TestCase):
     def test_human_exception_is_canonical_and_blocks_progress(self):
@@ -56,6 +65,15 @@ class Loop23MortgageTests(unittest.TestCase):
         for engine_id in mortgage.MORTGAGE_SEQUENCE:
             pipe.update(mortgage.MortgageStep("fenix", engine_id, "GREEN", f"e:{engine_id}"))
         self.assertEqual("GREEN", pipe.status())
+
+    def test_mortgage_rejects_cross_environment_or_version(self):
+        pipe = mortgage.MortgagePipeline("fenix", "PROD", "2.0.0")
+        with self.assertRaises(ValueError):
+            pipe.update(mortgage.MortgageStep("fenix", "DOC-001", "GREEN", "e", environment="LAB", version="2.0.0"))
+        with self.assertRaises(ValueError):
+            pipe.update(mortgage.MortgageStep("fenix", "DOC-001", "GREEN", "e", environment="PROD", version="1.0.0"))
+        pipe.update(mortgage.MortgageStep("fenix", "DOC-001", "GREEN", "e:prod", environment="PROD", version="2.0.0"))
+        self.assertEqual("DOC-002", pipe.next_engine())
 
 
 class Loop24EnterpriseTests(unittest.TestCase):
