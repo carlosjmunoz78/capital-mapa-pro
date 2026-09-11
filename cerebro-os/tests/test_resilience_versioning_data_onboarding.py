@@ -17,10 +17,14 @@ data = load("cerebro_data_contracts", "data/contracts.py")
 onboarding = load("cerebro_onboarding", "onboarding/plan.py")
 
 class ResilienceVersioningDataOnboardingTests(unittest.TestCase):
-    def test_recovery_needs_all_three_verified(self):
-        ev = recovery.RecoveryEvidence("b", "r", "rb", True, True, False)
+    def test_recovery_needs_all_three_verified_and_canonical_scope(self):
+        with self.assertRaises(ValueError):
+            recovery.RecoveryEvidence("b", "r", "rb", True, True, True).validate()
+        ev = recovery.RecoveryEvidence("b", "r", "rb", True, True, False, "fenix", "FACT-001", "LAB", "1.0.0")
         self.assertFalse(ev.green)
-        self.assertTrue(recovery.RecoveryEvidence("b", "r", "rb", True, True, True).green)
+        self.assertTrue(recovery.RecoveryEvidence("b", "r", "rb", True, True, True, "fenix", "FACT-001", "LAB", "1.0.0").green)
+        with self.assertRaises(ValueError):
+            recovery.RecoveryEvidence("b", "r", "rb", True, True, True, "fenix", "FACT-001", "INVALID", "1.0.0").validate()
 
     def test_version_contract(self):
         contract = versioning.VersionContract("FACT-001", "1.2.0", "1.0.0", "LAB")
