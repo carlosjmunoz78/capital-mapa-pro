@@ -27,6 +27,14 @@ control = load("three_control", "gateway/control_plane.py")
 onboarding = load("three_onboarding", "onboarding/executor.py")
 bundle = load("three_bundle", "resilience/company_bundle.py")
 
+CONTROL_EVIDENCE = {
+    "route": "evidence:route",
+    "policy": "evidence:policy",
+    "supervisor": "evidence:supervisor",
+    "tribunal": "evidence:tribunal",
+    "promotion": "evidence:promotion",
+}
+
 
 class ThreeGroupedLoopsTests(unittest.TestCase):
     def test_loop1_bootstrap_groups_are_canonical_and_unique(self):
@@ -63,13 +71,24 @@ class ThreeGroupedLoopsTests(unittest.TestCase):
         human = promotion.decide_promotion(engine_id="FACT-001", environment="LAB", gates=promotion.all_green_gates(), human_required=True)
         self.assertEqual("HUMAN_REQUIRED", human["decision"])
 
-    def test_loop2_control_plane_requires_route_supervisor_tribunal_and_promotion(self):
+    def test_loop2_control_plane_requires_route_supervisor_tribunal_promotion_and_evidence(self):
+        without_evidence = control.control_decision(
+            route_status="ROUTED",
+            policy_decision="ALLOW",
+            supervisor_state="GREEN",
+            tribunal_approved=True,
+            promotion_decision="LAB_GREEN",
+        )
+        self.assertEqual("BLOCKED", without_evidence["status"])
+        self.assertEqual("EVIDENCE_MISSING", without_evidence["reason"])
+
         green = control.control_decision(
             route_status="ROUTED",
             policy_decision="ALLOW",
             supervisor_state="GREEN",
             tribunal_approved=True,
             promotion_decision="LAB_GREEN",
+            evidence_refs=CONTROL_EVIDENCE,
         )
         self.assertEqual("ALLOW_EXECUTION", green["status"])
         red = control.control_decision(
