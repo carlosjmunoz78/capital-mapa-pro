@@ -10,9 +10,12 @@ class T(unittest.TestCase):
   m=x.CompanyManifest('c','Co',('co.es',),'finance','ES','u',('LAB','PREPROD'),('FACT-001',));m.validate()
  def test_165_company_onboarding(self):
   o=x.CompanyOnboarding('c',environment='LAB',version='2.0.0');self.assertEqual('SCAN',o.next())
-  with self.assertRaises(ValueError):o.update('SEO','GREEN')
-  for p in x.ONBOARDING_PHASES:o.update(p,'GREEN')
-  self.assertIsNone(o.next())
+  with self.assertRaises(ValueError):o.update('SEO','GREEN',evidence_ref='e:seo')
+  with self.assertRaises(ValueError):o.update('SCAN','GREEN')
+  with self.assertRaises(ValueError):o.update('SCAN','GREEN',evidence_ref='e:scan',environment='PROD')
+  with self.assertRaises(ValueError):o.update('SCAN','GREEN',evidence_ref='e:scan',version='3.0.0')
+  for p in x.ONBOARDING_PHASES:o.update(p,'GREEN',evidence_ref=f'e:{p}',company_id='c',environment='LAB',version='2.0.0')
+  self.assertIsNone(o.next());self.assertTrue(all(o.evidence_refs.values()))
   with self.assertRaises(ValueError):x.CompanyOnboarding('c',environment='DEV')
  def test_166_scanner(self):x.FootprintFinding('WEB','https://x','src','2026-09-11',.9).validate()
  def test_167_keywords(self):
