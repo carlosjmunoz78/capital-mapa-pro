@@ -5,9 +5,15 @@ def load(n,r):
  p=ROOT/r;s=importlib.util.spec_from_file_location(n,p);m=importlib.util.module_from_spec(s);sys.modules[n]=m;s.loader.exec_module(m);return m
 u=load('console_ui_186_194','console/ui_engines.py')
 class T(unittest.TestCase):
- def test_186_console(self):u.ConsoleSession('user','fenix','global',None,'estado').validate()
- def test_187_chat(self):u.NormalizedRequest('u','f','global',frozenset({'read'}),'VOICE','tr:1').validate()
- def test_188_context(self):u.ContextPackage('f',('case:1',),('VIA-001',),('h:1',),frozenset({'read'}),('src:1',)).validate()
+ def test_186_console(self):
+  u.ConsoleSession('user','fenix','global',None,'estado').validate()
+  with self.assertRaises(ValueError):u.ConsoleSession('user','fenix','global',None,'estado',environment='DEV').validate()
+ def test_187_chat(self):
+  u.NormalizedRequest('u','f','global',frozenset({'read'}),'VOICE','tr:1').validate()
+  with self.assertRaises(ValueError):u.NormalizedRequest('u','f','global',frozenset({'read'}),'VOICE','tr:1',version='').validate()
+ def test_188_context(self):
+  u.ContextPackage('f',('case:1',),('VIA-001',),('h:1',),frozenset({'read'}),('src:1',)).validate()
+  with self.assertRaises(ValueError):u.ContextPackage('f',(),(),(),frozenset({'read'}),('src:1',),environment='DEV').validate()
  def test_189_command(self):
   self.assertEqual(('GREEN','STATUS'),u.classify_command('estado motores'));self.assertEqual(('HUMAN_REQUIRED','LOW_CONFIDENCE'),u.classify_command('???'))
  def test_190_action_gateway(self):
@@ -17,8 +23,11 @@ class T(unittest.TestCase):
   self.assertEqual('RED',u.ActionEnvelope('r','f','VIA-001','run','k',True,True,'audit',environment='DEV',policy_evidence_ref='p',iam_evidence_ref='i').decision())
  def test_191_director(self):u.DirectorView(1,0,2,3,0,'next').validate()
  def test_192_timeline(self):
-  rows=(u.TimelineEvent('f','A','GREEN',0,'e'),u.TimelineEvent('g','B','RED',0,'e'));self.assertEqual(1,len(u.timeline(rows,'f')))
- def test_193_why(self):u.Explanation('d',('rule',),('source',),('data',),.9,('alt',),'1.0','DEC-001').validate()
+  rows=(u.TimelineEvent('f','A','GREEN',0,'e',environment='LAB'),u.TimelineEvent('f','B','GREEN',0,'e2',environment='PROD'),u.TimelineEvent('g','C','RED',0,'e3'))
+  self.assertEqual(2,len(u.timeline(rows,'f')));self.assertEqual(1,len(u.timeline(rows,'f',environment='PROD')))
+ def test_193_why(self):
+  u.Explanation('d',('rule',),('source',),('data',),.9,('alt',),'1.0','DEC-001').validate()
+  with self.assertRaises(ValueError):u.Explanation('d',('rule',),('source',),('data',),.9,('alt',),'1.0','DEC-001',environment='DEV').validate()
  def test_194_voice_local_first(self):
-  self.assertEqual(('GREEN','hola'),u.VoiceInput('f','audio','hola',True).to_chat());self.assertEqual(('HUMAN_REQUIRED','LEGAL_REQUIRED'),u.VoiceInput('f','audio','hola',False).to_chat())
+  self.assertEqual(('GREEN','hola'),u.VoiceInput('f','audio','hola',True).to_chat());self.assertEqual(('HUMAN_REQUIRED','LEGAL_REQUIRED'),u.VoiceInput('f','audio','hola',False).to_chat());self.assertEqual(('RED',None),u.VoiceInput('f','audio','hola',True,environment='DEV').to_chat())
 if __name__=='__main__':unittest.main()
