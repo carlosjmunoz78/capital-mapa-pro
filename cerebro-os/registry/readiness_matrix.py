@@ -2,9 +2,6 @@ from __future__ import annotations
 
 DEFAULT_STATE = "UNKNOWN_REQUIRES_AUDIT"
 
-# Conservative aggregation: an unresolved exception/blocker must never be hidden by
-# a LAB green record from another scope/environment. CONFIRMED_OPERATIONAL is only
-# selected ahead of non-blocking lower evidence states.
 STATE_PRIORITY = {
     "HUMAN_REQUIRED": 9,
     "BLOCKED": 8,
@@ -14,6 +11,7 @@ STATE_PRIORITY = {
     "DEFINED_NOT_BUILT": 2,
     "UNKNOWN_REQUIRES_AUDIT": 1,
 }
+VALID_ENVIRONMENTS = {"LAB", "PREPROD", "PROD"}
 
 
 def build_readiness_matrix(
@@ -22,18 +20,20 @@ def build_readiness_matrix(
     live_records: list[dict] | tuple[dict, ...],
     company_id: str | None = None,
     environment: str | None = None,
+    version: str | None = None,
 ) -> tuple[dict, ...]:
-    """Build a conservative readiness view.
+    """Build a conservative readiness view for an optional exact scope.
 
-    A caller may scope the matrix by company/environment. Without an explicit
-    scope the function intentionally gives unresolved HUMAN_REQUIRED/BLOCKED
-    records precedence so a LAB_GREEN record cannot mask a real-environment gap.
+    When company/environment/version are supplied, records from any other scope
+    are excluded. Without explicit filters unresolved blockers retain precedence.
     """
     canonical = tuple(canonical_ids)
     if len(canonical) != len(set(canonical)):
         raise ValueError("canonical_ids must be unique")
-    if environment is not None and environment not in {"LAB", "PREPROD", "PROD"}:
+    if environment is not None and environment not in VALID_ENVIRONMENTS:
         raise ValueError("invalid environment filter")
+    if version is not None and not version.strip():
+        raise ValueError("version filter must be non-empty")
 
     by_engine: dict[str, list[dict]] = {}
     for record in live_records:
@@ -43,6 +43,8 @@ def build_readiness_matrix(
         if company_id is not None and record.get("company_id") != company_id:
             continue
         if environment is not None and record.get("environment") != environment:
+            continue
+        if version is not None and record.get("version") != version:
             continue
         by_engine.setdefault(engine_id, []).append(record)
 
@@ -57,6 +59,7 @@ def build_readiness_matrix(
                 "record_count": 0,
                 "company_id": company_id,
                 "environment": environment,
+                "version": version,
             })
             continue
         selected = max(records, key=lambda item: STATE_PRIORITY.get(item.get("state"), 0))
@@ -67,6 +70,7 @@ def build_readiness_matrix(
             "record_count": len(records),
             "company_id": company_id,
             "environment": environment,
+            "version": version,
         })
     return tuple(rows)
 
