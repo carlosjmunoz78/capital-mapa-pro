@@ -7,7 +7,7 @@ sys.path.insert(0, str(ROOT / "multicompany"))
 sys.path.insert(0, str(ROOT / "console"))
 
 from company_registry import CompanyRecord
-from contracts import ConsoleCommand
+from command import ConsoleCommand
 
 
 class MultiCompanyConsoleTests(unittest.TestCase):
