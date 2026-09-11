@@ -1,0 +1,14 @@
+[
+  {"engine_id":"FACT-001","name":"Fábrica de Motores CEREBRO","status":"DOCUMENTED_PARTIAL","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
+  {"engine_id":"GOV-001","name":"Engine Registry","status":"DEFINED_NOT_BUILT","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
+  {"engine_id":"DATA-001","name":"Data Contract Engine","status":"DOCUMENTED_PARTIAL","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
+  {"engine_id":"POL-001","name":"Motor de Políticas y Gobierno","status":"DEFINED_NOT_BUILT","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
+  {"engine_id":"HEX-001","name":"Human Exception Engine","status":"DEFINED_NOT_BUILT","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
+  {"engine_id":"RUNTIME-001","name":"Shared Engine Runtime","status":"DEFINED_NOT_BUILT","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
+  {"engine_id":"EVT-001","name":"Event Bus","status":"DEFINED_NOT_BUILT","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
+  {"engine_id":"JOB-001","name":"Job Queue Scheduler","status":"DOCUMENTED_PARTIAL","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
+  {"engine_id":"AUD-001","name":"Audit Trazabilidad","status":"DOCUMENTED_PARTIAL","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
+  {"engine_id":"OBSERV-001","name":"Observabilidad","status":"DOCUMENTED_PARTIAL","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
+  {"engine_id":"SUP-001","name":"Supervisor","status":"DOCUMENTED_PARTIAL","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
+  {"engine_id":"TENANT-001","name":"Multi-Tenant Isolation Engine","status":"DEFINED_NOT_BUILT","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_ONLY"}
+]
