@@ -1,0 +1,70 @@
+{
+  "captured_at": "2026-09-12",
+  "source": "Make live read-only inspection",
+  "folder_id": 520864,
+  "data_store_id": 171764,
+  "scenarios": [
+    {
+      "scenario_id": 9524837,
+      "name": "FENIX · CORE · Idempotencia y Run ID · V1",
+      "status": "inactive",
+      "incomplete_executions": 0,
+      "runtime_target": "core_idempotency_runtime",
+      "expected": {
+        "checks_existing_key_first": true,
+        "duplicate_status": "BLOCKED_DUPLICATE",
+        "first_seen_status": "FIRST_SEEN",
+        "stable_test_key": "IDEMPOTENCY_TEST_FACEBOOK_POST_001",
+        "external_action_allowed": false
+      }
+    },
+    {
+      "scenario_id": 9527140,
+      "name": "FENIX · CORE · Router Maestro · V1",
+      "status": "inactive",
+      "incomplete_executions": 0,
+      "runtime_target": "routing_runtime",
+      "expected": {
+        "decision": "ROUTED_TO_FACEBOOK_ANALYTICS_TEST",
+        "operation_type": "analytics_capture",
+        "final_status": "OK",
+        "external_action_allowed": false
+      }
+    },
+    {
+      "scenario_id": 9527162,
+      "name": "FENIX · CORE · Logs universales · V1",
+      "status": "inactive",
+      "incomplete_executions": 0,
+      "runtime_target": "execution_log_runtime",
+      "expected": {
+        "start_phase": "start",
+        "start_status": "STARTED",
+        "final_phase": "final",
+        "final_status": "OK",
+        "external_action_allowed": false
+      }
+    },
+    {
+      "scenario_id": 9537817,
+      "name": "FENIX · CORE · Dispatcher universal Notion → Redes · V1",
+      "status": "inactive",
+      "incomplete_executions": 0,
+      "runtime_target": "dispatcher_runtime",
+      "notion_connection_id": 14435131,
+      "expected": {
+        "candidate_status": "Pendiente de publicar",
+        "requires_programming_relation": true,
+        "requires_production_order": true,
+        "requires_t48_approved": true,
+        "requires_t48_approval_date": true,
+        "requires_t48_locked_version": true,
+        "requires_t48_hash": true,
+        "summary_status": "CANDIDATES_CLASSIFIED_NO_EXECUTION",
+        "route_status": "ROUTE_PREPARED_ENGINE_OFF",
+        "platform_state": "NOT_CALLED",
+        "external_action_allowed": false
+      }
+    }
+  ]
+}
