@@ -1,0 +1,21 @@
+{
+  "source": "Make CORE scenario inspected live 2026-09-12",
+  "scenario_id": 9535460,
+  "scenario_name": "FENIX · CORE · TikTok · Router y preflight universal · V1",
+  "scenario_status": "inactive",
+  "connections": [],
+  "old_contract": {
+    "route_type": "ORGANIC",
+    "idempotency_key_prefix": "IDEMPOTENCY_PREFLIGHT_TIKTOK_",
+    "preflight_status": "PREFLIGHT_READY_CONNECTION_PENDING",
+    "router_status": "ROUTED_ORGANIC_WITH_ENGINE_DISABLED",
+    "oauth_state": "pending",
+    "ads_conversion_allowed": false,
+    "prod_executor_present": false
+  },
+  "new_runtime_invariants": {
+    "external_action_allowed": false,
+    "delete_old_allowed": false,
+    "missing_oauth_human_reason": "PERMISSION_REQUIRED"
+  }
+}
