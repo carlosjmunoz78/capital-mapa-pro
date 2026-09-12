@@ -27,15 +27,20 @@ class T(unittest.TestCase):
   self.assertEqual('RED',x.LocalPresence(True,True,True,True,('e',)).status)
   self.assertEqual('GREEN',x.LocalPresence(True,True,True,True,('e',),'c','LAB','2.0.0').status)
   self.assertEqual('RED',x.LocalPresence(True,True,True,True,('e',),'c','DEV','2.0.0').status)
+  self.assertEqual('RED',x.LocalPresence(True,True,True,True,('',),'c','LAB','2.0.0').status)
  def test_171_business_model(self):
   self.assertEqual(('GREEN',()),x.business_model_status((x.BusinessFact('service','mortgage',True,'e'),),('service',)))
   self.assertEqual('HUMAN_REQUIRED',x.business_model_status((),('service',))[0])
+  self.assertEqual(('RED',()),x.business_model_status((),()))
+  self.assertEqual('HUMAN_REQUIRED',x.business_model_status((x.BusinessFact('service','',True,'e'),),('service',))[0])
  def test_172_process_discovery(self):
   self.assertEqual('HUMAN_REQUIRED',x.process_map_status((x.ProcessNode('lead','sales','CRM',('case',)),)))
   self.assertEqual('GREEN',x.process_map_status((x.ProcessNode('lead','sales','CRM',('case',),'e:process'),)))
   self.assertEqual('HUMAN_REQUIRED',x.process_map_status((x.ProcessNode('lead','sales','CRM',()),)))
  def test_173_knowledge_bootstrap(self):
-  self.assertTrue(x.BootstrapKnowledge('c','c:kb',('src',),1,1,'PROD','2.0.0').green);self.assertFalse(x.BootstrapKnowledge('c','c:kb',('src',),1,1,'DEV','2.0.0').green)
+  self.assertTrue(x.BootstrapKnowledge('c','c:kb',('src',),1,1,'PROD','2.0.0').green)
+  self.assertFalse(x.BootstrapKnowledge('c','c:kb',('src',),1,1,'DEV','2.0.0').green)
+  self.assertFalse(x.BootstrapKnowledge('c','c:kb',('',),1,1,'PROD','2.0.0').green)
  def test_174_seo_bootstrap(self):
   self.assertFalse(x.SeoBootstrap(True,True,True,True,True,'gate').green)
   self.assertTrue(x.SeoBootstrap(True,True,True,True,True,'gate','c','LAB','2.0.0',('e:kw','e:arch','e:tech','e:local','e:measure')).green)
@@ -58,10 +63,12 @@ class T(unittest.TestCase):
   self.assertFalse(x.CompanyDeployment(True,True,True,True,True).promotable)
   self.assertFalse(x.CompanyDeployment(True,True,False,True,True,('e',),'c','PROD','2.0.0').promotable)
   self.assertFalse(x.CompanyDeployment(True,True,True,True,True,('e',),'c','PREPROD','2.0.0').promotable)
+  self.assertFalse(x.CompanyDeployment(True,True,True,True,True,('',),'c','PROD','2.0.0').promotable)
  def test_183_company_health(self):
   self.assertEqual('GREEN',x.CompanyHealth('c',True,True,True,True,('health-evidence',),'PROD','2.0.0').status)
   self.assertEqual('RED',x.CompanyHealth('c',True,True,True,True).status)
   self.assertEqual('RED',x.CompanyHealth('c',True,True,True,True,('e',),'DEV','2.0.0').status)
+  self.assertEqual('RED',x.CompanyHealth('c',True,True,True,True,('',),'PROD','2.0.0').status)
  def test_184_company_backup(self):
   b=x.CompanyBackupPack('c','m','cfg','schema','kb',True,'restore-evidence','PROD','2.0.0');self.assertTrue(b.green);self.assertTrue(b.digest)
   self.assertFalse(x.CompanyBackupPack('c','m','cfg','schema','kb',True).green)
