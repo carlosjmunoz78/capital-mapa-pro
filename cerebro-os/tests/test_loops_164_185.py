@@ -23,16 +23,30 @@ class T(unittest.TestCase):
  def test_168_web_audit(self):
   score,backlog=x.web_audit_score((x.WebAuditCheck('a',True,2,'e'),x.WebAuditCheck('b',False,1,'e')));self.assertEqual(.666667,score);self.assertEqual(('b',),backlog)
  def test_169_social_audit(self):x.SocialProfile('IG','ig:x',10,.1,'e').validate()
- def test_170_local_presence(self):self.assertEqual('GREEN',x.LocalPresence(True,True,True,True,('e',)).status)
+ def test_170_local_presence(self):
+  self.assertEqual('RED',x.LocalPresence(True,True,True,True,('e',)).status)
+  self.assertEqual('GREEN',x.LocalPresence(True,True,True,True,('e',),'c','LAB','2.0.0').status)
+  self.assertEqual('RED',x.LocalPresence(True,True,True,True,('e',),'c','DEV','2.0.0').status)
  def test_171_business_model(self):
   self.assertEqual(('GREEN',()),x.business_model_status((x.BusinessFact('service','mortgage',True,'e'),),('service',)))
   self.assertEqual('HUMAN_REQUIRED',x.business_model_status((),('service',))[0])
- def test_172_process_discovery(self):self.assertEqual('GREEN',x.process_map_status((x.ProcessNode('lead','sales','CRM',('case',)),)))
+ def test_172_process_discovery(self):
+  self.assertEqual('HUMAN_REQUIRED',x.process_map_status((x.ProcessNode('lead','sales','CRM',('case',)),)))
+  self.assertEqual('GREEN',x.process_map_status((x.ProcessNode('lead','sales','CRM',('case',),'e:process'),)))
+  self.assertEqual('HUMAN_REQUIRED',x.process_map_status((x.ProcessNode('lead','sales','CRM',()),)))
  def test_173_knowledge_bootstrap(self):
   self.assertTrue(x.BootstrapKnowledge('c','c:kb',('src',),1,1,'PROD','2.0.0').green);self.assertFalse(x.BootstrapKnowledge('c','c:kb',('src',),1,1,'DEV','2.0.0').green)
- def test_174_seo_bootstrap(self):self.assertTrue(x.SeoBootstrap(True,True,True,True,True,'gate').green)
- def test_175_social_bootstrap(self):self.assertEqual('PLAN_GREEN',x.SocialBootstrap(('p',),'tone','cal',('m',),False).status())
- def test_176_marketing_bootstrap(self):self.assertEqual('HUMAN_REQUIRED',x.MarketingBootstrap('f','p',True,'o',1,0).status())
+ def test_174_seo_bootstrap(self):
+  self.assertFalse(x.SeoBootstrap(True,True,True,True,True,'gate').green)
+  self.assertTrue(x.SeoBootstrap(True,True,True,True,True,'gate','c','LAB','2.0.0',('e:kw','e:arch','e:tech','e:local','e:measure')).green)
+ def test_175_social_bootstrap(self):
+  self.assertEqual('RED',x.SocialBootstrap(('p',),'tone','cal',('m',),False).status())
+  self.assertEqual('PLAN_GREEN',x.SocialBootstrap(('p',),'tone','cal',('m',),False,'c','LAB','2.0.0',('e:social',)).status())
+  self.assertEqual('GREEN',x.SocialBootstrap(('p',),'tone','cal',('m',),True,'c','LAB','2.0.0',('e:social',)).status())
+ def test_176_marketing_bootstrap(self):
+  self.assertEqual('RED',x.MarketingBootstrap('f','p',True,'o',0,0).status())
+  self.assertEqual('GREEN',x.MarketingBootstrap('f','p',True,'o',0,0,'c','LAB','2.0.0',('e:mkt',)).status())
+  self.assertEqual('HUMAN_REQUIRED',x.MarketingBootstrap('f','p',True,'o',1,0,'c','LAB','2.0.0',('e:mkt',)).status())
  def test_177_crm_bootstrap(self):self.assertEqual('GREEN',x.CompanyScaffold('c','CRM','cfg',True,True,'PREPROD','2.0.0').status())
  def test_178_app_bootstrap(self):self.assertEqual('GREEN',x.CompanyScaffold('c','APP','cfg',True,True,'PREPROD','2.0.0').status())
  def test_179_automation_bootstrap(self):self.assertEqual('GREEN',x.CompanyScaffold('c','AUTOMATION','cfg',True,True,'PREPROD','2.0.0').status())
