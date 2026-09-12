@@ -23,6 +23,9 @@ Evidence-first inventory of Make team `1927480`. No scenario was activated or de
 - TEST alphabetical low partition inspected: first 25 inactive scenarios are dominated by `DEPRECATED · NO USAR` Facebook/Instagram gate, dry-run, staging and fixture flows. They are explicitly non-PROD or fail-closed and have zero incomplete executions. Mutating historical publishers remain inactive.
 - TEST alphabetical high partition inspected: latest-name partition includes Lucena no-run/scheduled verification, temporary Drive→WordPress asset transport, readback fixtures, GSC/SEO diagnostics, radar collectors and historical validation flows. All returned rows are inactive with zero incomplete executions.
 - TEST Facebook partition inspected: returned inactive set contains deprecated gates/staging plus historical analytics/diagnostics and current TEST preflight/publicador validation. No returned Facebook TEST scenario is active; hard-arm/publicador scenarios remain intentionally inactive.
+- CORE live error-state partition is fully enumerated: zero scenarios in folder `30 · FENIX · CORE E INTELIGENCIA` currently report Make `error` state.
+- CORE inactive alphabetical low partition inspected: returned 25 scenarios are historical/NO USAR WordPress probes, ADS/router/preflight components, Facebook analytics/preflight/router modules and other component flows. All are inactive with zero incomplete executions; multiple descriptions explicitly state that they are integrated into the active master or must not be activated separately.
+- CORE inactive alphabetical high partition inspected: returned 25 scenarios include the temporary paid-AI image adapter, WordPress TEST/TEMP utilities, two disabled PRE-PROD WordPress transports, inactive Instagram health, FÁBRICA adapters, YouTube/TikTok routers, logs/router components and LinkedIn/Instagram preflight modules. All are inactive with zero incomplete executions.
 
 ## GREEN_QUARANTINED
 The following classes are intentionally green-by-quarantine rather than green-by-execution:
@@ -34,7 +37,7 @@ A quarantined scenario must not be reactivated merely to clear an audit state. R
 
 ## PARCIAL / remaining
 - Folder `10 · FENIX · TEST` contains 120 scenarios. The error-state subset is fully enumerated and multiple alphabetical/category partitions are now evidenced, but full 120/120 unique-row classification remains in progress because the Make connector has no paging and returns at most 25 rows per list operation.
-- Folder `30 · FENIX · CORE E INTELIGENCIA` contains 62 scenarios. Its active 8/8 subset is fully audited with connection/runtime evidence where scheduled; inactive historical scenarios remain to be partitioned and classified.
+- Folder `30 · FENIX · CORE E INTELIGENCIA` contains 62 scenarios. Its active 8/8 subset is fully audited, its error subset is proven empty, and both ends of the inactive alphabetical inventory are evidenced. Middle inactive rows still require partitioned unique classification before claiming 62/62.
 - `social-lead-ingest` runtime authentication proof remains pending a real non-duplicate business event; no synthetic PROD mutation will be generated solely for evidence.
 
 ## Promotion / preservation rule
