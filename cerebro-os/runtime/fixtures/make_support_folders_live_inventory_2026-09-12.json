@@ -1,0 +1,37 @@
+{
+  "source": "Make folders inspected live 2026-09-12",
+  "team_id": 1927480,
+  "folders": [
+    {
+      "folder_id": 520861,
+      "name": "00 · FENIX · AUDITORÍA Y LEGACY",
+      "scenario_count": 9,
+      "ids": [9527814, 5565247, 5566037, 9531064, 9528012, 9538815, 9522933, 9522994, 9522583],
+      "error_ids": [9527814, 5565247, 5566037, 9531064],
+      "active_ids": [],
+      "policy": "PRESERVE_FOR_EVIDENCE_NEVER_AUTOACTIVATE"
+    },
+    {
+      "folder_id": 520865,
+      "name": "40 · FENIX · PREVENTIVO Y RECUPERACIÓN",
+      "scenario_count": 2,
+      "ids": [9527263, 9524813],
+      "active_ids": [],
+      "policy": "PRESERVE_INACTIVE_UNTIL_RUNTIME_PARITY"
+    },
+    {
+      "folder_id": 520866,
+      "name": "50 · FENIX · ALERTAS Y MONITORIZACIÓN",
+      "scenario_count": 8,
+      "ids": [9527636, 9527843, 9527663, 9527908, 9522860, 9527602, 9527718, 9537666],
+      "active_ids": [],
+      "policy": "PRESERVE_INACTIVE_UNTIL_HEALTH_MONITOR_PARITY"
+    }
+  ],
+  "global_invariants": {
+    "total_scenarios": 19,
+    "all_incomplete_executions_zero": true,
+    "delete_allowed": false,
+    "auto_activate_allowed": false
+  }
+}
