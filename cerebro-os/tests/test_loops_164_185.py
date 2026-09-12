@@ -7,7 +7,9 @@ def load(n,r):
 x=load('multicompany_engines_164_185','multicompany/engines.py')
 class T(unittest.TestCase):
  def test_164_company_registry(self):
-  m=x.CompanyManifest('c','Co',('co.es',),'finance','ES','u',('LAB','PREPROD'),('FACT-001',));m.validate()
+  m=x.CompanyManifest('c','Co',('co.es',),'finance','ES','u',('LAB','PREPROD'),('FACT-001',),'2.0.0',('e:registry',));m.validate()
+  with self.assertRaises(ValueError):x.CompanyManifest('c','Co',('co.es',),'finance','ES','u',('LAB',),('FACT-001',)).validate()
+  with self.assertRaises(ValueError):x.CompanyManifest('c','Co',(), 'finance','ES','u',('LAB',),('FACT-001',),'2.0.0',('e',)).validate()
  def test_165_company_onboarding(self):
   o=x.CompanyOnboarding('c',environment='LAB',version='2.0.0');self.assertEqual('SCAN',o.next())
   with self.assertRaises(ValueError):o.update('SEO','GREEN',evidence_ref='e:seo')
@@ -17,12 +19,21 @@ class T(unittest.TestCase):
   for p in x.ONBOARDING_PHASES:o.update(p,'GREEN',evidence_ref=f'e:{p}',company_id='c',environment='LAB',version='2.0.0')
   self.assertIsNone(o.next());self.assertTrue(all(o.evidence_refs.values()))
   with self.assertRaises(ValueError):x.CompanyOnboarding('c',environment='DEV')
- def test_166_scanner(self):x.FootprintFinding('WEB','https://x','src','2026-09-11',.9).validate()
+ def test_166_scanner(self):
+  x.FootprintFinding('WEB','https://x','src','2026-09-11T00:00:00+00:00',.9,'c','LAB','2.0.0').validate()
+  with self.assertRaises(ValueError):x.FootprintFinding('WEB','https://x','src','2026-09-11',.9,'c','LAB','2.0.0').validate()
+  with self.assertRaises(ValueError):x.FootprintFinding('WEB','https://x','src','2026-09-11T00:00:00+00:00',.9).validate()
  def test_167_keywords(self):
-  r=(x.KeywordIdea('a','buy','ES',.9,None,'e'),x.KeywordIdea('b','info','ES',.3,None,'e'));self.assertEqual(('a','b'),x.rank_keywords(r))
+  r=(x.KeywordIdea('a','buy','ES',.9,None,'e','c','LAB','2.0.0'),x.KeywordIdea('b','info','ES',.3,None,'e','c','LAB','2.0.0'));self.assertEqual(('a','b'),x.rank_keywords(r))
+  with self.assertRaises(ValueError):x.rank_keywords((x.KeywordIdea('a','buy','ES',1.2,None,'e','c','LAB','2.0.0'),))
+  with self.assertRaises(ValueError):x.rank_keywords((x.KeywordIdea('a','buy','ES',.9,None,'e','c','LAB','2.0.0'),x.KeywordIdea('b','info','ES',.3,None,'e','x','LAB','2.0.0')))
  def test_168_web_audit(self):
-  score,backlog=x.web_audit_score((x.WebAuditCheck('a',True,2,'e'),x.WebAuditCheck('b',False,1,'e')));self.assertEqual(.666667,score);self.assertEqual(('b',),backlog)
- def test_169_social_audit(self):x.SocialProfile('IG','ig:x',10,.1,'e').validate()
+  score,backlog=x.web_audit_score((x.WebAuditCheck('a',True,2,'e','c','LAB','2.0.0'),x.WebAuditCheck('b',False,1,'e','c','LAB','2.0.0')));self.assertEqual(.666667,score);self.assertEqual(('b',),backlog)
+  with self.assertRaises(ValueError):x.web_audit_score((x.WebAuditCheck('a',True,2,'e','c','LAB','2.0.0'),x.WebAuditCheck('b',False,1,'e','x','LAB','2.0.0')))
+ def test_169_social_audit(self):
+  x.SocialProfile('IG','ig:x',10,.1,'e','c','LAB','2.0.0').validate()
+  with self.assertRaises(ValueError):x.SocialProfile('IG','ig:x',10,.1,'e').validate()
+  with self.assertRaises(ValueError):x.SocialProfile('IG','ig:x',10,1.1,'e','c','LAB','2.0.0').validate()
  def test_170_local_presence(self):
   self.assertEqual('RED',x.LocalPresence(True,True,True,True,('e',)).status)
   self.assertEqual('GREEN',x.LocalPresence(True,True,True,True,('e',),'c','LAB','2.0.0').status)
