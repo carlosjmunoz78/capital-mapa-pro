@@ -31,6 +31,15 @@ class MakeAlertsObservabilityEvidenceTests(unittest.TestCase):
         self.assertEqual(result["cost_evidence"], "SNAPSHOT_ONLY_NOT_MONTHLY_COST")
         self.assertFalse(result["cost_measured_green"])
 
+    def test_retained_history_is_exact_and_partial(self):
+        result = module.assess_observability_evidence()
+        self.assertEqual(result["retained_success_edges"], (9527908,))
+        self.assertEqual(len(module.RETAINED_EXECUTION_EVIDENCE[9527908]), 2)
+        self.assertEqual(module.RETAINED_EXECUTION_EVIDENCE[9527663], ())
+        self.assertEqual(module.RETAINED_EXECUTION_EVIDENCE[9522860], ())
+        self.assertEqual(module.RETAINED_EXECUTION_EVIDENCE[9537666], ())
+        self.assertEqual(result["logs_evidence"], "PARTIAL_INVENTORY_AND_RETAINED_HISTORY")
+
     def test_no_false_prod_candidate(self):
         result = module.assess_observability_evidence()
         self.assertFalse(result["observability_green"])
