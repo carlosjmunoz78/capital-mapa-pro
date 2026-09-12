@@ -30,9 +30,10 @@ Estado real:
 - datos propios GSC/redes: EXISTENTE/PARCIAL con rutas Make útiles;
 - procesamiento SEO/competencia basado en Notion: EXISTENTE pero `MIGRATE_TO_RUNTIME`/`WRAP_WITH_CEREBRO`;
 - RADAR propios: EXISTENTE, 5/5 auditados, todos `OWN_SOCIAL_SIGNAL`;
-- colector sistemático de competencia/mercado: **GAP REAL**;
-- scoring/normalización/almacenamiento contractual de observaciones competitivas: DEFINIDO por arquitectura CEREBRO, no probado como runtime completo;
-- automatización multiempresa de alta de competidores y vigilancia periódica: PLANIFICADO/POR AUDITAR.
+- contrato `competitor_observation`: HECHO en runtime con validación de scope, hash, timezone, confidence, coste y dedupe;
+- contrato `own_social_signal`: HECHO y CI VERDE con aislamiento `company_id/environment/version`, plataformas permitidas, tipos de señal, hash, timezone, confidence, coste y dedupe;
+- colector web público de competencia + change detection + SQLite + market signal/action gate: EXISTENTE en LAB y cubierto por tests, sin promoción PROD;
+- automatización multiempresa de alta de competidores y vigilancia periódica: PARCIAL / POR AUDITAR antes de producción autónoma.
 
 ## ARQUITECTURA OBJETIVO
 
@@ -42,7 +43,7 @@ Pipeline:
 
 `Company Registry → Business Discovery → Competitor Registry → collectors → observation contracts → dedupe/change detection → MKT-002 / RSH-001 / SCAN-001 / KW-001 / SOCAUD-001 / LOCALP-001 → scoring/comparison → opportunities/actions`
 
-Contrato mínimo de observación:
+Contrato `competitor_observation` implementado:
 - `company_id`
 - `competitor_id`
 - `engine_id`
@@ -59,19 +60,24 @@ Contrato mínimo de observación:
 - `confidence`
 - `cost_units`
 
-Contrato mínimo para señales propias procedentes de RADAR:
+Contrato `own_social_signal` implementado:
 - `company_id`
 - `engine_id`
 - `environment`
 - `version`
-- `channel`
-- `account_external_id`
+- `platform`
 - `signal_type`
-- `external_id`
 - `observed_at`
-- `payload_hash`
+- `external_id`
+- `source_account_id`
+- `source_content_id`
+- `value`
+- `content_hash`
 - `evidence_ref`
+- `confidence`
 - `cost_units`
+
+Plataformas actualmente admitidas por contrato: `FACEBOOK`, `INSTAGRAM`, `LINKEDIN`, `YOUTUBE`. No se añade otra plataforma hasta existir collector/API y política verificadas.
 
 ## FUENTES Y RUTA ÓPTIMA
 
@@ -108,19 +114,24 @@ Los créditos no se queman para completar cuota. Se asignan al collector que apo
 
 - `9557377` → `MIGRATE_TO_RUNTIME` como lógica de composición/análisis; conservar como OLD hasta paridad.
 - `9557396` → `MIGRATE_TO_RUNTIME` como lógica de composición/análisis; conservar como OLD hasta paridad.
-- `9597297`, `9595955`, `9597307`, `9597372`, `9597332` → `WRAP_WITH_CEREBRO` y permanecer inactivos hasta contrato + consumidor + coste medido; categoría canónica `OWN_SOCIAL_SIGNAL`.
+- `9597297`, `9595955`, `9597307`, `9597372`, `9597332` → `WRAP_WITH_CEREBRO` y permanecer inactivos hasta adaptador Make→`own_social_signal` + consumidor + coste medido; categoría canónica `OWN_SOCIAL_SIGNAL`.
 - GSC PROD → `KEEP_ACTIVE` mientras siga aportando datos propios con coste/fiabilidad aceptables.
+
+## TEST/TEMP · evidencia adicional
+
+La partición nominal `TEMP` de TEST ha sido revisada: nueve escenarios devueltos, todos `inactive` y `incompleteExecutions=0`. Incluye auditorías/lecturas temporales, export GSC, WordPress ya absorbible por Core Guard, bridge Drive→WordPress→Notion y verificación FB puntual. No se reactiva ninguno sólo por estar inventariado.
+
+La partición `DEPRECATED` devuelve 25 escenarios legacy en el límite de Make, todos `inactive` y `incompleteExecutions=0`, dominados por gates/dry-runs/staging/publicadores Facebook/Instagram marcados explícitamente `NO USAR`; se mantienen como `GREEN_QUARANTINED` hasta completar mapa de dependencias, sin convertirlos de nuevo en runtime.
 
 ## SIGUIENTE LOOP TÉCNICO
 
-1. No activar los escenarios `competitivo` pensando que recolectan competencia: no lo hacen.
-2. Construir el contrato canónico `competitor_observation` y su validación multiempresa.
-3. Construir primero collector web/SEO público determinista y barato fuera de Make.
-4. Construir contrato `own_social_signal` para envolver los cinco RADAR sin mover su lógica de decisión a Make.
-5. Construir después adaptadores de fuentes sociales/locales competitivas sólo donde APIs/permisos lo permitan.
-6. Probar OLD vs NEW de `9557377/9557396` y migrar su lógica a runtime compartido.
-7. Medir coste real por señal antes de asignar créditos Make estables.
+1. Crear adaptador determinista Make/RADAR → `own_social_signal` sin mover decisión a Make.
+2. Mantener los cinco RADAR inactivos hasta que adaptador + consumidor + coste estén verdes.
+3. Completar inventario único 120/120 TEST y 62/62 CORE con target state por escenario.
+4. Probar OLD vs NEW de `9557377/9557396` y migrar su lógica a runtime compartido.
+5. Completar onboarding multiempresa de competidores con fuentes permitidas y budgets por collector.
+6. Medir coste real por señal antes de asignar créditos Make estables.
 
 ## PROMOCIÓN
 
-Ningún collector de competencia pasa a PROD autónomo sin fuente permitida, contrato, dedupe, rate limit, evidencia, observabilidad, coste medido, rollback/disable y política de datos.
+Ningún collector de competencia ni RADAR pasa a PROD autónomo sin fuente permitida, contrato, dedupe, rate limit, evidencia, observabilidad, coste medido, rollback/disable y política de datos.
