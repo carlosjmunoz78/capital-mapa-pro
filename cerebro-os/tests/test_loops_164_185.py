@@ -52,12 +52,23 @@ class T(unittest.TestCase):
   self.assertEqual('RED',x.MarketingBootstrap('f','p',True,'o',0,0).status())
   self.assertEqual('GREEN',x.MarketingBootstrap('f','p',True,'o',0,0,'c','LAB','2.0.0',('e:mkt',)).status())
   self.assertEqual('HUMAN_REQUIRED',x.MarketingBootstrap('f','p',True,'o',1,0,'c','LAB','2.0.0',('e:mkt',)).status())
- def test_177_crm_bootstrap(self):self.assertEqual('GREEN',x.CompanyScaffold('c','CRM','cfg',True,True,'PREPROD','2.0.0').status())
- def test_178_app_bootstrap(self):self.assertEqual('GREEN',x.CompanyScaffold('c','APP','cfg',True,True,'PREPROD','2.0.0').status())
- def test_179_automation_bootstrap(self):self.assertEqual('GREEN',x.CompanyScaffold('c','AUTOMATION','cfg',True,True,'PREPROD','2.0.0').status())
- def test_180_training_bootstrap(self):self.assertEqual('GREEN',x.TrainingBootstrap('c','ds','vocab','score',False,'LAB','2.0.0').status);self.assertEqual('BLOCKED',x.TrainingBootstrap('c','ds','v','s',True,'LAB','2.0.0').status)
+ def test_177_crm_bootstrap(self):
+  self.assertEqual('RED',x.CompanyScaffold('c','CRM','cfg',True,True,'PREPROD','2.0.0').status())
+  self.assertEqual('GREEN',x.CompanyScaffold('c','CRM','cfg',True,True,'PREPROD','2.0.0',('e:cfg','e:tests')).status())
+ def test_178_app_bootstrap(self):
+  self.assertEqual('RED',x.CompanyScaffold('c','APP','cfg',True,True,'PREPROD','2.0.0').status())
+  self.assertEqual('GREEN',x.CompanyScaffold('c','APP','cfg',True,True,'PREPROD','2.0.0',('e:cfg','e:tests')).status())
+ def test_179_automation_bootstrap(self):
+  self.assertEqual('RED',x.CompanyScaffold('c','AUTOMATION','cfg',True,True,'PREPROD','2.0.0').status())
+  self.assertEqual('GREEN',x.CompanyScaffold('c','AUTOMATION','cfg',True,True,'PREPROD','2.0.0',('e:cfg','e:tests')).status())
+ def test_180_training_bootstrap(self):
+  self.assertEqual('RED',x.TrainingBootstrap('c','ds','vocab','score',False,'LAB','2.0.0').status)
+  self.assertEqual('GREEN',x.TrainingBootstrap('c','ds','vocab','score',False,'LAB','2.0.0',('e:dataset','e:score')).status)
+  self.assertEqual('BLOCKED',x.TrainingBootstrap('c','ds','v','s',True,'LAB','2.0.0',('e',)).status)
  def test_181_engine_activation(self):
-  req,opt=x.activation_matrix('finance',(x.ActivationRule('*',('CORE-001',),()),x.ActivationRule('finance',('VIA-001',),('SEO-001',))));self.assertEqual(('CORE-001','VIA-001'),req);self.assertEqual(('SEO-001',),opt)
+  req,opt=x.activation_matrix('finance',(x.ActivationRule('*',('CORE-001',),(), 'e:core'),x.ActivationRule('finance',('VIA-001',),('SEO-001',),'e:finance')));self.assertEqual(('CORE-001','VIA-001'),req);self.assertEqual(('SEO-001',),opt)
+  with self.assertRaises(ValueError):x.activation_matrix('finance',(x.ActivationRule('*',('CORE-001',),()),))
+  with self.assertRaises(ValueError):x.activation_matrix('',(x.ActivationRule('*',('CORE-001',),(),'e'),))
  def test_182_company_deployment(self):
   self.assertTrue(x.CompanyDeployment(True,True,True,True,True,('preprod','tests','integrations','rollback','health'),'c','PROD','2.0.0').promotable)
   self.assertFalse(x.CompanyDeployment(True,True,True,True,True).promotable)
@@ -74,5 +85,7 @@ class T(unittest.TestCase):
   self.assertFalse(x.CompanyBackupPack('c','m','cfg','schema','kb',True).green)
   with self.assertRaises(ValueError):x.CompanyBackupPack('c','m','cfg','schema','kb',True,'e','DEV','2.0.0').digest
  def test_185_company_offboarding(self):
-  p=x.OffboardingPlan('c','exp',True,True,True,'ret',False,'PROD','2.0.0');self.assertEqual('HUMAN_REQUIRED',p.status());self.assertEqual('GREEN',x.OffboardingPlan('c','exp',True,True,True,'ret',True,'PROD','2.0.0').status())
+  p=x.OffboardingPlan('c','exp',True,True,True,'ret',False,'PROD','2.0.0');self.assertEqual('HUMAN_REQUIRED',p.status())
+  self.assertEqual('RED',x.OffboardingPlan('c','exp',True,True,True,'ret',True,'PROD','2.0.0').status())
+  self.assertEqual('GREEN',x.OffboardingPlan('c','exp',True,True,True,'ret',True,'PROD','2.0.0',('e:export','e:revoke','e:audit','e:approval')).status())
 if __name__=='__main__':unittest.main()
