@@ -147,30 +147,34 @@ class MarketingBootstrap:
 # CRMBOOT-001 / APPBOOT-001 / AUTBOOT-001 shared scaffold
 @dataclass(frozen=True)
 class CompanyScaffold:
-    company_id:str; kind:str; config_ref:str; tenant_isolated:bool; tests_green:bool; environment:str; version:str='1.0.0'
+    company_id:str; kind:str; config_ref:str; tenant_isolated:bool; tests_green:bool; environment:str; version:str='1.0.0'; evidence_refs:tuple[str,...]=()
     def status(self):
         if self.kind not in {'CRM','APP','AUTOMATION'}:raise ValueError('invalid scaffold kind')
         if not _scope_ok(self.company_id,self.environment,self.version):return 'RED'
         if self.environment=='PROD':return 'BLOCKED'
-        return 'GREEN' if self.config_ref.strip() and self.tenant_isolated and self.tests_green else 'RED'
+        return 'GREEN' if self.config_ref.strip() and self.tenant_isolated and self.tests_green and self.evidence_refs and all(ref.strip() for ref in self.evidence_refs) else 'RED'
 
 # TRNBOOT-001
 @dataclass(frozen=True)
 class TrainingBootstrap:
-    company_id:str; dataset_ref:str; vocabulary_ref:str; scorecard_ref:str; cross_company_data:bool; environment:str='LAB'; version:str='1.0.0'
+    company_id:str; dataset_ref:str; vocabulary_ref:str; scorecard_ref:str; cross_company_data:bool; environment:str='LAB'; version:str='1.0.0'; evidence_refs:tuple[str,...]=()
     @property
     def status(self):
         if self.cross_company_data:return 'BLOCKED'
-        return 'GREEN' if _scope_ok(self.company_id,self.environment,self.version) and all((self.dataset_ref.strip(),self.vocabulary_ref.strip(),self.scorecard_ref.strip())) else 'RED'
+        return 'GREEN' if _scope_ok(self.company_id,self.environment,self.version) and all((self.dataset_ref.strip(),self.vocabulary_ref.strip(),self.scorecard_ref.strip())) and self.evidence_refs and all(ref.strip() for ref in self.evidence_refs) else 'RED'
 
 # ENGACT-001
 @dataclass(frozen=True)
 class ActivationRule:
-    sector:str; required:tuple[str,...]; optional:tuple[str,...]
+    sector:str; required:tuple[str,...]; optional:tuple[str,...]; evidence_ref:str=''
 
 def activation_matrix(sector:str,rules:Iterable[ActivationRule])->tuple[tuple[str,...],tuple[str,...]]:
-    matches=[x for x in rules if x.sector==sector or x.sector=='*']
-    required=tuple(sorted({e for x in matches for e in x.required}));optional=tuple(sorted({e for x in matches for e in x.optional if e not in required}))
+    normalized=sector.strip()
+    if not normalized:raise ValueError('sector required')
+    matches=[x for x in rules if x.sector==normalized or x.sector=='*']
+    if not matches or any(not x.evidence_ref.strip() for x in matches):raise ValueError('activation evidence required')
+    required=tuple(sorted({e.strip() for x in matches for e in x.required if e.strip()}));optional=tuple(sorted({e.strip() for x in matches for e in x.optional if e.strip() and e.strip() not in required}))
+    if not required:raise ValueError('activation requires at least one required engine')
     return required,optional
 
 # COMP-DEP-001
@@ -205,8 +209,8 @@ class CompanyBackupPack:
 # COMP-OFF-001
 @dataclass(frozen=True)
 class OffboardingPlan:
-    company_id:str; export_ref:str; accesses_revoked:bool; jobs_stopped:bool; audit_retained:bool; retention_policy_ref:str; final_approval:bool; environment:str='PROD'; version:str='1.0.0'
+    company_id:str; export_ref:str; accesses_revoked:bool; jobs_stopped:bool; audit_retained:bool; retention_policy_ref:str; final_approval:bool; environment:str='PROD'; version:str='1.0.0'; evidence_refs:tuple[str,...]=()
     def status(self):
         if not _scope_ok(self.company_id,self.environment,self.version):return 'RED'
         if not self.final_approval:return 'HUMAN_REQUIRED'
-        return 'GREEN' if all((self.export_ref.strip(),self.accesses_revoked,self.jobs_stopped,self.audit_retained,self.retention_policy_ref.strip())) else 'RED'
+        return 'GREEN' if self.evidence_refs and all(ref.strip() for ref in self.evidence_refs) and all((self.export_ref.strip(),self.accesses_revoked,self.jobs_stopped,self.audit_retained,self.retention_policy_ref.strip())) else 'RED'
