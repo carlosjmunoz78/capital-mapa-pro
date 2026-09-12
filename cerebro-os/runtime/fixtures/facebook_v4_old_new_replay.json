@@ -1,0 +1,13 @@
+{
+  "version": "2026-09-12",
+  "scope": "Facebook V4 OLD-vs-NEW safety parity",
+  "fixtures": [
+    {"scenario_id":9533715,"format":"text","old_trigger":"scheduled","old_status":"inactive","old_mutator":"CreatePost","platform_state":"PUBLISHED","idempotency_state":"COMMITTED","analytics_windows_ready":true,"retry_publish_allowed":false},
+    {"scenario_id":9533724,"format":"link","old_trigger":"scheduled","old_status":"inactive","old_mutator":"CreatePost","platform_state":"PUBLISHED","idempotency_state":"COMMITTED","analytics_windows_ready":true,"retry_publish_allowed":false},
+    {"scenario_id":9533532,"format":"image","old_trigger":"scheduled","old_status":"inactive","old_mutator":"UploadPhoto","platform_state":"PUBLISHED","idempotency_state":"COMMITTED","analytics_windows_ready":true,"retry_publish_allowed":false},
+    {"scenario_id":9533564,"format":"reel_processing","old_trigger":"scheduled","old_status":"inactive","old_mutator":"uploadAReel","finalizer_scenario_id":9533584,"platform_state":"UPLOAD_ACCEPTED","idempotency_state":"PENDING_PLATFORM_CONFIRMATION","analytics_windows_ready":false,"retry_publish_allowed":false},
+    {"scenario_id":9533967,"format":"carousel","old_trigger":"on-demand","old_status":"inactive","old_mutator":"CreatePostWithPhotos","platform_state":"PUBLISHED","idempotency_state":"COMMITTED","analytics_windows_ready":true,"retry_publish_allowed":false},
+    {"scenario_id":9533972,"format":"video_long_processing","old_trigger":"on-demand","old_status":"inactive","old_mutator":"UploadVideo","finalizer_scenario_id":9533974,"platform_state":"UPLOAD_ACCEPTED","idempotency_state":"PENDING_PLATFORM_CONFIRMATION","analytics_windows_ready":false,"retry_publish_allowed":false},
+    {"scenario_id":9533976,"format":"story_preflight","old_trigger":"on-demand","old_status":"inactive","old_mutator":null,"platform_state":"FACEBOOK_NOT_CALLED","idempotency_state":"NOT_APPLICABLE","analytics_windows_ready":false,"retry_publish_allowed":false}
+  ]
+}
