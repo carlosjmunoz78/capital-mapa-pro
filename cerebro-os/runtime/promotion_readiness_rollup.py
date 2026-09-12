@@ -2,6 +2,7 @@ from __future__ import annotations
 
 BLOCKING_EVIDENCE = {
     "dependency_live_verification": ("app", "crm", "supabase", "notion", "wordpress"),
+    "security_review": ("supabase_rls", "security_definer_privileges", "extension_location", "leaked_password_protection"),
     "recovery_external_proof": ("source_backup", "provider_restore", "prod_rollback_rehearsal"),
     "observability_per_engine": ("logs", "metrics", "incidents", "cost_measured"),
 }
@@ -22,10 +23,18 @@ GREEN_STRUCTURAL = (
 )
 
 
-def assess_rollup(*, dependency_live_green: bool, recovery_external_green: bool, observability_green: bool) -> dict:
+def assess_rollup(
+    *,
+    dependency_live_green: bool,
+    security_review_green: bool = False,
+    recovery_external_green: bool,
+    observability_green: bool,
+) -> dict:
     blockers = []
     if not dependency_live_green:
         blockers.append("dependency_live_verification")
+    if not security_review_green:
+        blockers.append("security_review")
     if not recovery_external_green:
         blockers.append("recovery_external_proof")
     if not observability_green:
@@ -33,6 +42,8 @@ def assess_rollup(*, dependency_live_green: bool, recovery_external_green: bool,
     prod_candidate = not blockers
     return {
         "green_structural": GREEN_STRUCTURAL,
+        "dependency_live_verified": dependency_live_green,
+        "security_review_green": security_review_green,
         "blocking_evidence": tuple(blockers),
         "blocking_detail": {name: BLOCKING_EVIDENCE[name] for name in blockers},
         "non_blocking_parked": dict(NON_BLOCKING_PARKED),
