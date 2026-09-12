@@ -10,14 +10,17 @@ Ambos están `inactive`, `incompleteExecutions=0` y su blueprint real contiene �
 
 La búsqueda `mercado` no devuelve escenarios Make.
 
-Los cinco escenarios `RADAR` existentes tampoco constituyen por sí mismos inteligencia competitiva:
-- `9597297` Facebook Página comentarios → Oportunidades.
-- `9595955` Instagram comentarios → Oportunidades.
-- `9597307` LinkedIn comentarios → Oportunidades.
-- `9597372` LinkedIn engagement → Inteligencia.
-- `9597332` YouTube comentarios canal → Oportunidades.
+## RADAR 5/5 · clasificación cerrada
 
-El blueprint verificado de `9597297` usa `facebook-pages:ListPosts` + `ListComments` sobre la conexión de Fénix y genera oportunidades con dedupe/idempotencia. Es captura de **datos propios / audiencia propia**, no observación de competidores.
+Los cinco escenarios RADAR existentes se han inspeccionado por blueprint y conexiones. Todos están inactivos, con `incompleteExecutions=0`, y todos corresponden a señales de activos/canales propios de Fénix, no a vigilancia de competidores:
+
+- `9597297` · Facebook Página comentarios → Oportunidades · V1.1. `facebook-pages:ListPosts` → `ListComments` sobre conexión Fénix → Notion + Data Store con dedupe. `OWN_SOCIAL_SIGNAL`. Decisión: `WRAP_WITH_CEREBRO`; mantener inactivo hasta que exista consumidor contractual.
+- `9595955` · Instagram comentarios → Oportunidades · V1. `GetUserMedia` → `listMediaComments` sobre conexión Fénix → Notion + Data Store con dedupe. `OWN_SOCIAL_SIGNAL`. Decisión: `WRAP_WITH_CEREBRO`; mantener inactivo hasta consumidor contractual.
+- `9597307` · LinkedIn comentarios → Oportunidades · V2. `listOrganizationPosts2` → API comentarios → feeder → dedupe Notion → alta de oportunidad fail-closed. `OWN_SOCIAL_SIGNAL`. Decisión: `WRAP_WITH_CEREBRO` / `KEEP_INACTIVE_READY`.
+- `9597372` · LinkedIn engagement → Inteligencia · V1. `listOrganizationPosts2` → estadísticas de shares → Data Store → Notion. `OWN_SOCIAL_SIGNAL`. Decisión: `WRAP_WITH_CEREBRO`; buen candidato a collector edge de bajo volumen si el coste por señal es bueno.
+- `9597332` · YouTube comentarios canal → Oportunidades · V1.2. API YouTube oficial → Data Store → Notion con filtro de comentario nuevo. `OWN_SOCIAL_SIGNAL`. Decisión: `WRAP_WITH_CEREBRO` / `KEEP_INACTIVE_READY`.
+
+Conclusión RADAR: **5/5 verificados; ninguno es collector competitivo**. Los conectores SaaS sí pueden seguir siendo útiles como edge, pero Notion/Data Store no deben ser la lógica ni el source of truth del nuevo runtime.
 
 ## CORRECCIÓN CANÓNICA
 
@@ -26,6 +29,7 @@ No se debe considerar que la capa de competencia ya existe sólo porque los nomb
 Estado real:
 - datos propios GSC/redes: EXISTENTE/PARCIAL con rutas Make útiles;
 - procesamiento SEO/competencia basado en Notion: EXISTENTE pero `MIGRATE_TO_RUNTIME`/`WRAP_WITH_CEREBRO`;
+- RADAR propios: EXISTENTE, 5/5 auditados, todos `OWN_SOCIAL_SIGNAL`;
 - colector sistemático de competencia/mercado: **GAP REAL**;
 - scoring/normalización/almacenamiento contractual de observaciones competitivas: DEFINIDO por arquitectura CEREBRO, no probado como runtime completo;
 - automatización multiempresa de alta de competidores y vigilancia periódica: PLANIFICADO/POR AUDITAR.
@@ -53,6 +57,20 @@ Contrato mínimo de observación:
 - `content_hash`
 - `evidence_ref`
 - `confidence`
+- `cost_units`
+
+Contrato mínimo para señales propias procedentes de RADAR:
+- `company_id`
+- `engine_id`
+- `environment`
+- `version`
+- `channel`
+- `account_external_id`
+- `signal_type`
+- `external_id`
+- `observed_at`
+- `payload_hash`
+- `evidence_ref`
 - `cost_units`
 
 ## FUENTES Y RUTA ÓPTIMA
@@ -90,7 +108,7 @@ Los créditos no se queman para completar cuota. Se asignan al collector que apo
 
 - `9557377` → `MIGRATE_TO_RUNTIME` como lógica de composición/análisis; conservar como OLD hasta paridad.
 - `9557396` → `MIGRATE_TO_RUNTIME` como lógica de composición/análisis; conservar como OLD hasta paridad.
-- `9597297`, `9595955`, `9597307`, `9597372`, `9597332` → `WRAP_WITH_CEREBRO`/`KEEP_INACTIVE_READY` según fuente y coste; clasificarlos como `OWN_SOCIAL_SIGNAL`, no competencia.
+- `9597297`, `9595955`, `9597307`, `9597372`, `9597332` → `WRAP_WITH_CEREBRO` y permanecer inactivos hasta contrato + consumidor + coste medido; categoría canónica `OWN_SOCIAL_SIGNAL`.
 - GSC PROD → `KEEP_ACTIVE` mientras siga aportando datos propios con coste/fiabilidad aceptables.
 
 ## SIGUIENTE LOOP TÉCNICO
@@ -98,8 +116,8 @@ Los créditos no se queman para completar cuota. Se asignan al collector que apo
 1. No activar los escenarios `competitivo` pensando que recolectan competencia: no lo hacen.
 2. Construir el contrato canónico `competitor_observation` y su validación multiempresa.
 3. Construir primero collector web/SEO público determinista y barato fuera de Make.
-4. Construir después adaptadores de fuentes sociales/locales sólo donde las APIs/permisos lo permitan.
-5. Envolver los RADAR propios como `own_social_signal` y dirigirlos a motores CEREBRO.
+4. Construir contrato `own_social_signal` para envolver los cinco RADAR sin mover su lógica de decisión a Make.
+5. Construir después adaptadores de fuentes sociales/locales competitivas sólo donde APIs/permisos lo permitan.
 6. Probar OLD vs NEW de `9557377/9557396` y migrar su lógica a runtime compartido.
 7. Medir coste real por señal antes de asignar créditos Make estables.
 
