@@ -32,6 +32,10 @@ Allowed target states:
 | 9557396 | SEO omnichannel/competition/support content | inactive; Notion/subscenario processor, not external collector | MIGRATE_TO_RUNTIME | Preserve OLD only for parity; no claim of competitor collection. |
 | 9537817 | Notion -> social dispatcher | inactive; reads Notion, writes Data Store/feeder only | MIGRATE_TO_RUNTIME | Routing belongs in Gateway/runtime. Notion can remain source edge if useful. |
 | 9535463 | ADS router/preflight | inactive; datastore-only; budget/QA/human gates | MIGRATE_TO_RUNTIME | Preserve as OLD reference; policy/budget authorization belongs in Gateway/policy. |
+| 9524837 | idempotency and Run ID | inactive; datastore-only scheduled logic | MIGRATE_TO_RUNTIME | Idempotency is a shared runtime invariant and must not depend on Make Data Store. Preserve OLD until contract parity. |
+| 9525004 | Facebook validation/normalization | inactive; Notion + datastore, human/elegibility gate | MIGRATE_TO_RUNTIME | Normalization and eligibility policy belong in CEREBRO; Make/Notion may remain edge inputs only. |
+| 9533976 | Facebook Story preflight/queue | inactive; datastore-only; vertical/QA/asset checks | MIGRATE_TO_RUNTIME | Preflight/queue policy belongs in Gateway/runtime. Keep OLD for parity; no publication path is present. |
+| 9533982 | universal multimedia request | inactive; datastore-only factory request contract | MIGRATE_TO_RUNTIME | Request orchestration belongs in Engine Factory/runtime. Preserve interface semantics while migrating. |
 | 9694499 | legacy PREPROD WordPress secure transport | inactive fail-closed | REPLACE_AFTER_PARITY | Core Guard/Gateway is WordPress-primary. Retire only after OLD vs NEW parity and rollback proof. |
 | 9694504 | legacy PREPROD WordPress safe reader | inactive fail-closed | REPLACE_AFTER_PARITY | Replace by Core Guard read abilities after live parity evidence. |
 | 9694471 | WordPress write-verify-rollback TEST | inactive mutator | REPLACE_AFTER_PARITY | Core Guard now carries draft/update/snapshot/rollback code path; preserve quarantine until parity. |
