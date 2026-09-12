@@ -16,13 +16,20 @@ class DependencyEvidenceSnapshotTests(unittest.TestCase):
             {"app", "crm", "supabase", "notion", "wordpress", "seo"},
         )
 
-    def test_historical_inventory_does_not_become_live_green(self):
+    def test_live_dependency_verification_is_separate_from_promotion(self):
         result = module.assess_dependency_snapshot()
         self.assertTrue(result["inventory_complete"])
         self.assertTrue(result["historical_contracts_complete"])
-        self.assertEqual(set(result["live_unverified"]), {"app", "crm", "supabase", "notion", "wordpress"})
-        self.assertFalse(result["dependency_green"])
+        self.assertEqual(result["live_unverified"], ())
+        self.assertTrue(result["live_dependency_verified"])
+        self.assertTrue(result["dependency_green"])
+        self.assertFalse(result["promotion_ready"])
         self.assertFalse(result["prod_candidate_allowed"])
+
+    def test_real_promotion_blockers_remain_explicit(self):
+        result = module.assess_dependency_snapshot()
+        self.assertIn("supabase:SUPABASE_SECURITY_REVIEW", result["promotion_blockers"])
+        self.assertIn("wordpress:PROD_WRITE_NOT_EXERCISED", result["promotion_blockers"])
 
     def test_old_systems_are_preserved(self):
         result = module.assess_dependency_snapshot()
