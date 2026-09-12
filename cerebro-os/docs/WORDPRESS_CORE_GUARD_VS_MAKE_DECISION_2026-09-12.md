@@ -9,13 +9,24 @@
 - Capabilities documentadas: `fenix_guard_view`, `fenix_guard_manage`, `fenix_guard_repair`.
 - Rutas documentadas incluyen health, policy, incidents, URLs, integrity, history, snapshots, restore, alerts, rules, audits, jobs, cache, changes y logs.
 - Contrato CEREBRO ↔ Core Guard incluye correlación, idempotencia, firma HMAC, fail-closed y acciones controladas.
-- WordPress Abilities verificadas en código de rama `production`: `health`, `preprod-readiness`, `smoke-test`, `cerebro-status`, `capture-post-snapshot`, `purge-cache-url`, `restore-post-snapshot`.
+- WordPress Abilities base verificadas: `health`, `preprod-readiness`, `smoke-test`, `cerebro-status`, `capture-post-snapshot`, `purge-cache-url`, `restore-post-snapshot`.
+
+### HECHO · rama development endurecida
+La rama `development` ya incorpora y tiene quality gate verde para:
+- `fenix-core-guard/post-inspect` — lectura segura de metadatos de post/página.
+- `fenix-core-guard/duplicate-page-draft` — duplicación controlada a borrador bajo gate `apply` + confirmación.
+- `fenix-core-guard/update-page-draft` — update de borrador con snapshot previo, post-check y rollback automático si falla.
+- `fenix-core-guard/upload-jpeg-base64` — media JPEG controlada con límite 5 MiB, validación MIME real, checksum y eliminación si falla el post-check.
+- `fenix-core-guard/list-page-drafts` — lectura segura y acotada de borradores de página, sin exponer contenido completo.
+
+El workflow de desarrollo `Core Guard Quality Gate` para el commit `85ab0d3ef8e9bfa2ccb8d0ca4d741bb3eb12ca21` finalizó `success`, incluyendo gates de lectura segura, draft update y media upload.
 
 ### POR AUDITAR / INCONSISTENCIA
-- La rama `main` está muy por detrás y sólo contiene un bootstrap mínimo que referencia `src/` sin incluir el árbol completo.
-- La rama `production` contiene la implementación real completa, pero su documentación sigue marcando el build RC9 como PRE-PROD y exige gates separados para PROD.
-- No se debe inferir que el plugin está operativo en PROD sólo por existir la rama `production`; falta evidencia LIVE actual de instalación/version/health/readiness/observer/rollback.
-- Las Abilities actuales NO cubren todavía de forma explícita crear/duplicar páginas, actualizar contenido/SEO o subir media. Esos huecos impiden retirar Make por paridad hoy.
+- La rama `main` está muy por detrás y sólo contiene un bootstrap mínimo.
+- La rama `production` contiene implementación completa pero sigue documentada como RC9 PRE-PROD; no confundir nombre de rama con despliegue live.
+- Falta evidencia LIVE actual de instalación/version/health/readiness/observer/rollback en WordPress real.
+- Las nuevas abilities están verdes en código/CI de `development`, pero aún no se consideran operativas LIVE ni autorizadas en PROD.
+- La lectura genérica de settings WordPress sigue sin justificarse como capability estable hasta identificar consumidor y allowlist exacta.
 
 ## Decisión arquitectónica
 
@@ -43,58 +54,50 @@ Todos los escenarios devueltos por búsqueda `WordPress` están inactivos y con 
 - `9681890` TEMP SEO corregir Córdoba PROD autorizado — getPost → updatePost. Mutador puntual; `REPLACE_AFTER_PARITY`.
 
 ### REPLACE_AFTER_PARITY · Core Guard/Gateway debe absorber la capacidad
-- `9542046` Duplicar página WordPress como borrador — getPost → createPost. Falta ability segura equivalente.
-- `9694471` CEREBRO SEO write-verify-rollback — create/get/update/get/update/get/delete. Útil como contrato OLD de prueba; no ejecutar. Debe convertirse en test de paridad del plugin, no runtime Make.
-- `9540674` Corregir footer codificado — makeApiCall x2. Mutación WP determinista; debe gobernarla plugin/Gateway.
-- `9556822` Reconstruir landing SEO en borrador — updatePost con title/slug/excerpt/content. Falta ability segura de contenido/SEO con snapshot y post-check.
-- `9721363` Upload JPEG base64 → WordPress — createMediaItem. Falta ability media controlada con MIME/size/policy/idempotencia.
+- `9542046` Duplicar página WordPress como borrador — paridad de código disponible en `development` mediante `duplicate-page-draft`; pendiente OLD vs NEW + LIVE controlado.
+- `9694471` CEREBRO SEO write-verify-rollback — conservar como contrato OLD de prueba; el camino nuevo usa snapshot/post-check/rollback plugin-first.
+- `9540674` Corregir footer codificado — mutación específica legacy; no crear ability genérica peligrosa. Resolver sólo mediante operación allowlisted si sigue existiendo consumidor.
+- `9556822` Reconstruir landing SEO en borrador — paridad de código disponible en `development` mediante `update-page-draft`; pendiente OLD vs NEW + LIVE controlado.
+- `9721363` Upload JPEG base64 → WordPress — paridad de código disponible mediante `upload-jpeg-base64`; pendiente OLD vs NEW + LIVE controlado.
 
-### MIGRATE_TO_PLUGIN_READ_API · lectura WordPress que no necesita Make a largo plazo
-- `9557305` Inspección rutas REST WordPress — makeApiCall + aggregator. La inspección debe resolverse con Core Guard/REST/MCP.
-- `9773134` WordPress settings read-only · CEREBRO — makeApiCall. Debe exponerse como lectura protegida plugin-first.
-- `9551114` Extraer borradores REST — makeApiCall → feeder → datastore. Lectura/normalización debe pasar a plugin/runtime; no hay razón para mantener lógica pesada en Make.
-- `9550846` Recuperar borradores locales — makeApiCall + aggregator. Lectura debe quedar plugin-first.
-- `9695483` Inspección plantilla WordPress — makeApiCall. Debe quedar como ability/REST de lectura si sigue siendo necesaria.
+### MIGRATE_TO_PLUGIN_READ_API
+- `9557305` Inspección rutas REST WordPress — sustituible por Core Guard REST/MCP; conservar sólo hasta cerrar consumidores.
+- `9773134` WordPress settings read-only · CEREBRO — mantener inactivo; no ampliar plugin hasta saber exactamente qué settings necesita el consumidor.
+- `9551114` Extraer borradores REST — capacidad de lectura cubierta en código por `list-page-drafts`; pendiente paridad de salida/consumidor.
+- `9550846` Recuperar borradores locales — capacidad base cubierta por `list-page-drafts`; pendiente confirmar semántica legacy exacta.
+- `9695483` Inspección plantilla WordPress — cubierta por `post-inspect` para un ID concreto.
 
 ### WRAP_WITH_CEREBRO · Make sí aporta bridge externo
-- `9721021` Assets sociales Drive → WordPress CDN → Notion — Drive + createMediaItem + Notion. Mantener temporalmente porque Drive/Notion aportan valor de integración, pero la escritura WordPress debe migrar a Core Guard/Gateway. Make debe transportar, no decidir ni gobernar la mutación.
+- `9721021` Assets sociales Drive → WordPress CDN → Notion — Drive + createMediaItem + Notion. Mantener temporalmente porque Drive/Notion aportan valor de integración, pero la escritura WordPress debe migrar a Core Guard/Gateway. Make transporta; CEREBRO gobierna.
 
-## Matriz de paridad Core Guard actual
+## Matriz de paridad
 
-| Capacidad | Make OLD | Core Guard actual | Estado |
+| Capacidad | Make OLD | Core Guard development | Estado |
 |---|---|---|---|
-| Health/readiness/smoke/status | varios diagnósticos | abilities nativas | GREEN_PLUGIN_FIRST |
-| Snapshot de post/página | write/verify/rollback parcial | `capture-post-snapshot` | GREEN_PLUGIN_FIRST |
-| Restore/rollback de post | escenarios manuales | `restore-post-snapshot` | GREEN_PLUGIN_FIRST |
-| Purga cache URL | rutas Make históricas | `purge-cache-url` con gates | GREEN_PLUGIN_FIRST |
-| Inspección WP/REST/settings | makeApiCall | REST/Abilities parciales | PARTIAL · ampliar lectura explícita |
-| Duplicar página a borrador | `9542046` | no ability explícita | GAP |
-| Actualizar contenido/SEO | `9681890`, `9556822`, otros | no ability explícita | GAP |
-| Crear/subir media | `9721021`, `9721363` | no ability explícita | GAP |
-| Bridge Drive/Notion | `9721021` | no es responsabilidad primaria del plugin | KEEP_BRIDGE |
+| Health/readiness/smoke/status | diagnósticos varios | abilities nativas | GREEN_CODE_CI |
+| Snapshot | write/verify/rollback parcial | `capture-post-snapshot` | GREEN_CODE_CI |
+| Restore/rollback | escenarios manuales | `restore-post-snapshot` | GREEN_CODE_CI |
+| Purga cache URL | rutas legacy | `purge-cache-url` | GREEN_CODE_CI |
+| Inspección página/template | makeApiCall | `post-inspect` | GREEN_CODE_CI |
+| Listar borradores página | REST/feeder/Data Store | `list-page-drafts` | GREEN_CODE_CI |
+| Duplicar página a borrador | `9542046` | `duplicate-page-draft` | GREEN_CODE_CI · PARITY_PENDING |
+| Actualizar borrador SEO/contenido | `9556822` | `update-page-draft` | GREEN_CODE_CI · PARITY_PENDING |
+| Subir JPEG base64 | `9721363` | `upload-jpeg-base64` | GREEN_CODE_CI · PARITY_PENDING |
+| Bridge Drive/Notion | `9721021` | fuera de responsabilidad primaria del plugin | KEEP_BRIDGE |
+| Settings genéricos | `9773134` | no expuesto deliberadamente | NEED_CONSUMER_CONTRACT |
 
-## Gaps que Core Guard debe cubrir antes de retirar Make WordPress
+## Gaps restantes antes de retirar Make WordPress
 
-1. Ability/ruta segura para duplicar página a borrador preservando metadatos/Elementor relevantes.
-2. Ability/ruta para actualización de contenido/SEO con snapshot previo, lista blanca de campos y post-check.
-3. Ability/ruta para subir media desde payload/URL controlada, con MIME/size/origin policy, checksum, metadata/alt text e idempotencia.
-4. Lecturas explícitas para settings/template/drafts si siguen teniendo consumidores reales.
-5. Contratos `company_id`, `engine_id`, `environment`, `version`, `correlation_id`, `idempotency_key` en la envoltura CEREBRO.
-6. Evidencia OLD vs NEW para cada operación que hoy tenga equivalente Make.
-7. Rollback probado antes de retirar cualquier escenario histórico.
+1. Pruebas OLD vs NEW controladas para duplicación, update de borrador y media; nunca sobre contenido PROD no reversible.
+2. Contratos `company_id`, `engine_id`, `environment`, `version`, `correlation_id`, `idempotency_key` en Gateway/CEREBRO alrededor de las abilities.
+3. Identificar consumidores reales de settings/rutas REST legacy antes de crear allowlists adicionales.
+4. Evidencia LIVE de instalación/version/health/readiness/observer y rollback del plugin.
+5. Confirmar no-consumidores y mapa de dependencias antes de retirar cada escenario Make.
+6. Mantener `9721021` como bridge externo mientras siga siendo más eficiente que duplicar Drive/Notion en código.
 
 ## Política de mejora
 
-Los huecos nuevos se implementan en rama de trabajo de `fenix-core-guard`, nunca directamente sobre WordPress PROD. Cada capability nueva debe incluir:
-- capability/permisos mínimos;
-- fail-closed `observer/apply` cuando escriba;
-- snapshot previo en mutaciones de contenido;
-- idempotency key y correlation id en la envoltura CEREBRO;
-- validación de origen/tipo/tamaño donde aplique;
-- post-check verificable;
-- rollback;
-- tests/quality gate;
-- actualización de documentación y changelog.
+Los huecos se implementan en `development`, nunca directamente en WordPress PROD. Cada capability nueva exige permisos mínimos, fail-closed, validación, post-check, rollback cuando aplique, tests y actualización documental.
 
 ## Regla de promoción
 
@@ -102,18 +105,12 @@ No tocar WordPress PROD para conseguir un check verde artificial.
 
 `CONSERVAR → ENTENDER → ENVOLVER → PROBAR → MEJORAR → MIGRAR`
 
-Un escenario Make WordPress sólo puede retirarse cuando:
-- mapa de dependencias = cerrado;
-- Core Guard/Gateway cubre la misma capacidad o una mejor;
-- tests y evidencia de paridad = verdes;
-- snapshot/rollback = probado;
-- no hay consumidor legacy;
-- coste/riesgo del nuevo camino <= camino anterior.
+Un escenario Make WordPress sólo puede retirarse cuando mapa de dependencias, paridad, tests, rollback y no-consumidores estén verdes.
 
 ## Siguiente loop
 
-1. Construir las abilities faltantes una por una en rama de desarrollo de Core Guard, comenzando por lectura segura y después mutaciones con snapshot.
-2. Añadir tests de contrato/quality gate antes de cada promoción.
-3. Usar `9694471` únicamente como contrato OLD de referencia para write/verify/rollback, nunca como ejecución sobre PROD.
-4. Mantener `9721021` como bridge temporal hasta que CEREBRO tenga ruta Drive/Notion equivalente o demuestre que Make sigue siendo el edge óptimo.
-5. Actualizar Make audit y Engine Registry con el estado final por escenario.
+1. Cerrar contratos Gateway multiempresa/idempotencia alrededor de las nuevas abilities.
+2. Diseñar fixtures OLD vs NEW para `9542046`, `9556822`, `9721363` sin tocar contenido real.
+3. Auditar consumidor exacto de `9773134` antes de exponer settings.
+4. Mantener `9721021` como bridge temporal y medir coste/valor.
+5. Promover abilities sólo tras staging/live controlado y rollback probado.
