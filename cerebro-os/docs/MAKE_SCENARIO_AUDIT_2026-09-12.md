@@ -13,6 +13,12 @@ Evidence-first inventory of Make team `1927480`. No scenario was activated or de
 - The two one-shot Lucena publication scenarios are inactive.
 - PRE-PROD inventory remains 3/3 inactive. The two WordPress webhooks are fail-closed with sentinel `__DISABLED_LEGACY_PREPROD__`; queues are empty. Google bridge PRE-PROD remains inactive/read-only with healthy GSC and GA4 connections.
 - `social-lead-ingest` scenario `9768402` configuration remains on Make-managed API-key authentication with no literal `x-fenix-key` in its mapper. Runtime verification remains separately pending because a synthetic run would mutate APP/CRM PROD.
+- Folder `30 · FENIX · CORE E INTELIGENCIA` active subset is fully inventoried: 8 active scenarios, all with `incompleteExecutions=0`.
+- Active on-demand Instagram analytics/reconciliation scenarios `9534096` and `9534088` use Facebook/Instagram connection `14428711` and Notion `14435131`, both `ok`; their flows are analytics/reconciliation, not publication.
+- Active on-demand LinkedIn analytics/reconciliation scenarios `9523007` and `9405249` use LinkedIn `14435718` and Notion `14435131`, both `ok`; their flows read post/statistics data and persist evidence, not publish.
+- Active scheduled CORE reconciliation `9527242` is deterministic datastore-only. All 25 returned runs from 2026-09-10 through 2026-09-12 are `success`; latest run on 2026-09-12 completed 5 operations successfully.
+- Active scheduled watchdog `9705138` uses Notion connection `14435131` with status `ok`. All 25 returned recent runs are `success`; latest run on 2026-09-12 completed 2 operations successfully.
+- Active MASTER Facebook control/analytics `9533690` uses Notion `14435131` and Facebook `14428711`, both `ok`, and contains no publication module. Its automatic runs on 2026-09-07 through 2026-09-12 are all `success`; latest run completed 12 operations successfully.
 
 ## GREEN_QUARANTINED
 The following classes are intentionally green-by-quarantine rather than green-by-execution:
@@ -24,7 +30,7 @@ A quarantined scenario must not be reactivated merely to clear an audit state. R
 
 ## PARCIAL / remaining
 - Folder `10 · FENIX · TEST` contains 120 scenarios and must be partitioned because the Make connector returns at most 25 rows per list operation. High-risk TEST/TEMP mutators and known error scenarios have already been individually inspected; full 120/120 classification remains in progress.
-- Folder `30 · FENIX · CORE E INTELIGENCIA` contains 62 scenarios. Active CORE inventory has been audited previously; full inactive 62-item historical classification remains in progress.
+- Folder `30 · FENIX · CORE E INTELIGENCIA` contains 62 scenarios. Its active 8/8 subset is now fully audited with connection/runtime evidence where scheduled; inactive historical scenarios remain to be partitioned and classified.
 - `social-lead-ingest` runtime authentication proof remains pending a real non-duplicate business event; no synthetic PROD mutation will be generated solely for evidence.
 
 ## Promotion / preservation rule
