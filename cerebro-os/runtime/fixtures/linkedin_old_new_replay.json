@@ -1,0 +1,79 @@
+{
+  "source": "Make PROD scenarios inspected live 2026-09-12",
+  "organization": "urn:li:organization:107443702",
+  "connection_id": 14435718,
+  "notion_connection_id": 14435131,
+  "scenarios": [
+    {
+      "scenario_id": 5554207,
+      "format": "text",
+      "old_contract": {
+        "action": "linkedin:CreateTextShare",
+        "visibility": "PUBLIC",
+        "feed_distribution": "MAIN_FEED",
+        "receipt_status": "LINKEDIN_ACCEPTED",
+        "notion_state": "Publicada",
+        "idempotency_status": "COMMITTED",
+        "override_status": "CONSUMED"
+      }
+    },
+    {
+      "scenario_id": 9528327,
+      "format": "link",
+      "old_contract": {
+        "action": "linkedin:CreateTextShare",
+        "share_type": "ARTICLE",
+        "visibility": "PUBLIC",
+        "feed_distribution": "MAIN_FEED",
+        "receipt_key_prefix": "PUBLISH_RECEIPT_LINKEDIN_LINK_",
+        "idempotency_key_prefix": "IDEMPOTENCY_PUBLISH_LINKEDIN_LINK_",
+        "receipt_status": "LINKEDIN_ACCEPTED",
+        "platform_state": "PUBLISHED",
+        "notion_state": "Publicada",
+        "idempotency_status": "COMMITTED",
+        "override_status": "CONSUMED"
+      }
+    },
+    {
+      "scenario_id": 9522428,
+      "format": "image",
+      "old_contract": {
+        "action": "linkedin:CreateCompanyImagePost",
+        "binary_required": true,
+        "visibility": "PUBLIC",
+        "feed_distribution": "MAIN_FEED",
+        "receipt_key_prefix": "PUBLISH_RECEIPT_LINKEDIN_IMAGE_",
+        "idempotency_key_prefix": "IDEMPOTENCY_PUBLISH_LINKEDIN_IMAGE_",
+        "receipt_status": "LINKEDIN_ACCEPTED",
+        "notion_state": "Publicada",
+        "idempotency_status": "COMMITTED",
+        "override_status": "CONSUMED"
+      }
+    },
+    {
+      "scenario_id": 9410589,
+      "format": "video",
+      "old_contract": {
+        "action": "linkedin:createOrganizationVideoPost",
+        "binary_required": true,
+        "visibility": "PUBLIC",
+        "feed_distribution": "MAIN_FEED",
+        "receipt_key_prefix": "PUBLISH_RECEIPT_LINKEDIN_VIDEO_",
+        "idempotency_key_prefix": "IDEMPOTENCY_PUBLISH_LINKEDIN_VIDEO_",
+        "receipt_status": "LINKEDIN_ACCEPTED",
+        "platform_state": "PUBLISHED",
+        "notion_state": "Publicada",
+        "idempotency_status": "COMMITTED",
+        "override_status": "CONSUMED"
+      }
+    }
+  ],
+  "new_runtime_invariants": {
+    "external_action_allowed": false,
+    "linkedin_called_by_runtime": false,
+    "notion_mutation_allowed": false,
+    "retry_publish_allowed": false,
+    "real_execution_human_reason": "SIGNATURE_REQUIRED",
+    "old_preserved": true
+  }
+}
