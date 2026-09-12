@@ -36,6 +36,14 @@ Allowed target states:
 | 9525004 | Facebook validation/normalization | inactive; Notion + datastore, human/elegibility gate | MIGRATE_TO_RUNTIME | Normalization and eligibility policy belong in CEREBRO; Make/Notion may remain edge inputs only. |
 | 9533976 | Facebook Story preflight/queue | inactive; datastore-only; vertical/QA/asset checks | MIGRATE_TO_RUNTIME | Preflight/queue policy belongs in Gateway/runtime. Keep OLD for parity; no publication path is present. |
 | 9533982 | universal multimedia request | inactive; datastore-only factory request contract | MIGRATE_TO_RUNTIME | Request orchestration belongs in Engine Factory/runtime. Preserve interface semantics while migrating. |
+| 9533988 | Facebook long-video preflight | inactive; HTTP + datastore; no publication | MIGRATE_TO_RUNTIME | Media/preflight checks are deterministic policy and should live in Gateway/runtime; retain OLD for parity. |
+| 9533589 | Facebook image receipt normalizer | inactive; explicitly integrated into active master 9533690 | RETIRE_CANDIDATE | Preserve until dependency proof confirms no direct callers; do not activate beside master. |
+| 9537708 | YouTube processing verification | inactive; YouTube connector + datastore | WRAP_WITH_CEREBRO | Make may remain connector edge for platform processing status; canonical state/evidence belongs in CEREBRO. |
+| 9534002 | video-generation adapter | inactive datastore-only factory adapter | MIGRATE_TO_RUNTIME | Adapter orchestration belongs in Engine Factory/model/tool router; Make should not be canonical runtime. |
+| 9531133 | Facebook image direct preflight V2 | inactive; Notion/HTTP validation, no publication | MIGRATE_TO_RUNTIME | Contract/asset/HTTP validation belongs in shared runtime after parity. |
+| 9533424 | Facebook short-video direct preflight V2 | inactive; Notion/HTTP validation, no publication | MIGRATE_TO_RUNTIME | Deterministic preflight belongs in Gateway/runtime; keep OLD for contract parity only. |
+| 9531078 | Facebook text/link direct preflight V2 | inactive; Notion validation, no publication | MIGRATE_TO_RUNTIME | Deterministic policy belongs in Gateway/runtime. |
+| 9528450 | Facebook text-publication preflight audit | inactive; read-only Notion/datastore | RETIRE_CANDIDATE | Preserve while dependency map is checked; equivalent validation belongs in runtime and should not remain a parallel scheduled component. |
 | 9694499 | legacy PREPROD WordPress secure transport | inactive fail-closed | REPLACE_AFTER_PARITY | Core Guard/Gateway is WordPress-primary. Retire only after OLD vs NEW parity and rollback proof. |
 | 9694504 | legacy PREPROD WordPress safe reader | inactive fail-closed | REPLACE_AFTER_PARITY | Replace by Core Guard read abilities after live parity evidence. |
 | 9694471 | WordPress write-verify-rollback TEST | inactive mutator | REPLACE_AFTER_PARITY | Core Guard now carries draft/update/snapshot/rollback code path; preserve quarantine until parity. |
