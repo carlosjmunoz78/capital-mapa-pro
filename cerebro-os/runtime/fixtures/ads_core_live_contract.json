@@ -1,0 +1,26 @@
+{
+  "source": "Make ADS core scenario inspected live 2026-09-12",
+  "scenario_id": 9535463,
+  "scenario_name": "FENIX · CORE · ADS · Router y preflight universal · V1",
+  "status": "inactive",
+  "old_contract": {
+    "route_type": "ADS",
+    "policy_key": "CONFIG_ADS_ROUTE_POLICY",
+    "idempotency_key_pattern": "IDEMPOTENCY_ADS_PREFLIGHT_{network}_{ads_order_id}",
+    "preflight_status": "ADS_PREFLIGHT_READY_ENGINE_DISABLED",
+    "router_receipt_status": "ADS_ROUTED_NO_EXTERNAL_ACTION",
+    "required_gates": ["ads_order_id", "network", "ad_account_id", "objective", "budget_authorized", "creative_ready", "qa_passed", "human_authorized", "duplicate_clear"],
+    "external_action": false,
+    "campaign_created": false,
+    "adset_or_group_created": false,
+    "ad_created": false,
+    "budget_modified": false,
+    "requires_human": true
+  },
+  "new_runtime_invariants": {
+    "external_action_allowed": false,
+    "delete_old_allowed": false,
+    "money_gate_reason": "MONEY_LIMIT",
+    "old_preserved": true
+  }
+}
