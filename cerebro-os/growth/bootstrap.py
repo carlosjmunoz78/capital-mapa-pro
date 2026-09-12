@@ -56,6 +56,8 @@ class GrowthBootstrap:
             raise ValueError("cross-company bootstrap update denied")
         if step.environment != self.environment or step.version != self.version:
             raise ValueError("cross-scope bootstrap update denied")
+        if step.status == "GREEN" and not self.can_advance(step.engine_id):
+            raise ValueError("bootstrap dependency incomplete")
         self._steps[step.engine_id] = step
 
     def next_engine(self) -> str | None:
@@ -66,13 +68,27 @@ class GrowthBootstrap:
         return None
 
     def can_advance(self, engine_id: str) -> bool:
+        if engine_id not in CANONICAL_GROWTH_SEQUENCE:
+            raise ValueError("non-canonical bootstrap engine")
         idx = CANONICAL_GROWTH_SEQUENCE.index(engine_id)
-        return all(self._steps[e].status == "GREEN" for e in CANONICAL_GROWTH_SEQUENCE[:idx])
+        return all(
+            self._steps[e].status == "GREEN"
+            and bool(self._steps[e].evidence_ref and self._steps[e].evidence_ref.strip())
+            for e in CANONICAL_GROWTH_SEQUENCE[:idx]
+        )
 
     def system_status(self) -> str:
-        statuses = tuple(step.status for step in self._steps.values())
-        if all(status == "GREEN" for status in statuses):
+        steps = tuple(self._steps.values())
+        if all(
+            step.status == "GREEN"
+            and bool(step.evidence_ref and step.evidence_ref.strip())
+            and step.company_id == self.company_id
+            and step.environment == self.environment
+            and step.version == self.version
+            for step in steps
+        ):
             return "GREEN"
+        statuses = tuple(step.status for step in steps)
         if "BLOCKED" in statuses:
             return "BLOCKED"
         if "HUMAN_REQUIRED" in statuses:
