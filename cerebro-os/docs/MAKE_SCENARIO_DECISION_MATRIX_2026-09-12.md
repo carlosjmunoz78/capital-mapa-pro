@@ -40,6 +40,10 @@ Allowed target states:
 | 9533589 | Facebook image receipt normalizer | inactive; explicitly integrated into active master 9533690 | RETIRE_CANDIDATE | Preserve until dependency proof confirms no direct callers; do not activate beside master. |
 | 9537708 | YouTube processing verification | inactive; YouTube connector + datastore | WRAP_WITH_CEREBRO | Make may remain connector edge for platform processing status; canonical state/evidence belongs in CEREBRO. |
 | 9534002 | video-generation adapter | inactive datastore-only factory adapter | MIGRATE_TO_RUNTIME | Adapter orchestration belongs in Engine Factory/model/tool router; Make should not be canonical runtime. |
+| 9534003 | editing/subtitles adapter | inactive datastore-only factory adapter | MIGRATE_TO_RUNTIME | Editing/subtitle orchestration belongs in Engine Factory/tool runtime; preserve interface semantics for parity. |
+| 9533999 | presenter/avatar adapter | inactive datastore-only factory adapter | MIGRATE_TO_RUNTIME | Presenter/avatar orchestration belongs in Engine Factory/model/tool router, not Make Data Store. |
+| 9533998 | TTS voice adapter | inactive datastore-only factory adapter | MIGRATE_TO_RUNTIME | TTS routing belongs in Model/Tool Router with policy/cost controls; Make is not canonical runtime. |
+| 9528458 | Facebook publications-without-OP detector | inactive; Notion + datastore, never publishes | MIGRATE_TO_RUNTIME | Missing-OP detection and technical blocking are deterministic governance logic and belong in Gateway/runtime. |
 | 9531133 | Facebook image direct preflight V2 | inactive; Notion/HTTP validation, no publication | MIGRATE_TO_RUNTIME | Contract/asset/HTTP validation belongs in shared runtime after parity. |
 | 9533424 | Facebook short-video direct preflight V2 | inactive; Notion/HTTP validation, no publication | MIGRATE_TO_RUNTIME | Deterministic preflight belongs in Gateway/runtime; keep OLD for contract parity only. |
 | 9531078 | Facebook text/link direct preflight V2 | inactive; Notion validation, no publication | MIGRATE_TO_RUNTIME | Deterministic policy belongs in Gateway/runtime. |
