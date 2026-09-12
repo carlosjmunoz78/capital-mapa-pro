@@ -1,0 +1,50 @@
+{
+  "source": "Make PROD scenarios inspected live 2026-09-12",
+  "youtube_connection_id": 14438016,
+  "notion_connection_id": 14435131,
+  "scenarios": [
+    {
+      "scenario_id": 9537699,
+      "format": "short_private",
+      "old_contract": {
+        "action": "youtube:uploadVideo",
+        "privacy_status": "private",
+        "category_id": "27",
+        "notify_subscribers": false,
+        "idempotency_key_prefix": "IDEMPOTENCY_YOUTUBE_SHORT_",
+        "receipt_key_prefix": "RECEIPT_YOUTUBE_SHORT_",
+        "receipt_status": "UPLOAD_ACCEPTED_PRIVATE_PROCESSING",
+        "notion_state": "Incidencia",
+        "idempotency_status": "COMPLETED_PRIVATE_RETURNED_TO_NOTION",
+        "requires_human": true,
+        "duration_max_seconds": 180,
+        "orientation_required": "vertical"
+      }
+    },
+    {
+      "scenario_id": 9537702,
+      "format": "long_private",
+      "old_contract": {
+        "action": "youtube:uploadVideo",
+        "privacy_status": "private",
+        "category_id": "27",
+        "notify_subscribers": false,
+        "idempotency_key_prefix": "IDEMPOTENCY_YOUTUBE_LONG_",
+        "receipt_key_prefix": "RECEIPT_YOUTUBE_LONG_",
+        "receipt_status": "UPLOAD_ACCEPTED_PRIVATE_PROCESSING",
+        "notion_state": "Incidencia",
+        "idempotency_status": "COMPLETED_PRIVATE_RETURNED_TO_NOTION",
+        "requires_human": true,
+        "duration_min_seconds": 181,
+        "orientation_required": "horizontal"
+      }
+    }
+  ],
+  "new_runtime_invariants": {
+    "privacy_status": "private",
+    "external_action_allowed": false,
+    "retry_upload_allowed": false,
+    "real_execution_human_reason": "SIGNATURE_REQUIRED",
+    "old_preserved": true
+  }
+}
