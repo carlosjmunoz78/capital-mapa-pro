@@ -1,0 +1,21 @@
+{
+  "captured_at": "2026-09-12",
+  "source": "Make live read-only inspection",
+  "folder_id": 520864,
+  "data_store_id": 171764,
+  "adapters": [
+    {"scenario_id":9533982,"name":"FENIX · FÁBRICA · Solicitud multimedia universal · V1","status":"inactive","operation":"media_generation_request","provider_state":"QUEUED_PROVIDERS_NOT_CONNECTED","human_required":false,"external_action_allowed":false},
+    {"scenario_id":9534003,"name":"FENIX · FÁBRICA · Adaptador edición y subtítulos · V1","status":"inactive","operation":"edit_video","provider_state":"BLOCKED_PROVIDER_NOT_CONNECTED","human_required":true,"external_action_allowed":false},
+    {"scenario_id":9534002,"name":"FENIX · FÁBRICA · Adaptador generación de vídeo · V1","status":"inactive","operation":"generate_video","provider_state":"BLOCKED_PROVIDER_NOT_CONNECTED","human_required":true,"external_action_allowed":false},
+    {"scenario_id":9533999,"name":"FENIX · FÁBRICA · Adaptador presentador y avatar · V1","status":"inactive","operation":"generate_presenter_video","provider_state":"BLOCKED_PROVIDER_NOT_CONNECTED","human_required":true,"external_action_allowed":false},
+    {"scenario_id":9533998,"name":"FENIX · FÁBRICA · Adaptador voz TTS · V1","status":"inactive","operation":"generate_voice","provider_state":"BLOCKED_PROVIDER_NOT_CONNECTED","human_required":true,"external_action_allowed":false}
+  ],
+  "policy": {
+    "preserve_legacy": true,
+    "auto_activate_allowed": false,
+    "paid_provider_required": false,
+    "paid_ai_required": false,
+    "external_action_allowed": false,
+    "migration_target": "ENGINE_FACTORY_SHARED_RUNTIME"
+  }
+}
