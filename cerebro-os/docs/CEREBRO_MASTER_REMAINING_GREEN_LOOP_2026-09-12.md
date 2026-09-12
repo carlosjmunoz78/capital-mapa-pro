@@ -10,6 +10,10 @@ Estado de partida y progreso verificado:
 - ADS CORE: caller parity + contrato vivo + CI GREEN.
 - CEREBRO Console V0: ruta CONSOLE → GATEWAY → POLICY → ENGINE → AUDIT protegida por test de scope; nunca directo a modelo.
 - MCP/Computer Use: policy y orden de fallback definidos; no puede saltarse kill-switch, auditoría, scope, credenciales ni límites económicos.
+- Recovery gate: existe runtime evidence-first que separa source backup/rebuild/rollback rehearsal de provider restore y nunca permite restore destructivo automáticamente.
+- Observability/cost gate: existe runtime fail-closed con logs, métricas, incidentes, coste medido y MONEY_LIMIT.
+- Dependency preservation gate: existe runtime para App/CRM/Supabase/Notion/WordPress/SEO; exige inventario, mapa, contrato actual, tests, implementación paralela y rollback; nunca autoriza borrar OLD.
+- Promotion gate final: existe runtime canónico con contracts, permissions, tests, evaluation, tribunal, observability, rollback, backup, rebuild, cost, policy y environment evidence; PROD_GREEN nunca se concede automáticamente.
 
 Este documento NO declara PROD global. Es la cola canónica de cierre técnico posterior a LAB_GREEN.
 
@@ -28,19 +32,19 @@ Este documento NO declara PROD global. Es la cola canónica de cierre técnico p
 11. CORE 62/62: **PARCIAL AVANZADO** — inventory 62/62 GREEN, active-edge parity 8/8 GREEN_CODE_CI, inactive migration policy 54/54 defined fail-closed; falta convertir las clases migrables en runtime/replay específico donde aún no exista.
 12. TEST 120/120: **HECHO / GREEN inventory-classification**.
 13. AUDITORÍA/LEGACY 9: **HECHO inventory / preserved evidence; caller retirement sigue bajo cutover gates**.
-14. PREVENTIVO/RECUPERACIÓN 2: **HECHO inventory/contracts; PROD restore rehearsal aún no probado**.
+14. PREVENTIVO/RECUPERACIÓN 2: **PARCIAL CONTROLADO** — inventory/contracts + recovery gate GREEN_CODE_CI; rollback rehearsal real y provider restore siguen sin evidencia suficiente.
 15. ALERTAS/MONITORIZACIÓN 8: **HECHO inventory/contracts; active execution no se fabrica**.
 16. Credenciales/identidades: **HECHO registry + broker + vault refs + reuse/no-reask + secret guards; runtime proofs externos según edge**.
 17. MCP/connectors/scripts/computer-use: **HECHO policy/registry/fallback/kill-switch contract; ejecución GUI real pendiente de disponer del runtime MCP correspondiente**.
 18. CEREBRO Gateway/Console: **GREEN_CODE_CI V0 contracts/path; UI/runtime desplegado no reclamado**.
 19. Multiempresa: **GREEN_CODE_CI en contratos/scope; integraciones externas se validan una a una**.
-20. Backup/restore/rebuild/rollback: **PARCIAL** — source/runtime rehearsal GREEN en CI/LAB; provider-level PROD restore no probado.
-21. Observabilidad/costes: **PARCIAL / seguir cerrando métricas por integración; 0 € adicional default**.
-22. Security/policy/human-exception: **GREEN_CODE_CI estructural; PROD depende de evidencia real**.
-23. App/CRM/Supabase/Notion/WordPress/SEO dependency map + OLD/NEW wrappers: **PARCIAL AVANZADO / preservar PROD**.
+20. Backup/restore/rebuild/rollback: **GREEN_CODE_CI del gate / EXTERNAL_PROOF_PENDING** — source recovery y provider restore son dimensiones separadas; PROD restore no se declara probado.
+21. Observabilidad/costes: **GREEN_CODE_CI del gate / EVIDENCE_PER_ENGINE_PENDING** — logs + métricas + incidentes + coste medido son obligatorios; 0 € adicional default y MONEY_LIMIT fail-closed.
+22. Security/policy/human-exception: **GREEN_CODE_CI estructural; PROD depende de evidencia real y solo ocho razones canónicas**.
+23. App/CRM/Supabase/Notion/WordPress/SEO dependency map + OLD/NEW wrappers: **GREEN_CODE_CI del gate / EVIDENCE_PER_ENGINE_PENDING** — no se permite borrar OLD y se mantiene CONSERVAR → ENTENDER → ENVOLVER → PROBAR → MEJORAR → MIGRAR.
 24. External integrations: **PARCIAL / promover una por una con permisos reales**.
-25. Promotion gate final: **BLOQUEADO hasta pruebas externas/rollback/restore/permissions donde correspondan**.
-26. PROD_CANDIDATE por motor/familia: **NO declarar sin gate 25**.
+25. Promotion gate final: **GREEN_CODE_CI DEL GATE / BLOQUEADO POR EVIDENCIA EXTERNA DONDE FALTE**.
+26. PROD_CANDIDATE por motor/familia: **CALCULABLE POR GATE / NO declarar sin todas las evidencias reales**.
 27. PROD gradual: **NO ejecutar automáticamente**; publicación, gasto, firma o mutación sensible requieren gate humano canónico.
 
 ## Estados permitidos
