@@ -13,6 +13,16 @@ SCENARIOS = {
     9537666: {"kind": "youtube_health", "mode": "READ_ONLY", "status": "inactive", "incomplete": 0, "credits_snapshot": 0, "data_transfer_snapshot": 0},
 }
 
+RETAINED_EXECUTION_EVIDENCE = {
+    9527908: (
+        {"execution_id": "58377db399ae49a4b0d8bc8b40d86e02", "status": "success", "operations": 3, "credits": 3, "data_transfer": 604},
+        {"execution_id": "696bf528a87c437abdd06bff6a64d05a", "status": "success", "operations": 3, "credits": 3, "data_transfer": 604},
+    ),
+    9527663: (),
+    9522860: (),
+    9537666: (),
+}
+
 
 def inventory() -> dict:
     return {
@@ -34,13 +44,15 @@ def assess_observability_evidence() -> dict:
     internal_monitors = tuple(sorted(sid for sid, item in SCENARIOS.items() if item["mode"] == "INTERNAL"))
     credits_snapshot_total = sum(item["credits_snapshot"] for item in SCENARIOS.values())
     transfer_snapshot_total = sum(item["data_transfer_snapshot"] for item in SCENARIOS.values())
+    retained_success_edges = tuple(sorted(sid for sid, runs in RETAINED_EXECUTION_EVIDENCE.items() if runs and all(run["status"] == "success" for run in runs)))
     return {
         **inv,
         "read_only_edges": read_only_edges,
         "internal_monitors": internal_monitors,
+        "retained_success_edges": retained_success_edges,
         "credits_snapshot_total": credits_snapshot_total,
         "data_transfer_snapshot_total": transfer_snapshot_total,
-        "logs_evidence": "PARTIAL_INVENTORY_ONLY",
+        "logs_evidence": "PARTIAL_INVENTORY_AND_RETAINED_HISTORY",
         "metrics_evidence": "PARTIAL_READ_ONLY_SCENARIOS",
         "incident_evidence": "PARTIAL_ALERT_PIPELINE_INACTIVE",
         "cost_evidence": "SNAPSHOT_ONLY_NOT_MONTHLY_COST",
