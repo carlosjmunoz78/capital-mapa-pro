@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "cases": [
+    {
+      "case_id": "9530582_to_9531078_safe_link_contract",
+      "legacy_scenario_id": 9530582,
+      "replacement_scenario_id": 9531078,
+      "old_output": {
+        "platform_state": "FACEBOOK_NOT_CALLED",
+        "external_action_allowed": false,
+        "environment": "TEST",
+        "operation_type": "direct_url_contract_validation"
+      },
+      "new_output": {
+        "platform_state": "FACEBOOK_NOT_CALLED",
+        "external_action_allowed": false,
+        "environment": "TEST",
+        "operation_type": "direct_url_contract_validation"
+      },
+      "required_equal_fields": ["platform_state", "environment", "operation_type"]
+    },
+    {
+      "case_id": "9528450_to_9530484_safe_text_contract",
+      "legacy_scenario_id": 9528450,
+      "replacement_scenario_id": 9530484,
+      "old_output": {
+        "platform_state": "FACEBOOK_NOT_CALLED",
+        "external_action_allowed": false,
+        "environment": "TEST"
+      },
+      "new_output": {
+        "platform_state": "FACEBOOK_NOT_CALLED",
+        "external_action_allowed": false,
+        "environment": "TEST"
+      },
+      "required_equal_fields": ["platform_state", "environment"]
+    },
+    {
+      "case_id": "9532848_to_9533424_safe_short_video_contract",
+      "legacy_scenario_id": 9532848,
+      "replacement_scenario_id": 9533424,
+      "old_output": {
+        "platform_state": "FACEBOOK_NOT_CALLED",
+        "external_action_allowed": false,
+        "environment": "TEST"
+      },
+      "new_output": {
+        "platform_state": "FACEBOOK_NOT_CALLED",
+        "external_action_allowed": false,
+        "environment": "TEST"
+      },
+      "required_equal_fields": ["platform_state", "environment"]
+    }
+  ]
+}
