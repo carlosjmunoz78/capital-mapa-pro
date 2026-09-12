@@ -89,7 +89,11 @@ class BusinessFact:
     key:str; value:str; confirmed:bool; source_ref:str
 
 def business_model_status(facts:Iterable[BusinessFact],critical_keys:Iterable[str])->tuple[str,tuple[str,...]]:
-    rows=tuple(facts);confirmed={x.key for x in rows if x.confirmed and x.source_ref.strip()};missing=tuple(sorted(set(critical_keys)-confirmed))
+    rows=tuple(facts)
+    critical=tuple(sorted({key.strip() for key in critical_keys if key.strip()}))
+    if not critical:return ('RED',())
+    confirmed={x.key.strip() for x in rows if x.confirmed and x.key.strip() and x.value.strip() and x.source_ref.strip()}
+    missing=tuple(sorted(set(critical)-confirmed))
     return ('GREEN' if not missing else 'HUMAN_REQUIRED',missing)
 
 # PROC-001
@@ -108,7 +112,7 @@ def process_map_status(nodes:Iterable[ProcessNode])->str:
 class BootstrapKnowledge:
     company_id:str; namespace:str; source_refs:tuple[str,...]; rules_count:int; glossary_count:int; environment:str='LAB'; version:str='1.0.0'
     @property
-    def green(self): return bool(_scope_ok(self.company_id,self.environment,self.version) and self.namespace.startswith(self.company_id+':') and self.source_refs and self.rules_count>=0 and self.glossary_count>=0)
+    def green(self): return bool(_scope_ok(self.company_id,self.environment,self.version) and self.namespace.startswith(self.company_id+':') and self.source_refs and all(ref.strip() for ref in self.source_refs) and self.rules_count>=0 and self.glossary_count>=0)
 
 # SEOBOOT-001
 @dataclass(frozen=True)
@@ -176,7 +180,7 @@ class CompanyDeployment:
     evidence_refs:tuple[str,...]=(); company_id:str=''; environment:str=''; version:str=''
     @property
     def promotable(self):
-        return bool(_scope_ok(self.company_id,self.environment,self.version) and self.environment=='PROD' and self.evidence_refs and all((self.preprod_green,self.tests_green,self.integrations_green,self.rollback_verified,self.health_green)))
+        return bool(_scope_ok(self.company_id,self.environment,self.version) and self.environment=='PROD' and self.evidence_refs and all(ref.strip() for ref in self.evidence_refs) and all((self.preprod_green,self.tests_green,self.integrations_green,self.rollback_verified,self.health_green)))
 
 # COMP-HLT-001
 @dataclass(frozen=True)
@@ -184,7 +188,7 @@ class CompanyHealth:
     company_id:str; sla_green:bool; errors_green:bool; cost_green:bool; engines_green:bool
     evidence_refs:tuple[str,...]=(); environment:str='LAB'; version:str='1.0.0'
     @property
-    def status(self):return 'GREEN' if _scope_ok(self.company_id,self.environment,self.version) and self.evidence_refs and all((self.sla_green,self.errors_green,self.cost_green,self.engines_green)) else 'RED'
+    def status(self):return 'GREEN' if _scope_ok(self.company_id,self.environment,self.version) and self.evidence_refs and all(ref.strip() for ref in self.evidence_refs) and all((self.sla_green,self.errors_green,self.cost_green,self.engines_green)) else 'RED'
 
 # COMP-BKP-001
 @dataclass(frozen=True)
