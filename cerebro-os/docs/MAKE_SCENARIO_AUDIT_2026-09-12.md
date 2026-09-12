@@ -19,6 +19,10 @@ Evidence-first inventory of Make team `1927480`. No scenario was activated or de
 - Active scheduled CORE reconciliation `9527242` is deterministic datastore-only. All 25 returned runs from 2026-09-10 through 2026-09-12 are `success`; latest run on 2026-09-12 completed 5 operations successfully.
 - Active scheduled watchdog `9705138` uses Notion connection `14435131` with status `ok`. All 25 returned recent runs are `success`; latest run on 2026-09-12 completed 2 operations successfully.
 - Active MASTER Facebook control/analytics `9533690` uses Notion `14435131` and Facebook `14428711`, both `ok`, and contains no publication module. Its automatic runs on 2026-09-07 through 2026-09-12 are all `success`; latest run completed 12 operations successfully.
+- Folder `10 · FENIX · TEST`: live error-state partition is now fully enumerated. Exactly one TEST scenario is in Make `error` state: `9529670` (`FENIX · TEST · Notion · Validación contrato Facebook y Assets · V1`), inactive, zero incomplete executions. This is not an active production incident.
+- TEST alphabetical low partition inspected: first 25 inactive scenarios are dominated by `DEPRECATED · NO USAR` Facebook/Instagram gate, dry-run, staging and fixture flows. They are explicitly non-PROD or fail-closed and have zero incomplete executions. Mutating historical publishers remain inactive.
+- TEST alphabetical high partition inspected: latest-name partition includes Lucena no-run/scheduled verification, temporary Drive→WordPress asset transport, readback fixtures, GSC/SEO diagnostics, radar collectors and historical validation flows. All returned rows are inactive with zero incomplete executions.
+- TEST Facebook partition inspected: returned inactive set contains deprecated gates/staging plus historical analytics/diagnostics and current TEST preflight/publicador validation. No returned Facebook TEST scenario is active; hard-arm/publicador scenarios remain intentionally inactive.
 
 ## GREEN_QUARANTINED
 The following classes are intentionally green-by-quarantine rather than green-by-execution:
@@ -29,8 +33,8 @@ The following classes are intentionally green-by-quarantine rather than green-by
 A quarantined scenario must not be reactivated merely to clear an audit state. Reactivation requires dependency review, current connection verification, policy gate, idempotency/rollback evidence and an explicit promotion path.
 
 ## PARCIAL / remaining
-- Folder `10 · FENIX · TEST` contains 120 scenarios and must be partitioned because the Make connector returns at most 25 rows per list operation. High-risk TEST/TEMP mutators and known error scenarios have already been individually inspected; full 120/120 classification remains in progress.
-- Folder `30 · FENIX · CORE E INTELIGENCIA` contains 62 scenarios. Its active 8/8 subset is now fully audited with connection/runtime evidence where scheduled; inactive historical scenarios remain to be partitioned and classified.
+- Folder `10 · FENIX · TEST` contains 120 scenarios. The error-state subset is fully enumerated and multiple alphabetical/category partitions are now evidenced, but full 120/120 unique-row classification remains in progress because the Make connector has no paging and returns at most 25 rows per list operation.
+- Folder `30 · FENIX · CORE E INTELIGENCIA` contains 62 scenarios. Its active 8/8 subset is fully audited with connection/runtime evidence where scheduled; inactive historical scenarios remain to be partitioned and classified.
 - `social-lead-ingest` runtime authentication proof remains pending a real non-duplicate business event; no synthetic PROD mutation will be generated solely for evidence.
 
 ## Promotion / preservation rule
