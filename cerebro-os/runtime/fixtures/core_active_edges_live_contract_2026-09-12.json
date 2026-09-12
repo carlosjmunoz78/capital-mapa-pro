@@ -1,0 +1,23 @@
+{
+  "source": "Make folder 30 · FENIX · CORE E INTELIGENCIA active scenarios inspected live 2026-09-12",
+  "team_id": 1927480,
+  "folder_id": 520864,
+  "active_count": 8,
+  "edges": [
+    {"scenario_id": 9534096, "family": "instagram_analytics", "status": "active", "incomplete_executions": 0, "connection_ids": [14428711, 14435131], "platform_publish": false, "internal_write": true},
+    {"scenario_id": 9534088, "family": "instagram_reconciliation", "status": "active", "incomplete_executions": 0, "connection_ids": [14428711, 14435131], "platform_publish": false, "internal_write": true},
+    {"scenario_id": 9523007, "family": "linkedin_analytics", "status": "active", "incomplete_executions": 0, "connection_ids": [14435718, 14435131], "platform_publish": false, "internal_write": true},
+    {"scenario_id": 9405249, "family": "linkedin_reconciliation", "status": "active", "incomplete_executions": 0, "connection_ids": [14435718, 14435131], "platform_publish": false, "internal_write": true},
+    {"scenario_id": 9768402, "family": "incoming_messaging", "status": "active", "incomplete_executions": 0, "connection_ids": [14435131, 217038], "platform_publish": false, "internal_write": true},
+    {"scenario_id": 9527242, "family": "universal_reconciliation", "status": "active", "incomplete_executions": 0, "connection_ids": [], "platform_publish": false, "internal_write": true},
+    {"scenario_id": 9705138, "family": "social_t72_t48_watchdog", "status": "active", "incomplete_executions": 0, "connection_ids": [14435131], "platform_publish": false, "internal_write": true},
+    {"scenario_id": 9533690, "family": "facebook_control_analytics", "status": "active", "incomplete_executions": 0, "connection_ids": [14435131, 14428711], "platform_publish": false, "internal_write": true}
+  ],
+  "safety": {
+    "preserve_active_edges": true,
+    "auto_disable_old": false,
+    "auto_activate_replacement": false,
+    "delete_allowed": false,
+    "platform_publish_allowed": false
+  }
+}
