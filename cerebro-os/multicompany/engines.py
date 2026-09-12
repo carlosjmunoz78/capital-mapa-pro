@@ -77,8 +77,11 @@ class SocialProfile:
 @dataclass(frozen=True)
 class LocalPresence:
     nap_consistent:bool; categories_ok:bool; services_ok:bool; reviews_monitored:bool; source_refs:tuple[str,...]
+    company_id:str=''; environment:str='LAB'; version:str='1.0.0'
     @property
-    def status(self): return 'GREEN' if self.source_refs and all((self.nap_consistent,self.categories_ok,self.services_ok,self.reviews_monitored)) else 'RED'
+    def status(self):
+        if not _scope_ok(self.company_id,self.environment,self.version):return 'RED'
+        return 'GREEN' if self.source_refs and all(ref.strip() for ref in self.source_refs) and all((self.nap_consistent,self.categories_ok,self.services_ok,self.reviews_monitored)) else 'RED'
 
 # BMD-001
 @dataclass(frozen=True)
@@ -92,12 +95,13 @@ def business_model_status(facts:Iterable[BusinessFact],critical_keys:Iterable[st
 # PROC-001
 @dataclass(frozen=True)
 class ProcessNode:
-    node_id:str; owner:str; system:str; outputs:tuple[str,...]
+    node_id:str; owner:str; system:str; outputs:tuple[str,...]; evidence_ref:str=''
 
 def process_map_status(nodes:Iterable[ProcessNode])->str:
     rows=tuple(nodes)
     if not rows:return 'RED'
-    return 'GREEN' if all(x.node_id.strip() and x.owner.strip() and x.system.strip() for x in rows) else 'HUMAN_REQUIRED'
+    complete=all(x.node_id.strip() and x.owner.strip() and x.system.strip() and x.outputs and all(v.strip() for v in x.outputs) and x.evidence_ref.strip() for x in rows)
+    return 'GREEN' if complete else 'HUMAN_REQUIRED'
 
 # KBOOT-001
 @dataclass(frozen=True)
@@ -110,23 +114,30 @@ class BootstrapKnowledge:
 @dataclass(frozen=True)
 class SeoBootstrap:
     keyword_map_ready:bool; architecture_ready:bool; technical_backlog_ready:bool; local_ready:bool; measurement_ready:bool; publish_gate_ref:str
+    company_id:str=''; environment:str='LAB'; version:str='1.0.0'; evidence_refs:tuple[str,...]=()
     @property
-    def green(self):return all((self.keyword_map_ready,self.architecture_ready,self.technical_backlog_ready,self.local_ready,self.measurement_ready,bool(self.publish_gate_ref.strip())))
+    def green(self):
+        return bool(_scope_ok(self.company_id,self.environment,self.version) and self.evidence_refs and all(ref.strip() for ref in self.evidence_refs) and all((self.keyword_map_ready,self.architecture_ready,self.technical_backlog_ready,self.local_ready,self.measurement_ready,bool(self.publish_gate_ref.strip()))))
 
 # SOCBOOT-001
 @dataclass(frozen=True)
 class SocialBootstrap:
     pillars:tuple[str,...]; tone_ref:str; calendar_ref:str; metric_refs:tuple[str,...]; publish_permission:bool
+    company_id:str=''; environment:str='LAB'; version:str='1.0.0'; evidence_refs:tuple[str,...]=()
     def status(self):
-        if not self.pillars or not self.tone_ref.strip() or not self.calendar_ref.strip() or not self.metric_refs:return 'RED'
+        if not _scope_ok(self.company_id,self.environment,self.version):return 'RED'
+        if not self.pillars or not all(x.strip() for x in self.pillars) or not self.tone_ref.strip() or not self.calendar_ref.strip() or not self.metric_refs or not all(x.strip() for x in self.metric_refs) or not self.evidence_refs or not all(x.strip() for x in self.evidence_refs):return 'RED'
         return 'GREEN' if self.publish_permission else 'PLAN_GREEN'
 
 # MKTBOOT-001
 @dataclass(frozen=True)
 class MarketingBootstrap:
     funnel_ref:str; personas_ref:str; tracking_ready:bool; organic_plan_ref:str; paid_budget:float; approved_paid_budget:float
+    company_id:str=''; environment:str='LAB'; version:str='1.0.0'; evidence_refs:tuple[str,...]=()
     def status(self):
-        if not all((self.funnel_ref.strip(),self.personas_ref.strip(),self.organic_plan_ref.strip(),self.tracking_ready)):return 'RED'
+        if not _scope_ok(self.company_id,self.environment,self.version):return 'RED'
+        if self.paid_budget<0 or self.approved_paid_budget<0:return 'RED'
+        if not all((self.funnel_ref.strip(),self.personas_ref.strip(),self.organic_plan_ref.strip(),self.tracking_ready)) or not self.evidence_refs or not all(x.strip() for x in self.evidence_refs):return 'RED'
         return 'HUMAN_REQUIRED' if self.paid_budget>self.approved_paid_budget else 'GREEN'
 
 # CRMBOOT-001 / APPBOOT-001 / AUTBOOT-001 shared scaffold
