@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from hashlib import sha256
 from typing import Iterable, Mapping
 
@@ -9,13 +10,24 @@ VALID_ENVIRONMENTS={'LAB','PREPROD','PROD'}
 def _scope_ok(company_id:str, environment:str, version:str)->bool:
     return bool(company_id.strip() and version.strip() and environment in VALID_ENVIRONMENTS)
 
+def _timestamp_ok(value:str)->bool:
+    try:
+        parsed=datetime.fromisoformat(value.replace('Z','+00:00'))
+    except (TypeError,ValueError):
+        return False
+    return parsed.tzinfo is not None and parsed.utcoffset() is not None
+
 # COMP-REG-001
 @dataclass(frozen=True)
 class CompanyManifest:
     company_id:str; name:str; domains:tuple[str,...]; sector:str; country:str; owner:str; environments:tuple[str,...]; active_engines:tuple[str,...]
+    version:str=''; evidence_refs:tuple[str,...]=()
     def validate(self):
-        if not all((self.company_id.strip(),self.name.strip(),self.sector.strip(),self.country.strip(),self.owner.strip())): raise ValueError('company identity required')
+        if not all((self.company_id.strip(),self.name.strip(),self.sector.strip(),self.country.strip(),self.owner.strip(),self.version.strip())): raise ValueError('company identity and version required')
+        if not self.domains or any(not x.strip() for x in self.domains):raise ValueError('company domains required')
         if not self.environments or any(e not in VALID_ENVIRONMENTS for e in self.environments): raise ValueError('invalid environments')
+        if not self.active_engines or any(not x.strip() for x in self.active_engines):raise ValueError('active engines required')
+        if not self.evidence_refs or any(not x.strip() for x in self.evidence_refs):raise ValueError('company registry evidence required')
 
 # COMP-ONB-001
 ONBOARDING_PHASES=('SCAN','KNOWLEDGE','SEO','SOCIAL','MARKETING','CRM','APP','AUTOMATIONS','TRAINING','SUPERVISOR','BACKUP')
@@ -41,28 +53,37 @@ class CompanyOnboarding:
 @dataclass(frozen=True)
 class FootprintFinding:
     kind:str; value:str; source_ref:str; observed_at:str; confidence:float
+    company_id:str=''; environment:str='LAB'; version:str='1.0.0'
     def validate(self):
-        if not all((self.kind.strip(),self.value.strip(),self.source_ref.strip(),self.observed_at.strip())) or not 0<=self.confidence<=1:raise ValueError('invalid footprint finding')
+        if not _scope_ok(self.company_id,self.environment,self.version):raise ValueError('invalid footprint scope')
+        if not all((self.kind.strip(),self.value.strip(),self.source_ref.strip())) or not _timestamp_ok(self.observed_at) or not 0<=self.confidence<=1:raise ValueError('invalid footprint finding')
 
 # KW-001
 @dataclass(frozen=True)
 class KeywordIdea:
     keyword:str; intent:str; location:str; opportunity:float; target_url:str|None; evidence_ref:str
+    company_id:str=''; environment:str='LAB'; version:str='1.0.0'
 
 def rank_keywords(rows:Iterable[KeywordIdea])->tuple[str,...]:
     items=tuple(rows)
-    if any(not x.keyword.strip() or not x.intent.strip() or not x.evidence_ref.strip() for x in items):raise ValueError('keyword evidence required')
+    if not items:raise ValueError('keyword evidence required')
+    if any(not _scope_ok(x.company_id,x.environment,x.version) or not x.keyword.strip() or not x.intent.strip() or not x.location.strip() or not x.evidence_ref.strip() or not 0<=x.opportunity<=1 for x in items):raise ValueError('keyword evidence required')
+    scopes={(x.company_id,x.environment,x.version) for x in items}
+    if len(scopes)!=1:raise ValueError('mixed keyword scope denied')
     return tuple(x.keyword for x in sorted(items,key=lambda x:(-x.opportunity,x.keyword)))
 
 # WAUD-001
 @dataclass(frozen=True)
 class WebAuditCheck:
     check_id:str; passed:bool; impact:int; evidence_ref:str
+    company_id:str=''; environment:str='LAB'; version:str='1.0.0'
 
 def web_audit_score(rows:Iterable[WebAuditCheck])->tuple[float,tuple[str,...]]:
     items=tuple(rows)
-    if not items or any(not x.evidence_ref.strip() for x in items):raise ValueError('audit evidence required')
-    total=sum(max(0,x.impact) for x in items); passed=sum(max(0,x.impact) for x in items if x.passed)
+    if not items or any(not _scope_ok(x.company_id,x.environment,x.version) or not x.check_id.strip() or not x.evidence_ref.strip() or x.impact<0 for x in items):raise ValueError('audit evidence required')
+    scopes={(x.company_id,x.environment,x.version) for x in items}
+    if len(scopes)!=1:raise ValueError('mixed web audit scope denied')
+    total=sum(x.impact for x in items); passed=sum(x.impact for x in items if x.passed)
     backlog=tuple(x.check_id for x in sorted((x for x in items if not x.passed),key=lambda x:(-x.impact,x.check_id)))
     return (1.0 if total==0 else round(passed/total,6),backlog)
 
@@ -70,8 +91,10 @@ def web_audit_score(rows:Iterable[WebAuditCheck])->tuple[float,tuple[str,...]]:
 @dataclass(frozen=True)
 class SocialProfile:
     network:str; profile_ref:str; posts_per_month:int; engagement:float; evidence_ref:str
+    company_id:str=''; environment:str='LAB'; version:str='1.0.0'
     def validate(self):
-        if not all((self.network.strip(),self.profile_ref.strip(),self.evidence_ref.strip())) or self.posts_per_month<0 or self.engagement<0:raise ValueError('invalid social profile')
+        if not _scope_ok(self.company_id,self.environment,self.version):raise ValueError('invalid social profile scope')
+        if not all((self.network.strip(),self.profile_ref.strip(),self.evidence_ref.strip())) or self.posts_per_month<0 or not 0<=self.engagement<=1:raise ValueError('invalid social profile')
 
 # LOCALP-001
 @dataclass(frozen=True)
