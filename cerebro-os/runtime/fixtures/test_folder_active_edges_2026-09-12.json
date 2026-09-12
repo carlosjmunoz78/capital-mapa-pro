@@ -1,0 +1,35 @@
+{
+  "source": "Make folder 10 · FENIX · TEST inspected live 2026-09-12",
+  "folder_id": 520862,
+  "active_scenarios": [
+    {
+      "scenario_id": 9538231,
+      "name": "FÉNIX · PROD · SEO · GA4 páginas 30d · Vigilancia semanal · V2",
+      "kind": "PROD_SEO_GA4_READ_ONLY",
+      "connection_id": 14524247,
+      "connection_status": "ok",
+      "incomplete_executions": 0,
+      "dimensions": ["pagePath"],
+      "metrics": ["screenPageViews", "sessions", "activeUsers"],
+      "window": "30daysAgo",
+      "preserve_active": true
+    },
+    {
+      "scenario_id": 9555725,
+      "name": "FÉNIX · CORE · Cerebro · Señal a Idea, Embudo, Evaluación y Laboratorio · V2.2",
+      "kind": "CORE_SIGNAL_TO_LAB_TEST_PROTECTED",
+      "connection_id": 14347958,
+      "connection_status": "ok",
+      "incomplete_executions": 0,
+      "idempotency_prefix": "CEREBRO_SIGNAL_",
+      "writes_only_test_protected_chain": true,
+      "preserve_active": true
+    }
+  ],
+  "invariants": {
+    "active_count": 2,
+    "do_not_duplicate_execution": true,
+    "do_not_relocate_automatically": true,
+    "delete_allowed": false
+  }
+}
