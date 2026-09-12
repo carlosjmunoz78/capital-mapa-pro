@@ -1,0 +1,42 @@
+{
+  "source": "Make folder 10 · FENIX · TEST inspected live 2026-09-12",
+  "team_id": 1927480,
+  "folder_id": 520862,
+  "scenario_count": 120,
+  "active_ids": [9555725, 9538231],
+  "error_ids": [9529670],
+  "inactive_count": 117,
+  "inactive_partition": {
+    "FENIX_TEST": 62,
+    "FENIX_ACCENTED_TEST": 14,
+    "DEPRECATED": 25,
+    "TEMPORARY_PREFIX": 8,
+    "FIXTURE_PREFIX": 2,
+    "FENIX_SEO": 3,
+    "FENIX_ACCENTED_CORE_LEGACY": 1,
+    "INTEGRATION_GOOGLE_SEARCH_CONSOLE": 1,
+    "TEST_FB_NATIVE_SCHEDULE_NO_RUN": 1
+  },
+  "fenix_test_subfamilies": {
+    "AUDITORIA": 5,
+    "CARRUSEL": 1,
+    "CONTROL": 1,
+    "FACEBOOK": 22,
+    "INSTAGRAM": 13,
+    "LECTOR_NOTION": 2,
+    "MATRIZ": 1,
+    "NOTION": 6,
+    "PUBLICACION": 1,
+    "RADAR": 5,
+    "SEO": 1,
+    "V4A": 1,
+    "VALIDACION": 2,
+    "WORDPRESS": 1
+  },
+  "safety": {
+    "delete_allowed": false,
+    "auto_activate_inactive_allowed": false,
+    "external_action_allowed": false,
+    "preserve_active_edges": true
+  }
+}
