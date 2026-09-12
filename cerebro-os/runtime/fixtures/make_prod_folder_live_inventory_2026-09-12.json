@@ -1,0 +1,23 @@
+{
+  "source": "Make folder 20 · FENIX · PROD inspected live 2026-09-12",
+  "team_id": 1927480,
+  "folder_id": 520863,
+  "scenario_count": 25,
+  "active_ids": [9597710, 9550706],
+  "inactive_ids": [9721473, 9721479, 9533967, 9533584, 9533974, 9522713, 9533532, 9533724, 9533715, 9533564, 9533972, 9534084, 9534139, 9534087, 9522428, 9528327, 5554207, 9410589, 9537718, 9537710, 9537699, 9537702, 9550846],
+  "family_counts": {
+    "facebook": 9,
+    "instagram": 4,
+    "linkedin": 4,
+    "youtube": 4,
+    "seo": 2,
+    "wordpress_test_anomaly": 1,
+    "one_shot_overlap_note": "The two one-shots are already included in facebook/instagram counts."
+  },
+  "safety": {
+    "delete_allowed": false,
+    "auto_activate_inactive_allowed": false,
+    "preserve_active_seo_edges": true,
+    "incomplete_executions_all_zero": true
+  }
+}
