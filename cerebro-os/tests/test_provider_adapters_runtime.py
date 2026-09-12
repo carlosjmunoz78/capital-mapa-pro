@@ -1,6 +1,11 @@
 import unittest
+from pathlib import Path
+import sys
 
-from runtime.provider_adapters import (
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "runtime"))
+
+from provider_adapters import (
     EditingRequest,
     PresenterRequest,
     ProviderScope,
