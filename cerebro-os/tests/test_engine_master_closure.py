@@ -20,6 +20,9 @@ class EngineMasterClosureTests(unittest.TestCase):
             set(result["next_groups"]),
             {"SECURITY", "RECOVERY", "OBSERVABILITY"},
         )
+        self.assertNotIn("RECOVERY:source_backup_proven", result["pending"])
+        self.assertIn("RECOVERY:provider_restore_drill_proven", result["pending"])
+        self.assertIn("RECOVERY:prod_rollback_rehearsal_proven", result["pending"])
         self.assertFalse(result["perfect"])
         self.assertFalse(result["prod_candidate"])
         self.assertFalse(result["prod_green"])
