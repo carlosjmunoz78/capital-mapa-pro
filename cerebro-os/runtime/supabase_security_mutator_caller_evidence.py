@@ -40,6 +40,9 @@ EDGE_SURFACE_EVIDENCE = {
     "fenix-reports-api": {"version": 8, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "read_only_surface_observed": True},
     "fenix-ana-canonical": {"version": 9, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": False, "alternative_scoped_backend_observed": True, "source_read_only_inspected": True, "read_only_surface_observed": True, "canonical_only_observed": True, "test_rows_excluded_observed": True},
     "fenix-ana-knowledge": {"version": 9, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": False, "alternative_scoped_backend_observed": True, "source_read_only_inspected": True, "human_learning_gate_observed": True, "authority_gate_observed": True},
+    "fenix-memory-api": {"version": 9, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": False, "alternative_scoped_backend_observed": True, "source_read_only_inspected": True, "idempotency_guard_observed": True, "scope_validation_observed": True},
+    "fenix-directory-api": {"version": 9, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "read_only_surface_observed": True},
+    "fenix-document-intelligence": {"version": 12, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "low_confidence_human_gate_observed": True, "policy_conflict_human_gate_observed": True, "explicit_overwrite_confirmation_observed": True, "scoped_direct_table_write_observed": True},
 }
 
 
@@ -67,11 +70,14 @@ def assess_mutator_caller_evidence() -> dict:
         "ana_authority_gate_observed": EDGE_SURFACE_EVIDENCE["fenix-ana-knowledge"]["authority_gate_observed"],
         "ana_canonical_read_only_observed": EDGE_SURFACE_EVIDENCE["fenix-ana-canonical"]["read_only_surface_observed"],
         "document_expected_version_guard_observed": EDGE_SURFACE_EVIDENCE["fenix-document-actions"]["expected_version_guard_observed"],
+        "memory_idempotency_and_scope_guards_observed": EDGE_SURFACE_EVIDENCE["fenix-memory-api"]["idempotency_guard_observed"] and EDGE_SURFACE_EVIDENCE["fenix-memory-api"]["scope_validation_observed"],
+        "document_intelligence_human_gates_observed": EDGE_SURFACE_EVIDENCE["fenix-document-intelligence"]["low_confidence_human_gate_observed"] and EDGE_SURFACE_EVIDENCE["fenix-document-intelligence"]["policy_conflict_human_gate_observed"],
+        "document_intelligence_overwrite_confirmation_observed": EDGE_SURFACE_EVIDENCE["fenix-document-intelligence"]["explicit_overwrite_confirmation_observed"],
         "frontend_or_other_direct_callers_still_pending": True,
         "security_remediation_allowed": False,
         "automatic_prod_mutation_allowed": False,
         "automatic_grant_or_rls_change_allowed": False,
         "automatic_retirement_allowed": False,
         "signature_human_gate": "SIGNATURE_REQUIRED",
-        "status": "EIGHTEEN_PROD_EDGE_SURFACES_CLEARED_OTHER_CALLERS_PENDING" if inspected_direct_mutator_absence_proven and server_or_scoped_backend_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
+        "status": "TWENTY_ONE_PROD_EDGE_SURFACES_CLEARED_OTHER_CALLERS_PENDING" if inspected_direct_mutator_absence_proven and server_or_scoped_backend_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
     }
