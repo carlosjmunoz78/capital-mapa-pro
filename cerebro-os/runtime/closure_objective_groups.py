@@ -7,7 +7,7 @@ from __future__ import annotations
 OBJECTIVE_GROUPS = {
     "SECURITY": {
         "target": "supabase_security_review_green",
-        "status": "PARTIAL_DEPLOYED_APP_PRE_MIGRATION_DIRECT_RPC_CONFIRMED",
+        "status": "PARTIAL_DEPLOYED_APP_PRE_MIGRATION_AND_ADVISOR_DISPOSITION_OPEN",
         "green": False,
         "completed": (
             "15_authenticated_security_definer_rpcs_inventory",
@@ -35,6 +35,13 @@ OBJECTIVE_GROUPS = {
             "live_deploy_channel_identified_as_github_pages_gh_pages",
             "live_deployed_source_sha_c7a15cff9a387f1f142c8eeb06fd83a799e85a61",
             "live_deployed_contact_direct_rpc_fenix_prod_contact_create_v2_confirmed",
+            "supabase_security_advisor_inventory_captured_2026_09_14",
+            "44_rls_enabled_no_policy_info_findings_classified_fail_closed_not_open_access",
+            "24_authenticated_security_definer_execute_warnings_captured",
+            "pg_net_public_extension_namespace_warning_captured_version_0_20_4",
+            "pg_net_function_namespace_net_confirmed_read_only",
+            "leaked_password_protection_disabled_warning_captured",
+            "blind_bulk_security_changes_rejected",
         ),
         "remaining": (
             "deploy_or_promote_reviewed_rpc_migration_without_bypassing_human_prod_gate",
@@ -42,6 +49,9 @@ OBJECTIVE_GROUPS = {
             "authenticated_http_gateway_e2e_for_target_routes",
             "rollback_evidence_for_full_http_write_path",
             "caller_retirement_evidence_before_any_legacy_privilege_change",
+            "controlled_disposition_of_24_security_definer_authenticated_execute_warnings_after_live_caller_retirement",
+            "pg_net_extension_namespace_dependency_backup_and_rebuild_review_before_any_move",
+            "leaked_password_protection_enablement_when_auth_config_write_channel_is_available",
         ),
     },
     "RECOVERY": {
@@ -107,7 +117,7 @@ OBJECTIVE_GROUPS = {
     },
     "FINOPS": {
         "target": "monthly_cost_measured",
-        "status": "PARTIAL_AUTHORITATIVE_EMAIL_EVIDENCE_EXACT_EXTERNAL_AMOUNTS_OPEN",
+        "status": "PARTIAL_HISTORICAL_NOTION_PRICE_ANCHORED_CURRENT_NOTION_AND_GCP_EXACT_AMOUNTS_OPEN",
         "green": False,
         "completed": (
             "supabase_monthly_cost_measured",
@@ -116,13 +126,16 @@ OBJECTIVE_GROUPS = {
             "hostinger_business_email_monthly_cost_measured",
             "notion_authoritative_email_confirms_plus_plan_and_three_seats",
             "notion_authoritative_email_confirms_recent_payment_failure_without_exact_amount",
+            "notion_authoritative_historical_trial_price_2025_04_04_eur_11_50_per_member_three_members_eur_34_50_month",
+            "notion_historical_price_not_misclassified_as_current_2026_cost",
             "google_cloud_authoritative_email_confirms_paid_billing_and_payment_problem_without_exact_amount",
+            "google_cloud_recent_billing_email_search_found_no_exact_amount",
             "provider_to_family_attribution_model_defined_without_fake_allocation",
             "no_free_tier_overage_claim_without_evidence",
             "incremental_cerebro_cost_target_zero_eur",
         ),
         "remaining": (
-            "notion_exact_monthly_amount_from_authoritative_billing_source",
+            "notion_current_2026_exact_monthly_amount_from_authoritative_billing_source",
             "google_cloud_exact_monthly_amount_or_zero_cost_proof_from_authoritative_billing_source",
             "usage_based_family_or_engine_cost_attribution_where_real_usage_evidence_exists",
         ),
