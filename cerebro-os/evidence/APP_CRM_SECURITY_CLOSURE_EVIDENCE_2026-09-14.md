@@ -4,17 +4,26 @@
 
 Evidence-only checkpoint for the authorized APP/CRM RPC migration and Security closure loop. This file contains no credentials, tokens, customer data or secret values.
 
-## APP branch evidence
+## APP migration and promotion evidence
 
 - Repository: `carlosjmunoz78/fenix-capital-inmo-map`
-- Branch: `cerebro-app-crm-rpc-migration-v0-20260913`
-- Verified HEAD: `b1b6fb5404a4704c5d637fc770fc90e9f2eb8312`
+- Migration branch: `cerebro-app-crm-rpc-migration-v0-20260913`
+- Reviewed branch HEAD: `b1b6fb5404a4704c5d637fc770fc90e9f2eb8312`
 - Pull request: `#376` toward `main`
-- Reference main at verification: `95106d8e792257f809033486b7025d81665ea83b`
-- Dedicated audit CI: run `34786441006`, job `audit-and-build` SUCCESS
-- Persisted direct PROD RPC callers in the branch: `0`
+- Dedicated branch audit CI: run `34786441006`, job `audit-and-build` SUCCESS
+- Persisted direct PROD RPC callers in the reviewed branch: `0`
+- PR #376 was marked ready and merged only after the explicit human promotion authorization in the closure loop.
+- Merge commit now on `main`: `dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c`.
+- PROD Live Deploy run `34790008072` completed SUCCESS for that exact merge commit.
+- The deploy job built canonical PROD, asserted no PRE-PROD backend, prepared the static live branch and published the canonical snapshot successfully.
+- `gh-pages` deployment commit `c8a4bc720ce91eb46ed811c506623c265d043594` records `deploy: PROD live snapshot dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c`.
+- `gh-pages/PROD_SOURCE_SHA.txt` contains exactly `dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c`.
+- Default-branch code search after merge returns no occurrence for the previously evidenced direct caller `fenix_prod_contact_create_v2` and no generic `rpc( fenix_prod` match.
 - PREPROD App remains cancelled; no PREPROD reactivation is claimed.
-- Main/PROD App deployment is not claimed by this evidence.
+
+### Parallel hosting evidence
+
+The same merge SHA also triggered connected Cloudflare checks. Two Workers production builds completed SUCCESS (`fenix-capital-inmo-map` and `fenix-capital-inmo-maps`). A separate legacy/parallel `Cloudflare Pages` check failed immediately for the same SHA. This failure is not silently classified as harmless: its active routing role is not proven from the available connector, so it remains a hosting-topology item to audit before deleting or disabling any Cloudflare integration.
 
 ## Live Supabase security evidence
 
@@ -51,17 +60,17 @@ Both now explicitly deny when `v_role IS NULL` before evaluating allowed roles. 
 - Existing custom authentication pattern was preserved: Bearer token -> user validation -> actor context -> service-role server wrapper.
 - Required target routes are present live:
   - `POST /expedientes`
+  - `PATCH /expedientes/:code`
   - `POST /contactos`
   - `POST /firmas`
+  - `GET/POST /chat`
   - `GET /notificaciones`
   - `POST /notificaciones/:id/state`
-- No legacy authenticated RPC privilege was revoked.
+- No legacy authenticated RPC privilege has been revoked merely from source/deploy evidence.
 
 ## OLD vs NEW parity evidence
 
 A rollback-safe transaction in live PROD executed semantic OLD vs NEW comparisons with a valid linked Dirección actor and then issued `ROLLBACK`. The probe generated no persistent test contact, expediente, firma or notification-state mutation.
-
-Parity results:
 
 | Contract | OLD | NEW | Result |
 |---|---:|---:|---|
@@ -71,25 +80,25 @@ Parity results:
 | expediente create | 201 | 201 | parity |
 | firma create | 201 | 201 | parity |
 
-This proves live database/RPC parity for the five target wrapper families. It does **not** prove authenticated browser-to-Edge HTTP E2E and does **not** prove that the currently deployed App has zero direct legacy callers.
+This proves live database/RPC parity for the five target wrapper families. It still does **not** substitute for authenticated browser-to-Edge HTTP E2E.
 
 ## APP-007 Communications
 
 - Live `fenix-communications-gateway` exists at `v8`, JWT verification enabled.
-- Branch `CommunicationsShell` targets the PROD communications gateway and its prepare/send contract aligns with the live gateway.
-- The branch still references `fenix-expediente-assistant-test` for optional advice.
+- Current promoted `CommunicationsShell` targets the PROD communications gateway and its prepare/send contract aligns with the live gateway.
+- It still references `fenix-expediente-assistant-test` for optional advice.
 - No equivalent advice endpoint was evidenced in the inspected current Edge inventory.
-- Advice failure is fail-soft in the branch.
+- Advice failure is fail-soft.
 - No real communication was sent for verification.
 
 ## APP-009 / APP-010 CEREBRO Console
 
-- Internal App route `/cerebro` exists in the migration branch.
-- Profile launcher is guarded.
+- Internal App route `/cerebro` is now part of the promoted source commit.
+- Profile launcher remains guarded.
 - Console URL configuration accepts explicit HTTPS only and fails closed when absent.
 - Logical Console flow remains `CONSOLE -> GATEWAY -> POLICY -> ENGINE -> AUDIT`.
 - No deployed authenticated CEREBRO Console Gateway URL is evidenced yet.
-- No live profile launcher is claimed.
+- No external live Console Gateway is claimed.
 
 ## Credential Registry
 
@@ -100,21 +109,21 @@ This proves live database/RPC parity for the five target wrapper families. It do
 
 ## Current gates / not green yet
 
-1. Prove zero direct legacy RPC callers in the **currently deployed live App**, not only in the branch.
-2. Prove authenticated HTTP E2E through `fenix-app-gateway` for the target routes without creating durable test records.
-3. Prove rollback for the complete HTTP write path.
-4. Do not revoke legacy `authenticated EXECUTE` until live caller retirement and HTTP parity are evidenced.
-5. Resolve or formally retire/replace the missing APP-007 advice dependency.
-6. Deploy and authenticate the real CEREBRO Console Gateway before enabling the profile link.
+1. Obtain authenticated HTTP E2E evidence through `fenix-app-gateway` using a real, safe authenticated user context.
+2. Prove rollback/non-durable cleanup for the complete HTTP write path before privilege retirement.
+3. Only after HTTP E2E + rollback: capture final caller-retirement evidence and selectively retire legacy `authenticated EXECUTE`; never bulk-revoke managed/system functions.
+4. Resolve the connected Cloudflare topology enough to classify the failing Pages check without deleting a possibly active legacy route.
+5. Resolve or formally retire/replace the missing APP-007 optional advice dependency.
+6. Deploy and authenticate the real CEREBRO Console Gateway before enabling any external profile link.
 7. Continue closure order: Security -> Recovery -> Observability -> FinOps -> final human-gated Promotion.
 
 ## CEREBRO branch evidence
 
 - Repository: `carlosjmunoz78/capital-mapa-pro`
 - Branch: `cerebro-engine-factory-v0`
-- Console readiness mismatch was repaired and CI returned success.
-- Closure matrices were updated to reflect live wrapper/routing/parity evidence while remaining fail-closed for unproven live-App/HTTP/Console claims.
+- Factory/recovery/observability CI is green in the previously captured runs.
+- This evidence update records the newly completed real App promotion while keeping unproven HTTP/hosting claims fail-closed.
 
 ## Policy conclusion
 
-The five target wrapper families and controlled Gateway routing have materially advanced and live RPC parity is demonstrated. Global Security and APP/CRM promotion remain `PARTIAL` until live deployed App caller retirement and authenticated HTTP E2E/rollback are proven. Legacy privileges remain untouched.
+The reviewed RPC migration is no longer merely branch-ready: PR #376 has been promoted to `main`, the canonical PROD deployment workflow succeeded, and the `gh-pages` snapshot provenance points to the exact merge SHA. Source-level live caller retirement therefore materially advanced to green. Global Security remains `PARTIAL` until authenticated HTTP E2E/rollback is proven and only then can legacy authenticated EXECUTE be retired selectively. No destructive privilege change was made from deployment evidence alone.
