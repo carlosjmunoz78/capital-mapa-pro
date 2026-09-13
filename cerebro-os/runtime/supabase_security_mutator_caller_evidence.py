@@ -35,6 +35,8 @@ EDGE_SURFACE_EVIDENCE = {
     "fenix-evidence-api": {"version": 13, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True},
     "fenix-expediente-stage": {"version": 8, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True},
     "fenix-b2b-actions": {"version": 9, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": False, "alternative_scoped_backend_observed": True, "source_read_only_inspected": True},
+    "fenix-task-api": {"version": 12, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True},
+    "fenix-bank-api": {"version": 8, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True},
 }
 
 
@@ -69,5 +71,5 @@ def assess_mutator_caller_evidence() -> dict:
         "automatic_grant_or_rls_change_allowed": False,
         "automatic_retirement_allowed": False,
         "signature_human_gate": "SIGNATURE_REQUIRED",
-        "status": "EIGHT_PROD_EDGE_SURFACES_CLEARED_OTHER_CALLERS_PENDING" if inspected_direct_mutator_absence_proven and server_or_scoped_backend_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
+        "status": "TEN_PROD_EDGE_SURFACES_CLEARED_OTHER_CALLERS_PENDING" if inspected_direct_mutator_absence_proven and server_or_scoped_backend_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
     }
