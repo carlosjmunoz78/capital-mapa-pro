@@ -1,11 +1,14 @@
 import importlib.util
 import pathlib
+import sys
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 MODULE_PATH = ROOT / "runtime" / "release_rollback_rehearsal.py"
-spec = importlib.util.spec_from_file_location("release_rollback_rehearsal", MODULE_PATH)
+MODULE_NAME = "release_rollback_rehearsal"
+spec = importlib.util.spec_from_file_location(MODULE_NAME, MODULE_PATH)
 module = importlib.util.module_from_spec(spec)
+sys.modules[MODULE_NAME] = module
 spec.loader.exec_module(module)
 
 
