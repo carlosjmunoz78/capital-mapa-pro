@@ -7,7 +7,7 @@ from __future__ import annotations
 OBJECTIVE_GROUPS = {
     "SECURITY": {
         "target": "supabase_security_review_green",
-        "status": "PARTIAL_LIVE_RLS_AND_TARGET_WRAPPER_PARITY_GREEN_CALLER_RETIREMENT_OPEN",
+        "status": "PARTIAL_DEPLOYED_APP_PRE_MIGRATION_DIRECT_RPC_CONFIRMED",
         "green": False,
         "completed": (
             "15_authenticated_security_definer_rpcs_inventory",
@@ -32,9 +32,13 @@ OBJECTIVE_GROUPS = {
             "five_target_old_new_rpc_parity_green_in_rolled_back_prod_transaction",
             "app_gateway_v17_required_target_routes_live",
             "app_branch_persisted_direct_prod_rpc_callers_zero_ci_34786441006",
+            "live_deploy_channel_identified_as_github_pages_gh_pages",
+            "live_deployed_source_sha_c7a15cff9a387f1f142c8eeb06fd83a799e85a61",
+            "live_deployed_contact_direct_rpc_fenix_prod_contact_create_v2_confirmed",
         ),
         "remaining": (
-            "live_deployed_app_direct_caller_zero_evidence",
+            "deploy_or_promote_reviewed_rpc_migration_without_bypassing_human_prod_gate",
+            "live_deployed_app_direct_caller_zero_evidence_after_promotion",
             "authenticated_http_gateway_e2e_for_target_routes",
             "rollback_evidence_for_full_http_write_path",
             "caller_retirement_evidence_before_any_legacy_privilege_change",
