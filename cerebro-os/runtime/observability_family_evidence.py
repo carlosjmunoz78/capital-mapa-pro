@@ -58,14 +58,19 @@ FAMILY_EVIDENCE = {
     },
 }
 
-REQUIRED = ("logs_ref", "metrics_ref", "incident_ref", "cost_ref")
+CHECK_FIELDS = {
+    "logs": "logs_ref",
+    "metrics": "metrics_ref",
+    "incidents": "incident_ref",
+    "cost_measured": "cost_ref",
+}
 
 
 def assess_family(name: str) -> dict:
     if name not in FAMILY_EVIDENCE:
         raise KeyError(name)
     row = FAMILY_EVIDENCE[name]
-    checks = {field.removesuffix("_ref"): bool(str(row[field]).strip()) for field in REQUIRED}
+    checks = {check: bool(str(row[field]).strip()) for check, field in CHECK_FIELDS.items()}
     missing = tuple(k for k, ok in checks.items() if not ok)
     return {
         "company_id": COMPANY_ID,
