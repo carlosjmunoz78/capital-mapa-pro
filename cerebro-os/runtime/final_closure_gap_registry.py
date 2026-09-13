@@ -6,13 +6,15 @@ from __future__ import annotations
 
 GAPS = {
     "SECURITY:supabase_security_review_green": {
-        "status": "PARTIAL_HIGH_RISK",
+        "status": "PARTIAL_HIGH_RISK_EXECUTION_BLOCKED",
         "blocking": True,
         "required_evidence": (
-            "mutator_parity_for_15_authenticated_security_definer_rpcs",
-            "caller_and_retirement_evidence_before_any_privilege_change",
-            "explicit_human_gate_for_prod_security_change",
+            "real_db_mutator_parity_for_15_authenticated_security_definer_rpcs",
+            "global_caller_and_retirement_evidence_before_any_privilege_change",
+            "real_security_write_path_rollback_evidence",
+            "apply_human_approved_four_table_rls_prod_change_when_execution_channel_allows",
         ),
+        "human_gate_for_four_table_rls": "APPROVED",
         "automatic_prod_change_allowed": False,
     },
     "RECOVERY:provider_restore_drill_proven": {
@@ -41,19 +43,26 @@ GAPS = {
         "status": "PARTIAL",
         "blocking": True,
         "required_evidence": (
-            "per_engine_log_coverage",
-            "per_engine_metric_coverage",
-            "per_engine_incident_coverage",
+            "parallel_prod_mirroring_wiring_without_legacy_breakage",
+            "per_engine_prod_log_coverage",
+            "per_engine_prod_metric_coverage",
+            "per_engine_prod_incident_coverage",
+            "youtube_retained_metric_execution_or_approved_absence_policy",
         ),
+        "linkedin_retained_metric_green": True,
+        "youtube_reauthorized_and_rewired_green": True,
+        "youtube_retained_metric_green": False,
     },
-    "OBSERVABILITY:monthly_cost_measured": {
-        "status": "PARTIAL",
+    "FINOPS:monthly_cost_measured": {
+        "status": "PARTIAL_AUTHORITATIVE_BILLING_REQUIRED",
         "blocking": True,
         "required_evidence": (
-            "existing_provider_monthly_cost_measurement",
-            "engine_or_family_cost_attribution_where_available",
+            "notion_exact_monthly_amount_from_authoritative_billing_source",
+            "google_cloud_exact_monthly_amount_or_zero_cost_proof_from_authoritative_billing_source",
+            "engine_or_family_cost_attribution_where_real_usage_evidence_exists",
         ),
         "incremental_cerebro_cost_eur": 0.0,
+        "estimated_amounts_used": False,
     },
 }
 
