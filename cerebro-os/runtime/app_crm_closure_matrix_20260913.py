@@ -3,17 +3,17 @@ from __future__ import annotations
 OBJECTIVES = {
     "APP_001_inventory": "GREEN",
     "CRM_001_inventory": "GREEN",
-    "APP_002_auth_rpc_security": "PARTIAL_LIVE_WRAPPERS_HARDENED_ROUTING_V17_PARITY_OPEN",
-    "APP_003_expedientes": "GREEN_BRANCH_CALLER_MIGRATION_WITH_LIVE_PARITY_SUBGAP",
-    "APP_004_tasks_notifications": "GREEN_BRANCH_CALLER_MIGRATION_WITH_LIVE_PARITY_SUBGAP",
+    "APP_002_auth_rpc_security": "PARTIAL_LIVE_WRAPPERS_HARDENED_ROUTING_V17_HTTP_E2E_OPEN",
+    "APP_003_expedientes": "GREEN_BRANCH_AND_LIVE_RPC_PARITY_HTTP_E2E_SUBGAP",
+    "APP_004_tasks_notifications": "GREEN_BRANCH_AND_LIVE_RPC_PARITY_HTTP_E2E_SUBGAP",
     "APP_005_documents": "GREEN",
-    "APP_006_signatures": "GREEN_BRANCH_CALLER_MIGRATION_WITH_LIVE_PARITY_SUBGAP",
+    "APP_006_signatures": "GREEN_BRANCH_AND_LIVE_RPC_PARITY_HTTP_E2E_SUBGAP",
     "APP_007_communications": "PARTIAL_PROD_GATEWAY_ALIGNED_ASSISTANT_DEPENDENCY_OPEN",
     "APP_008_reports": "GREEN",
     "CRM_002_sync_consistency": "GREEN_LEGACY_SYNC_RETIRED_FAIL_CLOSED",
     "APP_009_carlos_cerebro_access": "PARTIAL_PROFILE_LAUNCHER_BRANCH_GREEN_DEPLOYED_CONSOLE_URL_MISSING",
     "APP_010_cerebro_gateway": "PARTIAL_HTTP_AND_WEB_UI_GREEN_DEPLOYED_URL_MISSING",
-    "APP_011_old_new_rollback_promotion": "BLOCKED_LIVE_PARITY_AND_HUMAN_GATE",
+    "APP_011_old_new_rollback_promotion": "BLOCKED_LIVE_APP_CALLER_ZERO_HTTP_E2E_AND_HUMAN_GATE",
 }
 
 BLOCKERS = {
@@ -33,7 +33,16 @@ BLOCKERS = {
         "runner_direct_callers_after": 0,
         "persisted_branch_direct_callers_zero": True,
         "live_direct_callers_zero_proven": False,
-        "live_parity_proven": False,
+        "live_rpc_old_new_parity_proven": True,
+        "live_rpc_old_new_parity_transaction_rolled_back": True,
+        "live_rpc_old_new_parity_cases": (
+            "notifications_list",
+            "notification_mark",
+            "contact_create",
+            "exp_create",
+            "sign_create",
+        ),
+        "live_gateway_http_e2e_proven": False,
         "authenticated_execute_revoke_allowed": False,
         "execution_channel_blocked_prior_attempts": True,
         "execution_channel_available_for_authorized_gateway_deploy": True,
@@ -102,5 +111,5 @@ def assess() -> dict:
         "app_preprod_reactivated": False,
         "global_prod_green": False,
         "automatic_prod_promotion_allowed": False,
-        "status": "APP_CRM_LIVE_WRAPPERS_HARDENED_AND_ROUTING_GREEN_PARITY_STILL_FAIL_CLOSED",
+        "status": "APP_CRM_LIVE_RPC_PARITY_GREEN_HTTP_E2E_AND_LIVE_APP_PROMOTION_STILL_FAIL_CLOSED",
     }
