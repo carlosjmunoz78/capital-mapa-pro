@@ -19,10 +19,12 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertIn("APP_009_carlos_cerebro_access", result["pending_objectives"])
         self.assertIn("APP_010_cerebro_gateway", result["pending_objectives"])
         self.assertIn("APP_011_old_new_rollback_promotion", result["pending_objectives"])
+        self.assertTrue(result["app_main_mutation_claimed"])
+        self.assertFalse(result["app_preprod_reactivated"])
         self.assertFalse(result["global_prod_green"])
         self.assertFalse(result["automatic_prod_promotion_allowed"])
 
-    def test_live_wrappers_are_hardened_and_rpc_parity_is_proven_without_false_http_e2e(self):
+    def test_live_wrappers_source_promotion_and_http_boundary_are_proven_without_false_auth_e2e(self):
         rpc = self.mod["BLOCKERS"]["rpc_live_migration"]
         self.assertEqual(rpc["remaining_server_wrappers"], 0)
         self.assertTrue(rpc["server_wrappers_live"])
@@ -33,40 +35,55 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertTrue(rpc["sign_create_null_actor_guard"])
         self.assertEqual(rpc["app_gateway_live_version"], 17)
         self.assertTrue(rpc["app_gateway_required_routes_live"])
-        self.assertEqual(rpc["runner_direct_callers_before"], 10)
-        self.assertEqual(rpc["runner_direct_callers_after"], 0)
         self.assertTrue(rpc["persisted_branch_direct_callers_zero"])
         self.assertEqual(rpc["live_deploy_channel"], "GITHUB_PAGES_GH_PAGES")
-        self.assertEqual(rpc["live_deployed_source_sha"], "c7a15cff9a387f1f142c8eeb06fd83a799e85a61")
-        self.assertTrue(rpc["live_deployed_app_is_pre_rpc_migration_branch"])
-        self.assertEqual(rpc["live_deployed_contact_direct_rpc_observed"], "fenix_prod_contact_create_v2")
-        self.assertFalse(rpc["live_direct_callers_zero_proven"])
+        self.assertEqual(rpc["live_deployed_source_sha"], "dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c")
+        self.assertEqual(rpc["live_deployed_snapshot_sha"], "c8a4bc720ce91eb46ed811c506623c265d043594")
+        self.assertEqual(rpc["live_deploy_run"], 34790008072)
+        self.assertTrue(rpc["live_deploy_success"])
+        self.assertFalse(rpc["live_deployed_app_is_pre_rpc_migration_branch"])
+        self.assertTrue(rpc["live_direct_callers_zero_proven"])
         self.assertTrue(rpc["live_rpc_old_new_parity_proven"])
         self.assertTrue(rpc["live_rpc_old_new_parity_transaction_rolled_back"])
         self.assertEqual(len(rpc["live_rpc_old_new_parity_cases"]), 5)
+        self.assertTrue(rpc["live_gateway_http_health_proven"])
+        self.assertEqual(rpc["live_gateway_http_health_status"], 200)
+        self.assertTrue(rpc["live_gateway_unauthenticated_target_fail_closed"])
+        self.assertEqual(rpc["live_gateway_unauthenticated_target_status"], 401)
         self.assertFalse(rpc["live_gateway_http_e2e_proven"])
+        self.assertFalse(rpc["http_write_path_rollback_proven"])
+        self.assertFalse(rpc["safe_test_identity_available"])
         self.assertFalse(rpc["authenticated_execute_revoke_allowed"])
+        self.assertTrue(rpc["legacy_retirement_sql_prepared"])
+        self.assertFalse(rpc["legacy_retirement_applied"])
 
-    def test_pr_376_is_mergeable_but_remains_draft_and_human_gated(self):
+    def test_pr_376_is_merged_with_human_gate_satisfied(self):
         pr = self.mod["BLOCKERS"]["rpc_live_migration"]["pull_request"]
         self.assertEqual(pr["number"], 376)
-        self.assertEqual(pr["state"], "OPEN_DRAFT")
-        self.assertTrue(pr["mergeable"])
-        self.assertEqual(pr["base_sha"], "95106d8e792257f809033486b7025d81665ea83b")
+        self.assertEqual(pr["state"], "MERGED")
+        self.assertTrue(pr["mergeable_before_merge"])
         self.assertEqual(pr["head_sha"], "b1b6fb5404a4704c5d637fc770fc90e9f2eb8312")
-        self.assertTrue(pr["promotion_human_gate_required"])
+        self.assertEqual(pr["merge_sha"], "dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c")
+        self.assertTrue(pr["promotion_human_gate_satisfied"])
 
-    def test_persisted_branch_migrations_are_recorded_without_premature_privilege_retirement(self):
-        rpc = self.mod["BLOCKERS"]["rpc_live_migration"]
-        persisted = rpc["branch_persisted_migrations"]
+    def test_persisted_branch_migrations_are_promoted_without_premature_privilege_retirement(self):
+        persisted = self.mod["BLOCKERS"]["rpc_live_migration"]["branch_persisted_migrations"]
         self.assertTrue(persisted["notifications_list"])
         self.assertTrue(persisted["notification_mark"])
         self.assertTrue(persisted["signature_create"])
         self.assertTrue(persisted["contact_create"])
         self.assertTrue(persisted["expediente_create"])
         self.assertTrue(persisted["audit_ci_success"])
-        self.assertFalse(persisted["main_modified"])
+        self.assertTrue(persisted["main_modified"])
+        self.assertEqual(persisted["main_merge_sha"], "dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c")
         self.assertFalse(persisted["legacy_authenticated_execute_revoked"])
+
+    def test_parallel_cloudflare_topology_is_preserved_until_routing_is_proven(self):
+        hosting = self.mod["BLOCKERS"]["rpc_live_migration"]["parallel_hosting"]
+        self.assertTrue(hosting["cloudflare_workers_builds_success"])
+        self.assertFalse(hosting["cloudflare_pages_check_success"])
+        self.assertFalse(hosting["cloudflare_pages_routing_role_proven"])
+        self.assertEqual(hosting["safe_disposition"], "PRESERVE_AND_AUDIT_ROUTING_BEFORE_CHANGE")
 
     def test_communications_core_is_green_and_optional_assistant_failure_is_fail_soft(self):
         communications = self.mod["BLOCKERS"]["communications"]
@@ -90,22 +107,24 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertTrue(sec["rls_tables_are_currently_fail_closed_for_direct_table_access"])
         self.assertEqual(sec["security_definer_authenticated_executable_count"], 24)
         self.assertFalse(sec["bulk_revoke_allowed"])
-        self.assertTrue(sec["legacy_rpc_retirement_requires_live_app_caller_zero"])
+        self.assertTrue(sec["live_app_caller_zero_now_proven"])
+        self.assertTrue(sec["legacy_rpc_retirement_also_requires_authenticated_http_e2e"])
         self.assertEqual(sec["pg_net_extension_schema"], "public")
         self.assertEqual(sec["pg_net_functions_namespace"], "net")
         self.assertFalse(sec["pg_net_move_without_dependency_backup_review_allowed"])
         self.assertFalse(sec["leaked_password_protection_enabled"])
         self.assertFalse(sec["auth_config_write_channel_available"])
 
-    def test_cerebro_route_and_branch_launcher_exist_but_deployed_url_remains_fail_closed(self):
+    def test_cerebro_route_is_promoted_but_external_gateway_url_remains_fail_closed(self):
         console = self.mod["BLOCKERS"]["cerebro_console"]
         self.assertTrue(console["app_profile_surface_found"])
         self.assertTrue(console["internal_console_route_present"])
         self.assertEqual(console["internal_console_route"], "/cerebro")
-        self.assertTrue(console["branch_profile_launcher_present"])
+        self.assertTrue(console["promoted_internal_console_route"])
+        self.assertTrue(console["profile_launcher_present"])
         self.assertTrue(console["web_shell_fail_closed_without_gateway_url"])
         self.assertFalse(console["deployed_authenticated_console_url_proven"])
-        self.assertFalse(console["deployed_profile_launcher_proven"])
+        self.assertFalse(console["deployed_profile_launcher_to_external_gateway_proven"])
         self.assertFalse(console["dead_link_allowed"])
 
     def test_credential_registry_remains_metadata_only(self):
