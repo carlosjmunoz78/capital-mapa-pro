@@ -3,14 +3,15 @@ from __future__ import annotations
 # Live Make read-only revalidation on 2026-09-13.
 # No scenario was activated or run and no external platform was mutated.
 
+FACEBOOK_BASELINE = {
+    "scenario_id": 9527908,
+    "status": "inactive",
+    "connection_status": "ok",
+    "read_only_design": True,
+    "retained_execution_count": 2,
+}
+
 SCENARIOS = {
-    "facebook": {
-        "scenario_id": 9527908,
-        "status": "inactive",
-        "connection_status": "ok",
-        "read_only_design": True,
-        "retained_execution_count": 2,
-    },
     "linkedin": {
         "scenario_id": 9522860,
         "status": "inactive",
@@ -38,7 +39,7 @@ def assess() -> dict:
         "scenario_count": len(SCENARIOS),
         "platforms_with_valid_read_only_configuration": valid_config,
         "platforms_without_retained_execution": absent,
-        "facebook_metric_execution_proven": SCENARIOS["facebook"]["retained_execution_count"] > 0,
+        "facebook_metric_execution_proven": FACEBOOK_BASELINE["retained_execution_count"] > 0,
         "linkedin_metric_execution_proven": SCENARIOS["linkedin"]["retained_execution_count"] > 0,
         "youtube_metric_execution_proven": SCENARIOS["youtube"]["retained_execution_count"] > 0,
         "explicit_external_absence_proven": absent == ("linkedin", "youtube"),
@@ -47,5 +48,5 @@ def assess() -> dict:
         "scenario_run_performed": False,
         "external_mutation_performed": False,
         "social_observability_green": False,
-        "status": "SOCIAL_CONFIGURATION_VALID_FACEBOOK_EVIDENCE_PRESENT_LINKEDIN_YOUTUBE_EXECUTION_ABSENT",
+        "status": "LINKEDIN_YOUTUBE_CONFIGURATION_VALID_RETAINED_EXECUTION_ABSENT_FACEBOOK_BASELINE_PRESENT",
     }
