@@ -22,10 +22,11 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertFalse(result["global_prod_green"])
         self.assertFalse(result["automatic_prod_promotion_allowed"])
 
-    def test_rpc_retirement_cannot_be_promoted_from_runner_only_evidence(self):
+    def test_rpc_retirement_cannot_be_promoted_from_non_live_evidence(self):
         rpc = self.mod["BLOCKERS"]["rpc_live_migration"]
         self.assertEqual(rpc["runner_direct_callers_before"], 10)
         self.assertEqual(rpc["runner_direct_callers_after"], 0)
+        self.assertTrue(rpc["persisted_branch_direct_callers_zero"])
         self.assertFalse(rpc["live_direct_callers_zero_proven"])
         self.assertFalse(rpc["live_parity_proven"])
         self.assertFalse(rpc["authenticated_execute_revoke_allowed"])
@@ -41,10 +42,13 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertFalse(persisted["prod_rpc_permissions_modified"])
         self.assertFalse(rpc["live_parity_proven"])
 
-    def test_no_dead_cerebro_profile_link_is_claimed(self):
+    def test_cerebro_route_exists_but_profile_link_remains_fail_closed(self):
         console = self.mod["BLOCKERS"]["cerebro_console"]
         self.assertTrue(console["app_profile_surface_found"])
-        self.assertFalse(console["deployable_console_route_proven"])
+        self.assertTrue(console["internal_console_route_present"])
+        self.assertEqual(console["internal_console_route"], "/cerebro")
+        self.assertTrue(console["web_shell_fail_closed_without_gateway_url"])
+        self.assertFalse(console["deployed_authenticated_console_url_proven"])
         self.assertFalse(console["carlos_profile_link_present"])
         self.assertFalse(console["dead_link_allowed"])
 
