@@ -18,7 +18,7 @@ GAPS = {
         "automatic_prod_change_allowed": False,
     },
     "RECOVERY:provider_restore_drill_proven": {
-        "status": "PENDING_EXTERNAL_PROOF",
+        "status": "PENDING_EXTERNAL_PROOF_EXECUTION_BLOCKED_AFTER_COST_APPROVAL",
         "blocking": True,
         "required_evidence": (
             "isolated_non_prod_restore_target",
@@ -27,6 +27,9 @@ GAPS = {
             "application_smoke",
             "cleanup_or_retention_evidence",
         ),
+        "branch_hourly_cost_usd": 0.01344,
+        "cost_understood_and_approved": True,
+        "branch_creation_attempt_blocked_by_execution_tool": True,
         "automatic_prod_restore_allowed": False,
     },
     "RECOVERY:prod_rollback_rehearsal_proven": {
@@ -47,11 +50,10 @@ GAPS = {
             "per_engine_prod_log_coverage",
             "per_engine_prod_metric_coverage",
             "per_engine_prod_incident_coverage",
-            "youtube_retained_metric_execution_or_approved_absence_policy",
         ),
         "linkedin_retained_metric_green": True,
         "youtube_reauthorized_and_rewired_green": True,
-        "youtube_retained_metric_green": False,
+        "youtube_retained_metric_green": True,
     },
     "FINOPS:monthly_cost_measured": {
         "status": "PARTIAL_AUTHORITATIVE_BILLING_REQUIRED",
