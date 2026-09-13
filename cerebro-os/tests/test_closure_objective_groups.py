@@ -29,15 +29,19 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
             self.assertFalse(row["green"])
             self.assertTrue(row["remaining"])
 
-    def test_security_tracks_current_caller_and_rls_evidence_fail_closed(self):
+    def test_security_tracks_live_rls_wrapper_parity_and_remaining_fail_closed_gates(self):
         security = module.OBJECTIVE_GROUPS["SECURITY"]
-        self.assertIn("6_current_frontend_direct_callers_verified_at_app_head", security["completed"])
-        self.assertIn("9_remaining_mutators_frontend_negative_search_recorded_fail_closed", security["completed"])
-        self.assertIn("9_remaining_mutators_expanded_repo_negative_search_recorded_fail_closed", security["completed"])
-        self.assertIn("four_table_rls_isolated_lab_green", security["completed"])
-        self.assertIn("four_table_rls_high_risk_human_gate_approved", security["completed"])
-        self.assertIn("global_caller_absence_or_retirement_evidence_not_yet_proven", security["remaining"])
-        self.assertIn("apply_approved_four_table_rls_change_in_prod_when_execution_channel_allows", security["remaining"])
+        self.assertIn("44_of_44_fenix_prod_tables_rls_enabled_live", security["completed"])
+        self.assertIn("five_target_server_wrappers_live_security_definer_service_role_only", security["completed"])
+        self.assertIn("five_target_server_wrappers_unknown_actor_fail_closed", security["completed"])
+        self.assertIn("exp_create_and_sign_create_null_actor_guard_hardened_live", security["completed"])
+        self.assertIn("five_target_old_new_rpc_parity_green_in_rolled_back_prod_transaction", security["completed"])
+        self.assertIn("app_gateway_v17_required_target_routes_live", security["completed"])
+        self.assertIn("app_branch_persisted_direct_prod_rpc_callers_zero_ci_34786441006", security["completed"])
+        self.assertIn("live_deployed_app_direct_caller_zero_evidence", security["remaining"])
+        self.assertIn("authenticated_http_gateway_e2e_for_target_routes", security["remaining"])
+        self.assertIn("rollback_evidence_for_full_http_write_path", security["remaining"])
+        self.assertIn("caller_retirement_evidence_before_any_legacy_privilege_change", security["remaining"])
 
     def test_observability_tracks_linkedin_green_and_youtube_reauth_without_false_retained_metric(self):
         observability = module.OBJECTIVE_GROUPS["OBSERVABILITY"]
