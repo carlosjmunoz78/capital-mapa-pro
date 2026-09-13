@@ -68,6 +68,7 @@ OBJECTIVE_GROUPS = {
             "prod_current_tables_missing_full_multiempresa_scope_confirmed",
             "parallel_multiempresa_observability_envelope_defined",
             "parallel_observability_mirror_lab_green",
+            "parallel_prod_mirroring_wiring_gate_green_fail_closed",
             "seo_retained_prod_health_5_of_5_success",
             "seo_parallel_incident_classifier_green",
             "seo_retained_run_replay_green",
