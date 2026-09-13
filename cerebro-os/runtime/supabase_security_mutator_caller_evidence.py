@@ -46,6 +46,9 @@ EDGE_SURFACE_EVIDENCE = {
     "fenix-whatsapp-webhook": {"version": 4, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": False, "alternative_scoped_backend_observed": True, "source_read_only_inspected": True, "hmac_signature_verification_observed": True, "event_write_observed": False},
     "fenix-web-lead": {"version": 3, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "origin_allowlist_observed": True, "payload_size_limit_observed": True, "idempotency_guard_observed": True},
     "social-lead-ingest": {"version": 5, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "credential_verification_observed": True, "idempotency_guard_observed": True},
+    "fenix-document-extract": {"version": 12, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "low_confidence_human_gate_observed": True, "policy_conflict_human_gate_observed": True, "provider_ai_dependency_observed": True, "legacy_batch_direction_only_observed": True},
+    "fenix-document-reread": {"version": 2, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "low_confidence_human_gate_observed": True, "policy_conflict_human_gate_observed": True, "role_gate_observed": True},
+    "fenix-document-auto-ingest": {"version": 2, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "low_confidence_human_gate_observed": True, "policy_conflict_human_gate_observed": True, "role_gate_observed": True, "native_route_required_observed": True},
 }
 
 
@@ -79,11 +82,14 @@ def assess_mutator_caller_evidence() -> dict:
         "whatsapp_signature_verification_observed": EDGE_SURFACE_EVIDENCE["fenix-whatsapp-webhook"]["hmac_signature_verification_observed"],
         "web_lead_ingest_guards_observed": EDGE_SURFACE_EVIDENCE["fenix-web-lead"]["origin_allowlist_observed"] and EDGE_SURFACE_EVIDENCE["fenix-web-lead"]["payload_size_limit_observed"] and EDGE_SURFACE_EVIDENCE["fenix-web-lead"]["idempotency_guard_observed"],
         "social_lead_ingest_guards_observed": EDGE_SURFACE_EVIDENCE["social-lead-ingest"]["credential_verification_observed"] and EDGE_SURFACE_EVIDENCE["social-lead-ingest"]["idempotency_guard_observed"],
+        "document_extract_human_gates_observed": EDGE_SURFACE_EVIDENCE["fenix-document-extract"]["low_confidence_human_gate_observed"] and EDGE_SURFACE_EVIDENCE["fenix-document-extract"]["policy_conflict_human_gate_observed"],
+        "document_reread_human_gates_observed": EDGE_SURFACE_EVIDENCE["fenix-document-reread"]["low_confidence_human_gate_observed"] and EDGE_SURFACE_EVIDENCE["fenix-document-reread"]["policy_conflict_human_gate_observed"],
+        "document_auto_ingest_human_gates_observed": EDGE_SURFACE_EVIDENCE["fenix-document-auto-ingest"]["low_confidence_human_gate_observed"] and EDGE_SURFACE_EVIDENCE["fenix-document-auto-ingest"]["policy_conflict_human_gate_observed"],
         "frontend_or_other_direct_callers_still_pending": True,
         "security_remediation_allowed": False,
         "automatic_prod_mutation_allowed": False,
         "automatic_grant_or_rls_change_allowed": False,
         "automatic_retirement_allowed": False,
         "signature_human_gate": "SIGNATURE_REQUIRED",
-        "status": "TWENTY_FOUR_PROD_EDGE_SURFACES_CLEARED_OTHER_CALLERS_PENDING" if inspected_direct_mutator_absence_proven and server_or_scoped_backend_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
+        "status": "TWENTY_SEVEN_PROD_EDGE_SURFACES_CLEARED_OTHER_CALLERS_PENDING" if inspected_direct_mutator_absence_proven and server_or_scoped_backend_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
     }
