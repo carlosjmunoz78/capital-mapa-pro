@@ -3,17 +3,17 @@ from __future__ import annotations
 OBJECTIVES = {
     "APP_001_inventory": "GREEN",
     "CRM_001_inventory": "GREEN",
-    "APP_002_auth_rpc_security": "PARTIAL_LIVE_WRAPPERS_HARDENED_ROUTING_V17_HTTP_E2E_OPEN",
+    "APP_002_auth_rpc_security": "PARTIAL_LIVE_WRAPPERS_HARDENED_ROUTING_V17_DEPLOYED_APP_STILL_DIRECT_RPC_HTTP_E2E_OPEN",
     "APP_003_expedientes": "GREEN_BRANCH_AND_LIVE_RPC_PARITY_HTTP_E2E_SUBGAP",
     "APP_004_tasks_notifications": "GREEN_BRANCH_AND_LIVE_RPC_PARITY_HTTP_E2E_SUBGAP",
     "APP_005_documents": "GREEN",
     "APP_006_signatures": "GREEN_BRANCH_AND_LIVE_RPC_PARITY_HTTP_E2E_SUBGAP",
-    "APP_007_communications": "PARTIAL_PROD_GATEWAY_ALIGNED_ASSISTANT_DEPENDENCY_OPEN",
+    "APP_007_communications": "GREEN_CORE_GATEWAY_WITH_OPTIONAL_ADVICE_FAIL_SOFT",
     "APP_008_reports": "GREEN",
     "CRM_002_sync_consistency": "GREEN_LEGACY_SYNC_RETIRED_FAIL_CLOSED",
     "APP_009_carlos_cerebro_access": "PARTIAL_PROFILE_LAUNCHER_BRANCH_GREEN_DEPLOYED_CONSOLE_URL_MISSING",
     "APP_010_cerebro_gateway": "PARTIAL_HTTP_AND_WEB_UI_GREEN_DEPLOYED_URL_MISSING",
-    "APP_011_old_new_rollback_promotion": "BLOCKED_LIVE_APP_CALLER_ZERO_HTTP_E2E_AND_HUMAN_GATE",
+    "APP_011_old_new_rollback_promotion": "BLOCKED_DEPLOYED_APP_CALLER_RETIREMENT_HTTP_E2E_AND_HUMAN_GATE",
 }
 
 BLOCKERS = {
@@ -32,6 +32,11 @@ BLOCKERS = {
         "runner_direct_callers_before": 10,
         "runner_direct_callers_after": 0,
         "persisted_branch_direct_callers_zero": True,
+        "live_deploy_channel": "GITHUB_PAGES_GH_PAGES",
+        "live_deployed_source_sha": "c7a15cff9a387f1f142c8eeb06fd83a799e85a61",
+        "live_deployed_source_date": "2026-09-11",
+        "live_deployed_contact_direct_rpc_observed": "fenix_prod_contact_create_v2",
+        "live_deployed_app_is_pre_rpc_migration_branch": True,
         "live_direct_callers_zero_proven": False,
         "live_rpc_old_new_parity_proven": True,
         "live_rpc_old_new_parity_transaction_rolled_back": True,
@@ -64,9 +69,13 @@ BLOCKERS = {
         "prod_gateway_version": 8,
         "app_shell_targets_prod_gateway": True,
         "prepare_send_contract_aligned": True,
+        "real_send_path_owned_by_gateway": True,
+        "real_send_providers": ("brevo", "whatsapp"),
         "assistant_dependency": "fenix-expediente-assistant-test",
         "assistant_present_in_current_prod_edge_inventory": False,
+        "assistant_is_optional_draft_enrichment_only": True,
         "assistant_failure_is_fail_soft": True,
+        "communications_core_operational_without_assistant": True,
         "real_send_claimed": False,
     },
     "cerebro_console": {
@@ -111,5 +120,5 @@ def assess() -> dict:
         "app_preprod_reactivated": False,
         "global_prod_green": False,
         "automatic_prod_promotion_allowed": False,
-        "status": "APP_CRM_LIVE_RPC_PARITY_GREEN_HTTP_E2E_AND_LIVE_APP_PROMOTION_STILL_FAIL_CLOSED",
+        "status": "APP_CRM_COMMUNICATIONS_CORE_GREEN_LIVE_APP_STILL_PRE_MIGRATION_FAIL_CLOSED",
     }
