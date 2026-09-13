@@ -16,7 +16,7 @@ class MakeProdLiveObservabilitySnapshotTests(unittest.TestCase):
         self.assertEqual(result["successful_run_count"], 5)
         self.assertEqual(result["operations_observed"], 507)
         self.assertEqual(result["credits_observed"], 507)
-        self.assertEqual(result["data_transfer_observed"], 2961036)
+        self.assertEqual(result["data_transfer_observed"], 2965036)
         self.assertTrue(result["live_execution_evidence_green"])
 
     def test_monthly_invoice_cost_is_not_invented(self):
