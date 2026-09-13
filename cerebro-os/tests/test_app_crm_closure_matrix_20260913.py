@@ -13,9 +13,9 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         result = self.mod["assess"]()
         self.assertIn("APP_001_inventory", result["green_objectives"])
         self.assertIn("APP_005_documents", result["green_objectives"])
+        self.assertIn("APP_007_communications", result["green_objectives"])
         self.assertIn("APP_008_reports", result["green_objectives"])
         self.assertIn("APP_002_auth_rpc_security", result["pending_objectives"])
-        self.assertIn("APP_007_communications", result["pending_objectives"])
         self.assertIn("APP_009_carlos_cerebro_access", result["pending_objectives"])
         self.assertIn("APP_010_cerebro_gateway", result["pending_objectives"])
         self.assertIn("APP_011_old_new_rollback_promotion", result["pending_objectives"])
@@ -36,6 +36,10 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertEqual(rpc["runner_direct_callers_before"], 10)
         self.assertEqual(rpc["runner_direct_callers_after"], 0)
         self.assertTrue(rpc["persisted_branch_direct_callers_zero"])
+        self.assertEqual(rpc["live_deploy_channel"], "GITHUB_PAGES_GH_PAGES")
+        self.assertEqual(rpc["live_deployed_source_sha"], "c7a15cff9a387f1f142c8eeb06fd83a799e85a61")
+        self.assertTrue(rpc["live_deployed_app_is_pre_rpc_migration_branch"])
+        self.assertEqual(rpc["live_deployed_contact_direct_rpc_observed"], "fenix_prod_contact_create_v2")
         self.assertFalse(rpc["live_direct_callers_zero_proven"])
         self.assertTrue(rpc["live_rpc_old_new_parity_proven"])
         self.assertTrue(rpc["live_rpc_old_new_parity_transaction_rolled_back"])
@@ -55,13 +59,17 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertFalse(persisted["main_modified"])
         self.assertFalse(persisted["legacy_authenticated_execute_revoked"])
 
-    def test_communications_contract_is_aligned_but_assistant_dependency_is_open(self):
+    def test_communications_core_is_green_and_optional_assistant_failure_is_fail_soft(self):
         communications = self.mod["BLOCKERS"]["communications"]
         self.assertTrue(communications["prod_gateway_exists"])
         self.assertTrue(communications["app_shell_targets_prod_gateway"])
         self.assertTrue(communications["prepare_send_contract_aligned"])
+        self.assertTrue(communications["real_send_path_owned_by_gateway"])
+        self.assertEqual(set(communications["real_send_providers"]), {"brevo", "whatsapp"})
         self.assertFalse(communications["assistant_present_in_current_prod_edge_inventory"])
+        self.assertTrue(communications["assistant_is_optional_draft_enrichment_only"])
         self.assertTrue(communications["assistant_failure_is_fail_soft"])
+        self.assertTrue(communications["communications_core_operational_without_assistant"])
         self.assertFalse(communications["real_send_claimed"])
 
     def test_cerebro_route_and_branch_launcher_exist_but_deployed_url_remains_fail_closed(self):
