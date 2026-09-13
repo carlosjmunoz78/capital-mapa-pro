@@ -1,9 +1,8 @@
-from __future__ import annotations
-
 import json
 import sqlite3
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Union
 
 VALID_ENVIRONMENTS = {"LAB", "PREPROD", "PROD"}
 VALID_KINDS = {"log", "metric", "incident"}
@@ -21,7 +20,7 @@ class ObservabilityEvent:
     evidence_ref: str
     cost_eur: float = 0.0
 
-    def validate(self) -> None:
+    def validate(self):
         required = (self.company_id, self.engine_id, self.environment, self.version, self.kind, self.name, self.evidence_ref)
         if any(not str(v).strip() for v in required):
             raise ValueError("observability event missing required identity/evidence fields")
@@ -43,7 +42,7 @@ class SQLiteObservabilityStore:
     worker volume. It does not claim PROD live coverage by itself.
     """
 
-    def __init__(self, path: str | Path):
+    def __init__(self, path: Union[str, Path]):
         self.path = str(path)
         self.conn = sqlite3.connect(self.path)
         self.conn.execute(
@@ -68,7 +67,7 @@ class SQLiteObservabilityStore:
         )
         self.conn.commit()
 
-    def append(self, event: ObservabilityEvent) -> int:
+    def append(self, event):
         event.validate()
         cur = self.conn.execute(
             "insert into observability_events(company_id,engine_id,environment,version,kind,name,payload_json,evidence_ref,cost_eur) values(?,?,?,?,?,?,?,?,?)",
@@ -87,9 +86,9 @@ class SQLiteObservabilityStore:
         self.conn.commit()
         return int(cur.lastrowid)
 
-    def coverage(self, company_id: str, environment: str, engine_ids: tuple[str, ...]) -> dict:
+    def coverage(self, company_id, environment, engine_ids):
         required = set(engine_ids)
-        by_kind: dict[str, set[str]] = {}
+        by_kind = {}
         for kind in sorted(VALID_KINDS):
             rows = self.conn.execute(
                 "select distinct engine_id from observability_events where company_id=? and environment=? and kind=?",
@@ -109,5 +108,5 @@ class SQLiteObservabilityStore:
             "additional_subscription_required": False,
         }
 
-    def close(self) -> None:
+    def close(self):
         self.conn.close()
