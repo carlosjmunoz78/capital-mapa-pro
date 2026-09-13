@@ -30,6 +30,17 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertFalse(rpc["live_parity_proven"])
         self.assertFalse(rpc["authenticated_execute_revoke_allowed"])
 
+    def test_persisted_branch_migrations_are_recorded_without_false_live_green(self):
+        rpc = self.mod["BLOCKERS"]["rpc_live_migration"]
+        persisted = rpc["branch_persisted_migrations"]
+        self.assertTrue(persisted["notifications_list"])
+        self.assertTrue(persisted["notification_mark"])
+        self.assertTrue(persisted["signature_create"])
+        self.assertTrue(persisted["audit_ci_success"])
+        self.assertFalse(persisted["main_modified"])
+        self.assertFalse(persisted["prod_rpc_permissions_modified"])
+        self.assertFalse(rpc["live_parity_proven"])
+
     def test_no_dead_cerebro_profile_link_is_claimed(self):
         console = self.mod["BLOCKERS"]["cerebro_console"]
         self.assertTrue(console["app_profile_surface_found"])
