@@ -28,6 +28,8 @@ jobs:
         run: python -m unittest discover -s cerebro-os/tests -v
       - name: Runtime boot and rollback rehearsal
         run: python cerebro-os/runtime/runtime_rehearsal.py
+      - name: Non-destructive release rollback rehearsal
+        run: python cerebro-os/runtime/release_rollback_rehearsal.py
       - name: Smoke scaffold
         run: |
           tmpdir="$(mktemp -d)"
