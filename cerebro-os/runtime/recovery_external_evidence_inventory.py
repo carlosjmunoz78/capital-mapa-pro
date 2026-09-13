@@ -29,6 +29,14 @@ LIVE_EVIDENCE = {
         proves_rollback_rehearsal=False,
         proves_provider_restore=False,
     ),
+    "github_pinned_source_snapshot": RecoveryExternalEvidence(
+        source="Git commit e0e5b41e3a05198d015af7bcd0387d4ff3c66e48",
+        evidence_type="immutable_git_source_snapshot",
+        proves_source_backup=True,
+        proves_rebuild=False,
+        proves_rollback_rehearsal=False,
+        proves_provider_restore=False,
+    ),
     "github_ci_runtime_rehearsal": RecoveryExternalEvidence(
         source="GitHub Actions runtime boot and rollback rehearsal",
         evidence_type="runtime_ci_rehearsal",
@@ -51,6 +59,7 @@ def summarize_recovery_external_evidence() -> dict:
     return {
         "checks": checks,
         "source_recovery_partial": checks["rebuild"] and checks["rollback_rehearsal"],
+        "source_recovery_green": checks["source_backup"] and checks["rebuild"] and checks["rollback_rehearsal"],
         "provider_restore_green": checks["provider_restore"],
         "recovery_green": all(checks.values()),
         "destructive_action_allowed": False,
