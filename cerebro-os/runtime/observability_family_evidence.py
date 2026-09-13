@@ -68,13 +68,16 @@ FAMILY_EVIDENCE = {
     "engine_factory": {
         "logs_ref": "GITHUB_ACTIONS_ENGINE_FACTORY_V0",
         "metrics_ref": "GITHUB_ACTIONS_TEST_RESULTS",
-        "incident_ref": "ENGINE_FACTORY_INCIDENT_624_FIX_405E72C_CI_625_GREEN",
+        "incident_ref": "ENGINE_FACTORY_INCIDENT_CHAIN_CI_624_625_AND_CI_630_631",
         "cost_ref": "",
         "live_examples": (
             "ci_624_failure_detected",
-            "root_cause_module_import_path",
             "fix_commit_405e72c71195649403a3b1b3493a97463587a405",
             "ci_625_success",
+            "ci_630_failure_test_make_prod_live_observability_snapshot",
+            "ci_630_expected_data_transfer=2961036_actual=2965036",
+            "ci_631_fix_commit_739850a757712b48269c61739e23447d6f2f0d45",
+            "ci_631_success",
         ),
     },
 }
