@@ -48,9 +48,22 @@ AUDIT = {
     },
     "security_caller_evidence": {
         "direct_prod_rpc_callers_still_exist": True,
-        "confirmed_direct_caller": "src/ContactCreateShell.tsx -> fenix_prod_contact_create",
+        "confirmed_frontend_rpc_callers": (
+            "src/ContactCreateShell.tsx -> fenix_prod_contact_create",
+            "src/ExpedienteCreateShell.tsx -> fenix_prod_exp_create",
+            "src/ChatShell.tsx -> fenix_prod_chat_list_user",
+            "src/ChatShell.tsx -> fenix_prod_chat_send_user",
+            "src/NotificationsShell.tsx -> fenix_prod_notifications_list_user",
+            "src/NotificationsShell.tsx -> fenix_prod_notification_mark_user",
+        ),
+        "confirmed_mutating_security_definer_callers": (
+            "fenix_prod_contact_create",
+            "fenix_prod_exp_create",
+            "fenix_prod_chat_send_user",
+            "fenix_prod_notification_mark_user",
+        ),
         "safe_to_revoke_authenticated_execute_now": False,
-        "reason": "A live frontend caller still invokes the authenticated SECURITY DEFINER RPC directly in PROD.",
+        "reason": "Live frontend callers still invoke authenticated SECURITY DEFINER RPCs directly in PROD.",
     },
     "crm_runtime": {
         "crm_sync_once_active": True,
@@ -76,6 +89,8 @@ def assess() -> dict:
         "APP_001_read_only_inventory_green": app001_green,
         "CRM_001_live_inventory_green": crm001_inventory_green,
         "security_rpc_retirement_blocked": security_retirement_blocked,
+        "confirmed_direct_rpc_caller_count": len(AUDIT["security_caller_evidence"]["confirmed_frontend_rpc_callers"]),
+        "confirmed_mutating_direct_rpc_caller_count": len(AUDIT["security_caller_evidence"]["confirmed_mutating_security_definer_callers"]),
         "app_repo_unchanged": not AUDIT["app_repo_modified_by_audit"],
         "app_preprod_stays_cancelled": not AUDIT["app_preprod_reactivated"],
         "ready_for_next_read_only_audit": app001_green and crm001_inventory_green,
