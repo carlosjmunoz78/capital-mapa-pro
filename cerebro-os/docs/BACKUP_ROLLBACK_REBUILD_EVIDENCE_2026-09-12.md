@@ -1,36 +1,53 @@
-# CEREBRO OS · Backup / Rollback / Rebuild evidence · 2026-09-12
+# CEREBRO OS · Backup / Rollback / Rebuild evidence · 2026-09-13
 
 ## Scope
-Evidence-first audit of the existing App/CEREBRO recovery contracts. No production mutation, no App PREPROD reactivation, no destructive restore test.
+Evidence-first audit of App/CEREBRO recovery contracts. No production mutation, no destructive restore test, no paid Supabase preview branch created.
 
 ## HECHO / evidenced
-- App repository contains `cerebro/docs/AUTONOMY_BACKUP_REBUILD.md` with the recovery contract: Git/pinned source snapshots for App/CEREBRO, Notion inventory snapshots before schema mutation, and non-destructive verification rules.
-- App repository contains `.github/workflows/prod-rollback-rehearsal.yml` as a manual `workflow_dispatch` validation gate. It checks current `main`, requires an expected current HEAD, validates the target ref/build/production contracts, and does not mutate `main` or deploy the rollback automatically.
-- `cerebro/docs/RUNBOOK.md` defines the emergency rollback sequence as rehearsal → rollback branch → revert commit(s) → PR/gates → merge → exact-SHA PROD deploy/smoke → user-visible verification.
-- App rebuild smoke contract exists: `cd cerebro && npm test && npm run validate && npm run generate -- --out ./.cerebro-generated`.
-- Existing `EVIDENCE.json` correctly scopes historical exact-SHA PROD deploy/runtime-smoke evidence and explicitly keeps `autonomous_prod=false` for the recorded CEREBRO structural/reference milestones.
+- Immutable Git source snapshot is proven by commit `e0e5b41e3a05198d015af7bcd0387d4ff3c66e48` on branch `cerebro-engine-factory-v0`.
+- Current Factory CI proves deterministic rebuild/runtime rehearsal on the active branch.
+- `cerebro-os/runtime/recovery_external_evidence_inventory.py` separates source backup, rebuild/runtime rehearsal and provider restore instead of treating them as equivalent.
+- `cerebro-os/runtime/recovery_zero_cost_strategy.py` keeps the default recovery path at 0 EUR additional recurring cost and blocks PROD database restore/destructive tests.
+
+## CORRECTION OF PREVIOUS SNAPSHOT
+A previous evidence note stated that `.github/workflows/prod-rollback-rehearsal.yml` existed in the repository. A live read of `.github/workflows` on `cerebro-engine-factory-v0` on 2026-09-13 shows only `cerebro-engine-factory-v0.yml`. Therefore the previous workflow-existence statement is stale and must not be used as current evidence.
+
+This correction does not remove any existing production behavior. It only corrects the evidence classification.
 
 ## PARCIAL / not proven
-- No evidence was found in the retrieved recent manual-dispatch Actions history that `PROD Rollback Rehearsal` has actually been executed. Therefore the workflow **exists**, but rollback rehearsal must not be claimed as tested from this evidence.
-- Current Supabase connector surface does not expose a provider backup/restore operation. A provider-level database restore drill is therefore not evidenced here.
-- `pg_net` destructive removal/reinstall is not covered by a proven provider restore path and remains blocked from execution.
-- Git/source rebuild is not equivalent to database/provider restore. These recovery dimensions remain separate.
+- A dedicated PROD rollback workflow is **not present in the current audited branch**.
+- Runtime rollback rehearsal is proven in CI, but a real PROD release rollback rehearsal is not proven.
+- Provider-level Supabase database restore drill is not proven.
+- No paid Supabase Preview Branch has been created; paid fallback remains subject to `MONEY_LIMIT` and explicit confirmation.
+- Git/source rebuild is not equivalent to database/provider restore.
+- `pg_net` destructive removal/reinstall remains blocked until provider restore evidence and rollback are proven.
 
-## Gate before claiming rollback/restore GREEN
-1. Capture an immutable/pinned recovery target and the exact current HEAD.
-2. Execute `PROD Rollback Rehearsal` against a known-good target and capture the successful run ID/evidence.
-3. Demonstrate the rollback branch/revert procedure without rewriting history.
-4. Verify exact-SHA deploy/runtime smoke for the rollback result if/when a real rollback is required.
-5. Obtain a provider-supported Supabase backup/restore path or equivalent reproducible database backup and perform a restore drill outside PROD.
-6. Record restore duration, integrity checks and rollback/reinstall procedure for extension-adjacent state such as `pg_net`.
-7. Update Registry/runbook/evidence only after the proof exists.
+## Zero-cost order of operations
+1. Preserve immutable Git snapshot evidence.
+2. Use deterministic CI rebuild/runtime rollback rehearsal.
+3. Prefer existing non-PROD resources for isolated validation where technically equivalent.
+4. Use provider-native temporary restore only when it can be demonstrated safely and without PROD mutation.
+5. Treat any paid branch/project as a fallback requiring `MONEY_LIMIT` confirmation.
+6. Never claim provider restore from source or CI evidence.
+
+## Gate before claiming recovery GREEN
+1. Source backup reference exists and is immutable.
+2. Rebuild evidence is successful.
+3. Release/PROD rollback rehearsal is executed and captured, not merely documented.
+4. Provider-supported database restore is demonstrated outside PROD.
+5. Integrity/smoke checks succeed after restore.
+6. Cleanup/retention is documented.
+7. Registry/runbook/evidence are updated only after proof exists.
 
 ## State
-- Source/build rebuild contract: **EXISTENTE / VERIFIED BY SOURCE**.
-- Rollback workflow definition: **EXISTENTE / VERIFIED BY SOURCE**.
-- Rollback rehearsal execution: **POR_AUDITAR / NO EVIDENCE FOUND IN RETRIEVED HISTORY**.
-- Provider database restore drill: **BLOCKED BY CURRENT CONNECTOR CAPABILITY / NOT PROVEN**.
+- Source snapshot: **HECHO / PROVEN**.
+- Rebuild/runtime rehearsal: **HECHO / GREEN_CODE_CI**.
+- Dedicated PROD rollback workflow on current branch: **NOT PRESENT / PREVIOUS SNAPSHOT STALE**.
+- PROD release rollback rehearsal execution: **POR_AUDITAR / NOT PROVEN**.
+- Provider database restore drill: **EXTERNAL_PROOF_PENDING / NOT PROVEN**.
+- Paid Supabase branch: **NOT CREATED**.
+- Additional recurring cost introduced by this recovery strategy: **0 EUR**.
 - `pg_net` destructive migration/removal: **PARCIAL_CONTROLLED / DO NOT EXECUTE**.
 
 ## Rule
-Never convert the presence of a workflow or runbook into proof that recovery was successfully rehearsed. Recovery is GREEN only after execution evidence exists.
+Never convert documentation, source rebuild or runtime rehearsal into proof of provider restore or real PROD rollback. Recovery becomes GREEN only after the corresponding execution evidence exists.
