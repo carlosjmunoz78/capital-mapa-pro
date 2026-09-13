@@ -29,10 +29,22 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
             self.assertFalse(row["green"])
             self.assertTrue(row["remaining"])
 
-    def test_security_tracks_verified_six_and_unresolved_nine(self):
+    def test_security_tracks_current_caller_and_rls_evidence_fail_closed(self):
         security = module.OBJECTIVE_GROUPS["SECURITY"]
         self.assertIn("6_current_frontend_direct_callers_verified_at_app_head", security["completed"])
-        self.assertIn("9_mutators_without_current_frontend_direct_caller_proof", security["remaining"])
+        self.assertIn("9_remaining_mutators_frontend_negative_search_recorded_fail_closed", security["completed"])
+        self.assertIn("9_remaining_mutators_expanded_repo_negative_search_recorded_fail_closed", security["completed"])
+        self.assertIn("four_table_rls_isolated_lab_green", security["completed"])
+        self.assertIn("four_table_rls_high_risk_human_gate_approved", security["completed"])
+        self.assertIn("global_caller_absence_or_retirement_evidence_not_yet_proven", security["remaining"])
+        self.assertIn("apply_approved_four_table_rls_change_in_prod_when_execution_channel_allows", security["remaining"])
+
+    def test_observability_tracks_linkedin_green_and_youtube_reauth_without_false_retained_metric(self):
+        observability = module.OBJECTIVE_GROUPS["OBSERVABILITY"]
+        self.assertIn("linkedin_retained_health_execution_green", observability["completed"])
+        self.assertIn("youtube_health_reauthorization_green", observability["completed"])
+        self.assertIn("youtube_health_connection_rewired_green", observability["completed"])
+        self.assertIn("youtube_retained_metric_execution_or_explicit_approved_absence_policy", observability["remaining"])
 
 
 if __name__ == "__main__":
