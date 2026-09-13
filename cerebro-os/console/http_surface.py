@@ -77,13 +77,41 @@ class ConsoleHttpSurface:
         return _json_response(404, {"ok": False, "error": "route_not_found"})
 
 
-def wsgi_app(surface: ConsoleHttpSurface):
-    """Minimal stdlib-compatible WSGI adapter; upstream IAM supplies identity."""
+def _default_identity_resolver(environ: Mapping[str, object]) -> str:
+    """Read identity only from a trusted WSGI/upstream-auth slot.
+
+    Deliberately does not trust HTTP_X_CEREBRO_USER_ID or any other
+    browser-controlled identity header. A production reverse proxy/IAM layer
+    must authenticate the request first and inject REMOTE_USER (or supply an
+    explicit resolver to wsgi_app).
+    """
+
+    return str(environ.get("REMOTE_USER", "") or "").strip()
+
+
+def wsgi_app(
+    surface: ConsoleHttpSurface,
+    identity_resolver: Callable[[Mapping[str, object]], str] | None = None,
+):
+    """Minimal stdlib-compatible WSGI adapter with fail-closed identity.
+
+    The browser never supplies the authoritative user id in JSON or a trusted
+    custom header. Upstream IAM must establish identity and expose it via
+    REMOTE_USER, or callers must inject a resolver that performs equivalent
+    trusted verification.
+    """
+
+    resolve_identity = identity_resolver or _default_identity_resolver
+    if not callable(resolve_identity):
+        raise ValueError("identity_resolver must be callable")
 
     def app(environ, start_response):
         method = str(environ.get("REQUEST_METHOD", "GET"))
         path = str(environ.get("PATH_INFO", "/"))
-        user_id = str(environ.get("HTTP_X_CEREBRO_USER_ID", ""))
+        try:
+            user_id = str(resolve_identity(environ) or "").strip()
+        except Exception:
+            user_id = ""
         payload = {}
         if method.upper() == "POST":
             try:
