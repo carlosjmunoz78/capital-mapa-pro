@@ -17,10 +17,12 @@ class AppCrmLiveAuditTests(unittest.TestCase):
         self.assertTrue(result["app_preprod_stays_cancelled"])
         self.assertTrue(result["ready_for_next_read_only_audit"])
 
-    def test_security_retirement_stays_fail_closed_while_direct_caller_exists(self):
+    def test_security_retirement_stays_fail_closed_while_direct_callers_exist(self):
         result = self.mod["assess"]()
         audit = self.mod["AUDIT"]
         self.assertTrue(result["security_rpc_retirement_blocked"])
+        self.assertEqual(result["confirmed_direct_rpc_caller_count"], 6)
+        self.assertEqual(result["confirmed_mutating_direct_rpc_caller_count"], 4)
         self.assertTrue(audit["security_caller_evidence"]["direct_prod_rpc_callers_still_exist"])
         self.assertFalse(audit["security_caller_evidence"]["safe_to_revoke_authenticated_execute_now"])
 
