@@ -6,6 +6,7 @@ AUDIT = {
     "app_repo": "carlosjmunoz78/fenix-capital-inmo-map",
     "app_default_branch": "main",
     "app_main_sha": "95106d8e792257f809033486b7025d81665ea83b",
+    "parallel_branch": "cerebro-app-crm-rpc-migration-v0-20260913",
     "app_repo_modified_by_audit": False,
     "app_preprod_reactivated": False,
     "stack": {
@@ -44,26 +45,51 @@ AUDIT = {
         "contactos_shell_uses_compatibility_adapter": True,
         "production_adapter_routes_to_app_gateway": True,
         "production_contact_list_gateway_path": "/contactos",
-        "production_not_notional_runtime": True,
+        "production_not_notion_runtime": True,
     },
     "security_caller_evidence": {
+        "static_audit_ci_green": True,
+        "static_audit_run_id": 34774771295,
+        "direct_prod_rpc_call_count": 10,
+        "unique_direct_prod_rpc_count": 8,
         "direct_prod_rpc_callers_still_exist": True,
         "confirmed_frontend_rpc_callers": (
-            "src/ContactCreateShell.tsx -> fenix_prod_contact_create",
-            "src/ExpedienteCreateShell.tsx -> fenix_prod_exp_create",
             "src/ChatShell.tsx -> fenix_prod_chat_list_user",
             "src/ChatShell.tsx -> fenix_prod_chat_send_user",
+            "src/ContactCreateShell.tsx -> fenix_prod_contact_create",
+            "src/DetailShell.tsx -> fenix_prod_exp_update",
+            "src/ExpedienteCreateShell.tsx -> fenix_prod_exp_create",
+            "src/ExpedienteManualPhaseGuard.tsx -> fenix_prod_exp_update",
+            "src/ExpedienteRenameGuard.tsx -> fenix_prod_exp_update",
+            "src/FirmaCreateShell.tsx -> fenix_prod_sign_create",
             "src/NotificationsShell.tsx -> fenix_prod_notifications_list_user",
             "src/NotificationsShell.tsx -> fenix_prod_notification_mark_user",
         ),
-        "confirmed_mutating_security_definer_callers": (
+        "unique_direct_prod_rpcs": (
+            "fenix_prod_chat_list_user",
+            "fenix_prod_chat_send_user",
             "fenix_prod_contact_create",
             "fenix_prod_exp_create",
-            "fenix_prod_chat_send_user",
+            "fenix_prod_exp_update",
             "fenix_prod_notification_mark_user",
+            "fenix_prod_notifications_list_user",
+            "fenix_prod_sign_create",
         ),
+        "confirmed_server_wrappers": (
+            "fenix_prod_chat_list_server",
+            "fenix_prod_chat_send_server",
+            "fenix_prod_exp_update_server",
+        ),
+        "missing_server_wrappers": (
+            "fenix_prod_contact_create_server",
+            "fenix_prod_exp_create_server",
+            "fenix_prod_notification_mark_server",
+            "fenix_prod_notifications_list_server",
+            "fenix_prod_sign_create_server",
+        ),
+        "existing_wrapper_parity_proven_from_function_definition": True,
         "safe_to_revoke_authenticated_execute_now": False,
-        "reason": "Live frontend callers still invoke authenticated SECURITY DEFINER RPCs directly in PROD.",
+        "reason": "Ten live frontend call sites across eight PROD RPCs remain; five RPCs have no server-only equivalent yet.",
     },
     "crm_runtime": {
         "crm_sync_once_active": True,
@@ -85,14 +111,23 @@ def assess() -> dict:
     ))
     crm001_inventory_green = all(v >= 0 for v in AUDIT["crm_live_tables"].values()) and AUDIT["crm_runtime"]["gateway_active"]
     security_retirement_blocked = AUDIT["security_caller_evidence"]["direct_prod_rpc_callers_still_exist"]
+    wrappers = AUDIT["security_caller_evidence"]["confirmed_server_wrappers"]
+    missing = AUDIT["security_caller_evidence"]["missing_server_wrappers"]
     return {
         "APP_001_read_only_inventory_green": app001_green,
         "CRM_001_live_inventory_green": crm001_inventory_green,
+        "APP_002_OBJ1_caller_inventory_green": (
+            AUDIT["security_caller_evidence"]["static_audit_ci_green"]
+            and AUDIT["security_caller_evidence"]["direct_prod_rpc_call_count"] == 10
+            and AUDIT["security_caller_evidence"]["unique_direct_prod_rpc_count"] == 8
+        ),
+        "APP_002_existing_server_wrapper_count": len(wrappers),
+        "APP_002_missing_server_wrapper_count": len(missing),
+        "APP_002_server_contracts_green": len(missing) == 0,
         "security_rpc_retirement_blocked": security_retirement_blocked,
         "confirmed_direct_rpc_caller_count": len(AUDIT["security_caller_evidence"]["confirmed_frontend_rpc_callers"]),
-        "confirmed_mutating_direct_rpc_caller_count": len(AUDIT["security_caller_evidence"]["confirmed_mutating_security_definer_callers"]),
         "app_repo_unchanged": not AUDIT["app_repo_modified_by_audit"],
         "app_preprod_stays_cancelled": not AUDIT["app_preprod_reactivated"],
         "ready_for_next_read_only_audit": app001_green and crm001_inventory_green,
-        "status": "APP_CRM_AUDIT_BASELINE_GREEN_WITH_SECURITY_CALLER_BLOCK" if app001_green and crm001_inventory_green else "APP_CRM_AUDIT_INCOMPLETE",
+        "status": "APP_CRM_CALLER_INVENTORY_GREEN_SERVER_WRAPPERS_PARTIAL" if app001_green and crm001_inventory_green else "APP_CRM_AUDIT_INCOMPLETE",
     }
