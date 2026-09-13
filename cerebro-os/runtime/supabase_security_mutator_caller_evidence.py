@@ -2,7 +2,7 @@ from __future__ import annotations
 
 # Conservative caller/wrapper evidence for the 15 authenticated SECURITY DEFINER mutators.
 # This module is evidence-only: it does not execute RPCs, alter grants/RLS, mutate PROD,
-# or retire any function. Exact caller coverage remains required before remediation.
+# or retire any function. Exact frontend/direct caller coverage remains required before remediation.
 
 MUTATORS = {
     "fenix_prod_chat_attachment_add_user": {"family": "chat", "wrapper_evidence": "UNKNOWN", "caller_evidence": "PENDING"},
@@ -22,11 +22,42 @@ MUTATORS = {
     "fenix_prod_sign_create": {"family": "signature", "wrapper_evidence": "UNKNOWN", "caller_evidence": "PENDING", "human_gate": "SIGNATURE_REQUIRED"},
 }
 
+# Live Edge source inspected read-only from PROD project cluhljgonannaafpmblx.
+# The canonical App gateway uses server RPCs and does not reference any of the 15
+# authenticated direct mutator names above. The dedicated profile API likewise
+# writes through fenix_prod_profile_update_server rather than fenix_prod_profile_update_user.
+EDGE_SURFACE_EVIDENCE = {
+    "fenix-app-gateway": {
+        "version": 16,
+        "environment": "PROD",
+        "direct_15_mutator_name_reference_observed": False,
+        "server_rpc_routing_observed": True,
+        "source_read_only_inspected": True,
+    },
+    "fenix-profile-api": {
+        "version": 1,
+        "environment": "PROD",
+        "direct_profile_update_user_reference_observed": False,
+        "profile_update_server_reference_observed": True,
+        "source_read_only_inspected": True,
+    },
+}
+
 
 def assess_mutator_caller_evidence() -> dict:
     wrapper_observed = tuple(name for name, row in MUTATORS.items() if row["wrapper_evidence"] == "SERVER_WRAPPER_OBSERVED")
     exact_caller_green = tuple(name for name, row in MUTATORS.items() if row["caller_evidence"] == "GREEN")
     pending = tuple(name for name in MUTATORS if name not in exact_caller_green)
+    gateway = EDGE_SURFACE_EVIDENCE["fenix-app-gateway"]
+    profile = EDGE_SURFACE_EVIDENCE["fenix-profile-api"]
+    canonical_edge_direct_mutator_absence_proven = (
+        gateway["source_read_only_inspected"]
+        and not gateway["direct_15_mutator_name_reference_observed"]
+        and gateway["server_rpc_routing_observed"]
+        and profile["source_read_only_inspected"]
+        and not profile["direct_profile_update_user_reference_observed"]
+        and profile["profile_update_server_reference_observed"]
+    )
     return {
         "mutator_count": len(MUTATORS),
         "wrapper_observed_count": len(wrapper_observed),
@@ -34,10 +65,13 @@ def assess_mutator_caller_evidence() -> dict:
         "exact_caller_green_count": len(exact_caller_green),
         "pending_exact_caller_evidence": pending,
         "all_exact_callers_proven": not pending,
+        "canonical_edge_direct_mutator_absence_proven": canonical_edge_direct_mutator_absence_proven,
+        "canonical_edge_server_rpc_routing_proven": canonical_edge_direct_mutator_absence_proven,
+        "frontend_or_other_direct_callers_still_pending": True,
         "security_remediation_allowed": False,
         "automatic_prod_mutation_allowed": False,
         "automatic_grant_or_rls_change_allowed": False,
         "automatic_retirement_allowed": False,
         "signature_human_gate": "SIGNATURE_REQUIRED",
-        "status": "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED" if wrapper_observed else "CALLER_EVIDENCE_PENDING",
+        "status": "CANONICAL_EDGE_CALLERS_CLEARED_OTHER_CALLERS_PENDING" if canonical_edge_direct_mutator_absence_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
     }
