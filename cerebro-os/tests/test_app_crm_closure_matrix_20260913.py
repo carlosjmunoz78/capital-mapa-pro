@@ -22,22 +22,28 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertFalse(result["global_prod_green"])
         self.assertFalse(result["automatic_prod_promotion_allowed"])
 
-    def test_live_wrappers_and_gateway_routing_are_recorded_without_false_parity(self):
+    def test_live_wrappers_are_hardened_and_rpc_parity_is_proven_without_false_http_e2e(self):
         rpc = self.mod["BLOCKERS"]["rpc_live_migration"]
         self.assertEqual(rpc["remaining_server_wrappers"], 0)
         self.assertTrue(rpc["server_wrappers_live"])
         self.assertTrue(rpc["server_wrappers_security_definer"])
         self.assertTrue(rpc["server_wrappers_service_role_only"])
+        self.assertTrue(rpc["unknown_actor_fail_closed_all_five"])
+        self.assertTrue(rpc["exp_create_null_actor_guard"])
+        self.assertTrue(rpc["sign_create_null_actor_guard"])
         self.assertEqual(rpc["app_gateway_live_version"], 17)
         self.assertTrue(rpc["app_gateway_required_routes_live"])
         self.assertEqual(rpc["runner_direct_callers_before"], 10)
         self.assertEqual(rpc["runner_direct_callers_after"], 0)
         self.assertTrue(rpc["persisted_branch_direct_callers_zero"])
         self.assertFalse(rpc["live_direct_callers_zero_proven"])
-        self.assertFalse(rpc["live_parity_proven"])
+        self.assertTrue(rpc["live_rpc_old_new_parity_proven"])
+        self.assertTrue(rpc["live_rpc_old_new_parity_transaction_rolled_back"])
+        self.assertEqual(len(rpc["live_rpc_old_new_parity_cases"]), 5)
+        self.assertFalse(rpc["live_gateway_http_e2e_proven"])
         self.assertFalse(rpc["authenticated_execute_revoke_allowed"])
 
-    def test_persisted_branch_migrations_are_recorded_without_false_live_green(self):
+    def test_persisted_branch_migrations_are_recorded_without_premature_privilege_retirement(self):
         rpc = self.mod["BLOCKERS"]["rpc_live_migration"]
         persisted = rpc["branch_persisted_migrations"]
         self.assertTrue(persisted["notifications_list"])
@@ -48,7 +54,6 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertTrue(persisted["audit_ci_success"])
         self.assertFalse(persisted["main_modified"])
         self.assertFalse(persisted["legacy_authenticated_execute_revoked"])
-        self.assertFalse(rpc["live_parity_proven"])
 
     def test_communications_contract_is_aligned_but_assistant_dependency_is_open(self):
         communications = self.mod["BLOCKERS"]["communications"]
