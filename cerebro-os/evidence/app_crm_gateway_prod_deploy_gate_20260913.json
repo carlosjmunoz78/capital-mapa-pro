@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-09-13",
+  "status": "PARTIAL_FAIL_CLOSED",
+  "project_id": "cluhljgonannaafpmblx",
+  "edge_function": {
+    "name": "fenix-app-gateway",
+    "prod_status": "ACTIVE",
+    "prod_version": 16,
+    "prod_verify_jwt": false,
+    "custom_auth_preserved": true,
+    "prod_contains_new_8_routes": false
+  },
+  "migration_branch": {
+    "repo": "carlosjmunoz78/fenix-capital-inmo-map",
+    "branch": "cerebro-app-crm-rpc-migration-v0-20260913",
+    "persisted_direct_prod_rpc_callers": 0,
+    "required_gateway_routes": 8,
+    "ci_run": 34785078947,
+    "ci_conclusion": "success",
+    "preprod_auto_triggers_disabled": true
+  },
+  "prod_contracts": {
+    "server_wrappers_5_of_5": true,
+    "safe_old_vs_new_nonmutating_8_of_8": true
+  },
+  "latest_deploy_attempt": {
+    "authorized": true,
+    "attempted": true,
+    "executed": false,
+    "blocked_by_execution_controls": true,
+    "partial_prod_change": false
+  },
+  "gates": {
+    "live_gateway_routes": false,
+    "authenticated_end_to_end_parity": false,
+    "successful_write_path_parity_with_rollback": false,
+    "legacy_execute_revoke_allowed": false,
+    "merge_to_main_allowed": false
+  },
+  "required_next_sequence": [
+    "deploy_gateway_prod",
+    "verify_health_and_auth",
+    "verify_end_to_end_old_vs_new",
+    "verify_successful_write_paths_with_rollback",
+    "confirm_zero_live_callers",
+    "human_gate_before_permission_retirement_or_main_promotion"
+  ]
+}
