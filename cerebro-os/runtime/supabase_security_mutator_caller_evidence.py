@@ -23,9 +23,8 @@ MUTATORS = {
 }
 
 # Live Edge source inspected read-only from PROD project cluhljgonannaafpmblx.
-# The canonical App gateway uses server RPCs and does not reference any of the 15
-# authenticated direct mutator names above. The dedicated profile API likewise
-# writes through fenix_prod_profile_update_server rather than fenix_prod_profile_update_user.
+# These inspected canonical/specialized APIs route through *_server RPCs and do not
+# directly reference the 15 authenticated direct mutator names above.
 EDGE_SURFACE_EVIDENCE = {
     "fenix-app-gateway": {
         "version": 16,
@@ -37,9 +36,24 @@ EDGE_SURFACE_EVIDENCE = {
     "fenix-profile-api": {
         "version": 1,
         "environment": "PROD",
-        "direct_profile_update_user_reference_observed": False,
-        "profile_update_server_reference_observed": True,
+        "direct_15_mutator_name_reference_observed": False,
+        "server_rpc_routing_observed": True,
         "source_read_only_inspected": True,
+    },
+    "fenix-directory-actions": {
+        "version": 8,
+        "environment": "PROD",
+        "direct_15_mutator_name_reference_observed": False,
+        "server_rpc_routing_observed": True,
+        "source_read_only_inspected": True,
+    },
+    "fenix-special-cases-api": {
+        "version": 9,
+        "environment": "PROD",
+        "direct_15_mutator_name_reference_observed": False,
+        "server_rpc_routing_observed": True,
+        "source_read_only_inspected": True,
+        "sensitive_confirmation_explicitly_gated": True,
     },
 }
 
@@ -48,15 +62,12 @@ def assess_mutator_caller_evidence() -> dict:
     wrapper_observed = tuple(name for name, row in MUTATORS.items() if row["wrapper_evidence"] == "SERVER_WRAPPER_OBSERVED")
     exact_caller_green = tuple(name for name, row in MUTATORS.items() if row["caller_evidence"] == "GREEN")
     pending = tuple(name for name in MUTATORS if name not in exact_caller_green)
-    gateway = EDGE_SURFACE_EVIDENCE["fenix-app-gateway"]
-    profile = EDGE_SURFACE_EVIDENCE["fenix-profile-api"]
-    canonical_edge_direct_mutator_absence_proven = (
-        gateway["source_read_only_inspected"]
-        and not gateway["direct_15_mutator_name_reference_observed"]
-        and gateway["server_rpc_routing_observed"]
-        and profile["source_read_only_inspected"]
-        and not profile["direct_profile_update_user_reference_observed"]
-        and profile["profile_update_server_reference_observed"]
+    inspected_edges = tuple(name for name, row in EDGE_SURFACE_EVIDENCE.items() if row["source_read_only_inspected"])
+    canonical_edge_direct_mutator_absence_proven = all(
+        row["source_read_only_inspected"]
+        and not row["direct_15_mutator_name_reference_observed"]
+        and row["server_rpc_routing_observed"]
+        for row in EDGE_SURFACE_EVIDENCE.values()
     )
     return {
         "mutator_count": len(MUTATORS),
@@ -65,13 +76,16 @@ def assess_mutator_caller_evidence() -> dict:
         "exact_caller_green_count": len(exact_caller_green),
         "pending_exact_caller_evidence": pending,
         "all_exact_callers_proven": not pending,
+        "inspected_edge_surface_count": len(inspected_edges),
+        "inspected_edge_surfaces": inspected_edges,
         "canonical_edge_direct_mutator_absence_proven": canonical_edge_direct_mutator_absence_proven,
         "canonical_edge_server_rpc_routing_proven": canonical_edge_direct_mutator_absence_proven,
+        "special_cases_sensitive_confirmation_gated": EDGE_SURFACE_EVIDENCE["fenix-special-cases-api"]["sensitive_confirmation_explicitly_gated"],
         "frontend_or_other_direct_callers_still_pending": True,
         "security_remediation_allowed": False,
         "automatic_prod_mutation_allowed": False,
         "automatic_grant_or_rls_change_allowed": False,
         "automatic_retirement_allowed": False,
         "signature_human_gate": "SIGNATURE_REQUIRED",
-        "status": "CANONICAL_EDGE_CALLERS_CLEARED_OTHER_CALLERS_PENDING" if canonical_edge_direct_mutator_absence_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
+        "status": "FOUR_PROD_EDGE_SURFACES_CLEARED_OTHER_CALLERS_PENDING" if canonical_edge_direct_mutator_absence_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
     }
