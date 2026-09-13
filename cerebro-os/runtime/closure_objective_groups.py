@@ -23,6 +23,7 @@ OBJECTIVE_GROUPS = {
             "corrected_frontend_caller_blob_shas_canonicalized",
         ),
         "remaining": (
+            "9_mutators_without_current_frontend_direct_caller_proof",
             "13_server_wrapper_implementations_and_tests_in_non_prod_or_lab",
             "rollback_evidence_for_security_change_path",
             "caller_migration_and_retirement_evidence_before_any_privilege_change",
