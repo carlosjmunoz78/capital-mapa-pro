@@ -4,6 +4,9 @@ from __future__ import annotations
 # This module does NOT authorize destructive restore, overwrite, schema reset, or PROD mutation.
 EVIDENCE = {
     "project_id": "hnqlnvakzaywtafeiybt",
+    "project_name": "fenix-capital-inmo-map",
+    "region": "eu-north-1",
+    "project_status": "ACTIVE_HEALTHY",
     "role": "EXISTING_NON_PROD_PREPROD_TEST_SURFACE",
     "public_table_count_observed": 8,
     "all_observed_public_tables_named_preprod": True,
@@ -15,6 +18,13 @@ EVIDENCE = {
     "app_gateway_test_present": True,
     "directory_actions_test_present": True,
     "sign_e2e_once_present": True,
+    "migration_preprod_test_isolation_present": True,
+    "migration_preprod_test_api_vertical_present": True,
+    "migration_harden_preprod_test_rpc_only_present": True,
+    "migration_preprod_service_facade_present": True,
+    "migration_preprod_service_facade_regression_guard_present": True,
+    "migration_preprod_revoke_legacy_rpc_execute_present": True,
+    "generated_types_metadata_captured": True,
     "restore_executed": False,
     "destructive_action_allowed": False,
     "prod_mutation_allowed": False,
@@ -23,24 +33,33 @@ EVIDENCE = {
 
 def assess_recovery_target() -> dict:
     metadata_supports_non_prod = (
-        EVIDENCE["all_observed_public_tables_named_preprod"]
+        EVIDENCE["project_status"] == "ACTIVE_HEALTHY"
+        and EVIDENCE["all_observed_public_tables_named_preprod"]
         and EVIDENCE["preprod_or_test_named_functions_present"]
         and EVIDENCE["notion_runtime_test_present"]
         and EVIDENCE["wordpress_preprod_present"]
         and EVIDENCE["seo_executor_preprod_present"]
         and EVIDENCE["app_gateway_test_present"]
         and EVIDENCE["directory_actions_test_present"]
+        and EVIDENCE["migration_preprod_test_isolation_present"]
+        and EVIDENCE["migration_harden_preprod_test_rpc_only_present"]
+        and EVIDENCE["migration_preprod_service_facade_regression_guard_present"]
+        and EVIDENCE["generated_types_metadata_captured"]
     )
     return {
         **EVIDENCE,
         "metadata_supports_preprod_classification": metadata_supports_non_prod,
         "safe_restore_target_proven": False,
         "provider_restore_green": False,
+        "dependency_noncriticality_proven": False,
+        "snapshot_before_restore_proven": False,
+        "isolated_restore_plan_proven": False,
+        "integrity_and_smoke_plan_proven": False,
         "next_required_evidence": (
             "dependency_noncriticality_proven",
             "snapshot_before_restore_proven",
             "isolated_restore_plan_proven",
             "integrity_and_smoke_plan_proven",
         ),
-        "status": "PREPROD_TARGET_CANDIDATE_METADATA_GREEN_RESTORE_NOT_EXECUTED",
+        "status": "PREPROD_TARGET_METADATA_STRONGLY_CONFIRMED_RESTORE_NOT_EXECUTED",
     }
