@@ -13,7 +13,8 @@ READINESS = {
     "APP_010": {
         "http_surface_implemented": True,
         "http_routes": ("/health", "/companies", "/commands"),
-        "identity_source": "UPSTREAM_IAM_HEADER",
+        "identity_source": "TRUSTED_UPSTREAM_REMOTE_USER_OR_RESOLVER",
+        "browser_identity_header_trusted": False,
         "identity_in_json_body_allowed": False,
         "pipeline": ("CONSOLE", "GATEWAY", "POLICY", "ENGINE", "AUDIT"),
         "direct_model_path_present": False,
@@ -30,7 +31,8 @@ def assess() -> dict:
     contract_green = (
         console["http_surface_implemented"]
         and console["http_routes"] == ("/health", "/companies", "/commands")
-        and console["identity_source"] == "UPSTREAM_IAM_HEADER"
+        and console["identity_source"] == "TRUSTED_UPSTREAM_REMOTE_USER_OR_RESOLVER"
+        and not console["browser_identity_header_trusted"]
         and not console["identity_in_json_body_allowed"]
         and console["pipeline"] == ("CONSOLE", "GATEWAY", "POLICY", "ENGINE", "AUDIT")
         and not console["direct_model_path_present"]
@@ -42,6 +44,6 @@ def assess() -> dict:
         "APP_010_deployable_green": deployable_green,
         "APP_009_profile_link_ready": safe_profile_link,
         "production_promotion_allowed": bool(console["production_promotion_allowed"] and deployable_green),
-        "safe_next": "build_web_ui_and_deployable_url_then_enable_profile_link_by_explicit_https_config",
+        "safe_next": "build_web_ui_and_authenticated_reverse_proxy_url_then_enable_profile_link_by_explicit_https_config",
         "status": "HTTP_CONTRACT_GREEN_WEB_DEPLOYMENT_OPEN",
     }
