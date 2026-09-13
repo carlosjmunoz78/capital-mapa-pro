@@ -42,13 +42,15 @@ OBJECTIVE_GROUPS = {
     },
     "RECOVERY": {
         "target": "provider_restore_and_prod_rollback_green",
-        "status": "PARTIAL_EXTERNAL_PROOF_REQUIRED",
+        "status": "PARTIAL_ZERO_COST_RESTORE_TARGET_NOT_AVAILABLE",
         "green": False,
         "completed": (
             "immutable_git_source_snapshot",
             "runtime_rebuild_rehearsal_ci",
             "non_destructive_rollback_rehearsal_ci",
             "live_supabase_project_and_branch_inventory_captured",
+            "prod_branch_inventory_revalidated_2026_09_14_main_only",
+            "legacy_branch_inventory_revalidated_2026_09_14_zero_branches",
             "legacy_core_preprod_surface_preserved",
             "isolated_restore_plan_defined",
             "unsafe_existing_restore_targets_rejected",
