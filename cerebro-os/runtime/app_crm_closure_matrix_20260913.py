@@ -12,7 +12,7 @@ OBJECTIVES = {
     "APP_008_reports": "GREEN",
     "CRM_002_sync_consistency": "GREEN_LEGACY_SYNC_RETIRED_FAIL_CLOSED",
     "APP_009_carlos_cerebro_access": "PARTIAL_CONSOLE_ROUTE_REQUIRED",
-    "APP_010_cerebro_gateway": "GREEN_LOGICAL_PARTIAL_DEPLOYABLE_SURFACE",
+    "APP_010_cerebro_gateway": "PARTIAL_LOGICAL_GREEN_DEPLOYABLE_SURFACE_MISSING",
     "APP_011_old_new_rollback_promotion": "BLOCKED_UPSTREAM_AND_HUMAN_GATE",
 }
 
