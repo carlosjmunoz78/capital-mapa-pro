@@ -3,7 +3,7 @@ from __future__ import annotations
 OBJECTIVES = {
     "APP_001_inventory": "GREEN",
     "CRM_001_inventory": "GREEN",
-    "APP_002_auth_rpc_security": "PARTIAL_LIVE_WRAPPERS_GREEN_ROUTING_V17_PARITY_OPEN",
+    "APP_002_auth_rpc_security": "PARTIAL_LIVE_WRAPPERS_HARDENED_ROUTING_V17_PARITY_OPEN",
     "APP_003_expedientes": "GREEN_BRANCH_CALLER_MIGRATION_WITH_LIVE_PARITY_SUBGAP",
     "APP_004_tasks_notifications": "GREEN_BRANCH_CALLER_MIGRATION_WITH_LIVE_PARITY_SUBGAP",
     "APP_005_documents": "GREEN",
@@ -23,6 +23,10 @@ BLOCKERS = {
         "server_wrappers_live": True,
         "server_wrappers_security_definer": True,
         "server_wrappers_service_role_only": True,
+        "unknown_actor_fail_closed_all_five": True,
+        "null_actor_guard_migration": "harden_server_wrappers_null_actor_guard_20260914",
+        "exp_create_null_actor_guard": True,
+        "sign_create_null_actor_guard": True,
         "app_gateway_live_version": 17,
         "app_gateway_required_routes_live": True,
         "runner_direct_callers_before": 10,
@@ -98,5 +102,5 @@ def assess() -> dict:
         "app_preprod_reactivated": False,
         "global_prod_green": False,
         "automatic_prod_promotion_allowed": False,
-        "status": "APP_CRM_LIVE_WRAPPERS_AND_ROUTING_GREEN_PARITY_STILL_FAIL_CLOSED",
+        "status": "APP_CRM_LIVE_WRAPPERS_HARDENED_AND_ROUTING_GREEN_PARITY_STILL_FAIL_CLOSED",
     }
