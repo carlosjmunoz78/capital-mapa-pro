@@ -37,6 +37,8 @@ EDGE_SURFACE_EVIDENCE = {
     "fenix-b2b-actions": {"version": 9, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": False, "alternative_scoped_backend_observed": True, "source_read_only_inspected": True},
     "fenix-task-api": {"version": 12, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True},
     "fenix-bank-api": {"version": 8, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True},
+    "fenix-user-admin": {"version": 2, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "admin_actor_allowlist_observed": True},
+    "fenix-ana-api": {"version": 10, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "human_learning_gate_observed": True},
 }
 
 
@@ -65,11 +67,13 @@ def assess_mutator_caller_evidence() -> dict:
         "inspected_edge_direct_mutator_absence_proven": inspected_direct_mutator_absence_proven,
         "inspected_edge_server_or_scoped_backend_proven": server_or_scoped_backend_proven,
         "special_cases_sensitive_confirmation_gated": EDGE_SURFACE_EVIDENCE["fenix-special-cases-api"]["sensitive_confirmation_explicitly_gated"],
+        "user_admin_allowlist_observed": EDGE_SURFACE_EVIDENCE["fenix-user-admin"]["admin_actor_allowlist_observed"],
+        "ana_human_learning_gate_observed": EDGE_SURFACE_EVIDENCE["fenix-ana-api"]["human_learning_gate_observed"],
         "frontend_or_other_direct_callers_still_pending": True,
         "security_remediation_allowed": False,
         "automatic_prod_mutation_allowed": False,
         "automatic_grant_or_rls_change_allowed": False,
         "automatic_retirement_allowed": False,
         "signature_human_gate": "SIGNATURE_REQUIRED",
-        "status": "TEN_PROD_EDGE_SURFACES_CLEARED_OTHER_CALLERS_PENDING" if inspected_direct_mutator_absence_proven and server_or_scoped_backend_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
+        "status": "TWELVE_PROD_EDGE_SURFACES_CLEARED_OTHER_CALLERS_PENDING" if inspected_direct_mutator_absence_proven and server_or_scoped_backend_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
     }
