@@ -28,7 +28,17 @@ class PreAppCrmClosureCutTests(unittest.TestCase):
         recovery = self.mod["CUT"]["recovery"]
         self.assertTrue(recovery["temporary_branch_create_delete_proven"])
         self.assertTrue(recovery["schema_only_branch_not_provider_restore"])
+        self.assertFalse(recovery["new_monthly_spend_authorized"])
         self.assertIn("true_provider_restore_or_clone_with_data", recovery["remaining"])
+
+    def test_observability_prod_wiring_is_authorized_but_execution_blocked(self):
+        obs = self.mod["CUT"]["observability"]
+        self.assertEqual(obs["prod_wiring_human_gate"], "APPROVED")
+        self.assertTrue(obs["prod_wiring_attempted"])
+        self.assertFalse(obs["prod_wiring_executed"])
+        self.assertTrue(obs["prod_wiring_blocked_by_execution_controls"])
+        self.assertFalse(obs["partial_prod_change_observed"])
+        self.assertTrue(obs["remaining"])
 
 
 if __name__ == "__main__":
