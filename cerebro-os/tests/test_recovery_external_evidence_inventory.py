@@ -17,19 +17,28 @@ class RecoveryExternalEvidenceInventoryTests(unittest.TestCase):
             self.assertFalse(item.proves_provider_restore)
             self.assertFalse(item.destructive_action_allowed)
 
+    def test_pinned_git_commit_is_source_snapshot_only(self):
+        item = module.LIVE_EVIDENCE["github_pinned_source_snapshot"]
+        self.assertTrue(item.proves_source_backup)
+        self.assertFalse(item.proves_rebuild)
+        self.assertFalse(item.proves_provider_restore)
+        self.assertIn("e0e5b41e3a05198d015af7bcd0387d4ff3c66e48", item.source)
+
     def test_ci_rehearsal_is_runtime_only_not_provider_restore(self):
         item = module.LIVE_EVIDENCE["github_ci_runtime_rehearsal"]
         self.assertTrue(item.proves_rebuild)
         self.assertTrue(item.proves_rollback_rehearsal)
         self.assertFalse(item.proves_provider_restore)
 
-    def test_summary_remains_external_proof_pending(self):
+    def test_summary_closes_source_recovery_but_not_provider_restore(self):
         summary = module.summarize_recovery_external_evidence()
         self.assertEqual(summary["status"], "EXTERNAL_PROOF_PENDING")
+        self.assertTrue(summary["checks"]["source_backup"])
+        self.assertTrue(summary["source_recovery_green"])
         self.assertFalse(summary["recovery_green"])
         self.assertFalse(summary["provider_restore_green"])
-        self.assertIn("source_backup", summary["missing"])
-        self.assertIn("provider_restore", summary["missing"])
+        self.assertNotIn("source_backup", summary["missing"])
+        self.assertEqual(summary["missing"], ("provider_restore",))
         self.assertFalse(summary["destructive_action_allowed"])
 
 
