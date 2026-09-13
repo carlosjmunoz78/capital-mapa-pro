@@ -14,7 +14,7 @@ BLOCK_GROUPS = {
         "supabase_security_review_green": False,
     },
     "RECOVERY": {
-        "source_backup_proven": False,
+        "source_backup_proven": True,
         "provider_restore_drill_proven": False,
         "prod_rollback_rehearsal_proven": False,
     },
