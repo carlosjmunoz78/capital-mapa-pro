@@ -40,21 +40,42 @@ FAMILY_EVIDENCE = {
         "metrics_ref": "MAKE_PROD_GSC_READ_ONLY_EDGES",
         "incident_ref": "",
         "cost_ref": "",
-        "live_examples": (),
+        "live_examples": (
+            "scenario_9597710_successful_runs=4",
+            "scenario_9550706_successful_runs=1",
+            "observed_operations=507",
+            "observed_data_transfer_bytes=2965036",
+            "incomplete_executions_observed=0",
+        ),
     },
     "social": {
         "logs_ref": "MAKE_CORE_AND_PROD_INVENTORY_AUDITED",
+        # Facebook live metric runs are proven, but LinkedIn/YouTube retained live
+        # metric execution is still absent. Keep metrics_ref empty so the family
+        # cannot become falsely green from partial cross-network evidence.
         "metrics_ref": "",
         "incident_ref": "MAKE_ALERT_HEALTH_FOLDER_AUDITED",
         "cost_ref": "",
-        "live_examples": (),
+        "live_examples": (
+            "facebook_scenario_9527908_successful_runs=2",
+            "facebook_operations=6",
+            "facebook_data_transfer_bytes=1208",
+            "linkedin_retained_runs=0",
+            "youtube_retained_runs=0",
+            "alerts_folder_all_inactive=true",
+        ),
     },
     "engine_factory": {
         "logs_ref": "GITHUB_ACTIONS_ENGINE_FACTORY_V0",
         "metrics_ref": "GITHUB_ACTIONS_TEST_RESULTS",
         "incident_ref": "ENGINE_FACTORY_INCIDENT_624_FIX_405E72C_CI_625_GREEN",
         "cost_ref": "",
-        "live_examples": ("ci_624_failure", "fix_405e72c71195649403a3b1b3493a97463587a405", "ci_625_success"),
+        "live_examples": (
+            "ci_624_failure_detected",
+            "root_cause_module_import_path",
+            "fix_commit_405e72c71195649403a3b1b3493a97463587a405",
+            "ci_625_success",
+        ),
     },
 }
 
