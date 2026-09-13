@@ -22,8 +22,14 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertFalse(result["global_prod_green"])
         self.assertFalse(result["automatic_prod_promotion_allowed"])
 
-    def test_rpc_retirement_cannot_be_promoted_from_non_live_evidence(self):
+    def test_live_wrappers_and_gateway_routing_are_recorded_without_false_parity(self):
         rpc = self.mod["BLOCKERS"]["rpc_live_migration"]
+        self.assertEqual(rpc["remaining_server_wrappers"], 0)
+        self.assertTrue(rpc["server_wrappers_live"])
+        self.assertTrue(rpc["server_wrappers_security_definer"])
+        self.assertTrue(rpc["server_wrappers_service_role_only"])
+        self.assertEqual(rpc["app_gateway_live_version"], 17)
+        self.assertTrue(rpc["app_gateway_required_routes_live"])
         self.assertEqual(rpc["runner_direct_callers_before"], 10)
         self.assertEqual(rpc["runner_direct_callers_after"], 0)
         self.assertTrue(rpc["persisted_branch_direct_callers_zero"])
@@ -37,20 +43,40 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertTrue(persisted["notifications_list"])
         self.assertTrue(persisted["notification_mark"])
         self.assertTrue(persisted["signature_create"])
+        self.assertTrue(persisted["contact_create"])
+        self.assertTrue(persisted["expediente_create"])
         self.assertTrue(persisted["audit_ci_success"])
         self.assertFalse(persisted["main_modified"])
-        self.assertFalse(persisted["prod_rpc_permissions_modified"])
+        self.assertFalse(persisted["legacy_authenticated_execute_revoked"])
         self.assertFalse(rpc["live_parity_proven"])
 
-    def test_cerebro_route_exists_but_profile_link_remains_fail_closed(self):
+    def test_communications_contract_is_aligned_but_assistant_dependency_is_open(self):
+        communications = self.mod["BLOCKERS"]["communications"]
+        self.assertTrue(communications["prod_gateway_exists"])
+        self.assertTrue(communications["app_shell_targets_prod_gateway"])
+        self.assertTrue(communications["prepare_send_contract_aligned"])
+        self.assertFalse(communications["assistant_present_in_current_prod_edge_inventory"])
+        self.assertTrue(communications["assistant_failure_is_fail_soft"])
+        self.assertFalse(communications["real_send_claimed"])
+
+    def test_cerebro_route_and_branch_launcher_exist_but_deployed_url_remains_fail_closed(self):
         console = self.mod["BLOCKERS"]["cerebro_console"]
         self.assertTrue(console["app_profile_surface_found"])
         self.assertTrue(console["internal_console_route_present"])
         self.assertEqual(console["internal_console_route"], "/cerebro")
+        self.assertTrue(console["branch_profile_launcher_present"])
         self.assertTrue(console["web_shell_fail_closed_without_gateway_url"])
         self.assertFalse(console["deployed_authenticated_console_url_proven"])
-        self.assertFalse(console["carlos_profile_link_present"])
+        self.assertFalse(console["deployed_profile_launcher_proven"])
         self.assertFalse(console["dead_link_allowed"])
+
+    def test_credential_registry_remains_metadata_only(self):
+        registry = self.mod["BLOCKERS"]["credential_registry"]
+        self.assertTrue(registry["metadata_only_registry_present"])
+        self.assertTrue(registry["raw_secret_fields_forbidden_by_validator"])
+        self.assertTrue(registry["opaque_provider_managed_credentials_supported"])
+        self.assertTrue(registry["vault_refs_supported"])
+        self.assertFalse(registry["raw_values_in_registry_allowed"])
 
 
 if __name__ == "__main__":
