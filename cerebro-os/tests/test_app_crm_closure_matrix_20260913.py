@@ -47,6 +47,15 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertFalse(rpc["live_gateway_http_e2e_proven"])
         self.assertFalse(rpc["authenticated_execute_revoke_allowed"])
 
+    def test_pr_376_is_mergeable_but_remains_draft_and_human_gated(self):
+        pr = self.mod["BLOCKERS"]["rpc_live_migration"]["pull_request"]
+        self.assertEqual(pr["number"], 376)
+        self.assertEqual(pr["state"], "OPEN_DRAFT")
+        self.assertTrue(pr["mergeable"])
+        self.assertEqual(pr["base_sha"], "95106d8e792257f809033486b7025d81665ea83b")
+        self.assertEqual(pr["head_sha"], "b1b6fb5404a4704c5d637fc770fc90e9f2eb8312")
+        self.assertTrue(pr["promotion_human_gate_required"])
+
     def test_persisted_branch_migrations_are_recorded_without_premature_privilege_retirement(self):
         rpc = self.mod["BLOCKERS"]["rpc_live_migration"]
         persisted = rpc["branch_persisted_migrations"]
@@ -70,7 +79,23 @@ class AppCrmClosureMatrixTests(unittest.TestCase):
         self.assertTrue(communications["assistant_is_optional_draft_enrichment_only"])
         self.assertTrue(communications["assistant_failure_is_fail_soft"])
         self.assertTrue(communications["communications_core_operational_without_assistant"])
+        self.assertTrue(communications["prod_ana_api_present"])
+        self.assertEqual(communications["prod_ana_api_scope"], "capabilities_and_corrections_not_expediente_advice")
+        self.assertTrue(communications["prod_ana_canonical_present"])
         self.assertFalse(communications["real_send_claimed"])
+
+    def test_supabase_security_advisor_findings_stay_fail_closed_not_bulk_fixed(self):
+        sec = self.mod["BLOCKERS"]["supabase_security_advisor"]
+        self.assertEqual(sec["rls_enabled_no_policy_count"], 44)
+        self.assertTrue(sec["rls_tables_are_currently_fail_closed_for_direct_table_access"])
+        self.assertEqual(sec["security_definer_authenticated_executable_count"], 24)
+        self.assertFalse(sec["bulk_revoke_allowed"])
+        self.assertTrue(sec["legacy_rpc_retirement_requires_live_app_caller_zero"])
+        self.assertEqual(sec["pg_net_extension_schema"], "public")
+        self.assertEqual(sec["pg_net_functions_namespace"], "net")
+        self.assertFalse(sec["pg_net_move_without_dependency_backup_review_allowed"])
+        self.assertFalse(sec["leaked_password_protection_enabled"])
+        self.assertFalse(sec["auth_config_write_channel_available"])
 
     def test_cerebro_route_and_branch_launcher_exist_but_deployed_url_remains_fail_closed(self):
         console = self.mod["BLOCKERS"]["cerebro_console"]
