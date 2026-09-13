@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-09-13T21:52:00+02:00",
+  "scope": "APP-002 gateway migration readiness",
+  "status": "PARCIAL",
+  "facts": {
+    "app_repo": "carlosjmunoz78/fenix-capital-inmo-map",
+    "branch": "cerebro-app-crm-rpc-migration-v0-20260913",
+    "head_sha": "f82af3e89d814de74415feb94a0ff730b2fa55f8",
+    "ci_run_id": 34785078947,
+    "ci_conclusion": "success",
+    "persisted_direct_prod_rpc_callers": 0,
+    "readiness_audit": "success",
+    "required_compat_cases": 8,
+    "required_server_rpcs": 8,
+    "required_gateway_routes": 8,
+    "preprod_workflows_manual_only": true,
+    "persisted_branch_build": "success",
+    "legacy_authenticated_execute_revoked": false,
+    "main_merged": false,
+    "prod_gateway_new_routes_deployed": false
+  },
+  "policy": {
+    "preprod_app_cancelled": true,
+    "no_revoke_until_live_parity_and_rollback": true,
+    "main_prod_promotion_human_gated": true
+  },
+  "remaining_gates": [
+    "deploy approved controlled fenix-app-gateway routing in PROD",
+    "verify live authenticated end-to-end parity",
+    "prove successful write-path parity with rollback-safe test strategy",
+    "re-evaluate legacy EXECUTE retirement only after live evidence",
+    "final human promotion gate"
+  ]
+}
