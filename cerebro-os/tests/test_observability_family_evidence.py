@@ -32,8 +32,8 @@ class ObservabilityFamilyEvidenceTests(unittest.TestCase):
             self.assertTrue(row["checks"]["logs"])
             self.assertTrue(row["checks"]["metrics"])
             self.assertTrue(row["checks"]["incidents"])
-            self.assertFalse(row["checks"]["cost"])
-            self.assertEqual(row["missing"], ("cost",))
+            self.assertFalse(row["checks"]["cost_measured"])
+            self.assertEqual(row["missing"], ("cost_measured",))
 
     def test_partial_families_fail_closed(self):
         for family in ("seo", "social", "engine_factory"):
