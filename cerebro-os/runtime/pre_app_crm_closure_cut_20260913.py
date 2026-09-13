@@ -12,6 +12,7 @@ CUT = {
     "recovery": {
         "temporary_branch_create_delete_proven": True,
         "schema_only_branch_not_provider_restore": True,
+        "new_monthly_spend_authorized": False,
         "remaining": (
             "true_provider_restore_or_clone_with_data",
             "integrity_check",
@@ -24,6 +25,11 @@ CUT = {
         "youtube_retained_health_green": True,
         "linkedin_retained_health_green": True,
         "seo_retained_health_green": True,
+        "prod_wiring_human_gate": "APPROVED",
+        "prod_wiring_attempted": True,
+        "prod_wiring_executed": False,
+        "prod_wiring_blocked_by_execution_controls": True,
+        "partial_prod_change_observed": False,
         "remaining": (
             "parallel_prod_mirroring_wiring_without_legacy_breakage",
             "per_engine_prod_log_coverage",
