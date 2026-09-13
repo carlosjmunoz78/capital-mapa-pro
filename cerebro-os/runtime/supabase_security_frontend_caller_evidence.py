@@ -39,7 +39,7 @@ CURRENT_FRONTEND_EVIDENCE = {
     "fenix_prod_contact_create": {
         "classification": "KEEP_AND_WRAP",
         "caller": "src/ContactCreateShell.tsx",
-        "caller_blob_sha": "c88d4f9b661ac6aa8bb3c0f71d6e0df2844ab2ec",
+        "caller_blob_sha": "830a1b950ba573ae769cca402252d98e4fccbe81",
         "direct_rpc_observed": True,
         "verified_against_app_head": APP_HEAD_SHA,
         "notes": "Current PROD contact-create path calls the RPC directly.",
@@ -47,7 +47,7 @@ CURRENT_FRONTEND_EVIDENCE = {
     "fenix_prod_exp_create": {
         "classification": "KEEP_AND_WRAP",
         "caller": "src/ExpedienteCreateShell.tsx",
-        "caller_blob_sha": "e8d6d559848358606f1ea4c12f4c9d31e16e6f20",
+        "caller_blob_sha": "cf810a3ad89eb63bcb48a2d703d6d62ed9db792c",
         "direct_rpc_observed": True,
         "verified_against_app_head": APP_HEAD_SHA,
         "notes": "Current PROD expediente-create path calls the RPC directly.",
