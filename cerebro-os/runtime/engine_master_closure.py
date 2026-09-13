@@ -9,6 +9,7 @@ BLOCK_GROUPS = {
         "identity_credentials_policy_green": True,
         "console_gateway_green_code_ci": True,
         "dependency_live_verified": True,
+        "release_rollback_rehearsal_green_code_ci": True,
     },
     "SECURITY": {
         "supabase_security_review_green": False,
