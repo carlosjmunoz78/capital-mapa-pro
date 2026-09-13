@@ -52,9 +52,9 @@ FAMILY_EVIDENCE = {
     "engine_factory": {
         "logs_ref": "GITHUB_ACTIONS_ENGINE_FACTORY_V0",
         "metrics_ref": "GITHUB_ACTIONS_TEST_RESULTS",
-        "incident_ref": "",
+        "incident_ref": "ENGINE_FACTORY_INCIDENT_624_FIX_405E72C_CI_625_GREEN",
         "cost_ref": "",
-        "live_examples": (),
+        "live_examples": ("ci_624_failure", "fix_405e72c71195649403a3b1b3493a97463587a405", "ci_625_success"),
     },
 }
 
