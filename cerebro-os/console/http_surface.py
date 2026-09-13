@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Callable, Mapping
 
-from .pipeline import ConsolePipeline
+try:
+    from .pipeline import ConsolePipeline
+except ImportError:  # direct module loading from cerebro-os/console in tests/runtime
+    from pipeline import ConsolePipeline
 
 
 @dataclass(frozen=True)
@@ -29,9 +32,8 @@ def _json_response(status: int, body: dict) -> HttpResponse:
 class ConsoleHttpSurface:
     """Zero-dependency HTTP boundary for CEREBRO Console V0.
 
-    This class is transport-agnostic on purpose: a WSGI/ASGI/Edge adapter may pass
-    method/path/body/identity here, but commands can only execute through the
-    injected ConsolePipeline (CONSOLE -> GATEWAY -> POLICY -> ENGINE -> AUDIT).
+    Commands execute only through ConsolePipeline:
+    CONSOLE -> GATEWAY -> POLICY -> ENGINE -> AUDIT.
     """
 
     def __init__(self, pipeline: ConsolePipeline, company_reader: Callable[[], tuple[dict, ...]]):
@@ -76,11 +78,7 @@ class ConsoleHttpSurface:
 
 
 def wsgi_app(surface: ConsoleHttpSurface):
-    """Minimal stdlib-compatible WSGI adapter; authentication is supplied by upstream IAM.
-
-    The adapter deliberately requires HTTP_X_CEREBRO_USER_ID and never accepts user_id
-    from JSON, preventing caller-controlled identity substitution.
-    """
+    """Minimal stdlib-compatible WSGI adapter; upstream IAM supplies identity."""
 
     def app(environ, start_response):
         method = str(environ.get("REQUEST_METHOD", "GET"))
