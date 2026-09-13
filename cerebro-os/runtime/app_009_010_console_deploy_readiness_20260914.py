@@ -7,6 +7,11 @@ READINESS = {
         "profile_route": "/perfil",
         "profile_shell_present": True,
         "console_route": "/cerebro",
+        "profile_launcher_branch_present": True,
+        "profile_launcher_label": "Abrir CEREBRO",
+        "profile_launcher_internal_route_only": True,
+        "profile_launcher_ci_run": 34786441006,
+        "profile_launcher_ci_success": True,
         "profile_link_must_be_feature_gated": True,
         "console_url_evidenced": False,
         "dead_link_allowed": False,
@@ -41,14 +46,23 @@ def assess() -> dict:
         and not console["direct_model_path_present"]
     )
     web_ui_green = bool(console["web_ui_surface_evidenced"] and console["web_ui_route"] == "/cerebro" and console["web_ui_fail_closed_until_gateway_url"])
+    launcher_branch_green = bool(
+        app["profile_shell_present"]
+        and app["profile_launcher_branch_present"]
+        and app["profile_launcher_label"] == "Abrir CEREBRO"
+        and app["profile_launcher_internal_route_only"]
+        and app["console_route"] == "/cerebro"
+        and app["profile_launcher_ci_success"]
+    )
     deployable_green = contract_green and web_ui_green and console["deployed_url_evidenced"]
-    safe_profile_link = bool(app["profile_link_must_be_feature_gated"] and app["console_url_evidenced"] and deployable_green)
+    live_profile_link = bool(app["profile_link_must_be_feature_gated"] and app["console_url_evidenced"] and deployable_green)
     return {
         "APP_010_http_contract_green": contract_green,
         "APP_010_web_ui_green": web_ui_green,
         "APP_010_deployable_green": deployable_green,
-        "APP_009_profile_link_ready": safe_profile_link,
+        "APP_009_profile_launcher_branch_green": launcher_branch_green,
+        "APP_009_profile_link_ready": live_profile_link,
         "production_promotion_allowed": bool(console["production_promotion_allowed"] and deployable_green),
-        "safe_next": "deploy_authenticated_console_gateway_url_then_enable_profile_link_by_explicit_https_config",
-        "status": "HTTP_AND_WEB_UI_GREEN_DEPLOYED_URL_OPEN",
+        "safe_next": "deploy_authenticated_console_gateway_url_then_prove_live_profile_launcher_and_enable_prod_promotion_gate",
+        "status": "PROFILE_LAUNCHER_BRANCH_GREEN_DEPLOYED_URL_OPEN",
     }
