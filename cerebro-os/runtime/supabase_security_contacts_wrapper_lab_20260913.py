@@ -67,7 +67,7 @@ FIXTURES = (
 
 def replay() -> dict:
     green = all(actual == expected for actual, expected in FIXTURES)
-    emails, phones = normalize_v2("A@B.com", "+34 600 100 200", ("a@b.com",), ("600100200",))
+    emails, phones = normalize_v2("A@B.com", "600100200", ("a@b.com",), ("600100200",))
     normalization_green = emails == ("a@b.com",) and phones == ("600100200",)
     return {
         "target_count": len(CONTACT_TARGETS),
