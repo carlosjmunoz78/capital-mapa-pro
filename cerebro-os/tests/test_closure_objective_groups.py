@@ -29,7 +29,7 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
             self.assertFalse(row["green"])
             self.assertTrue(row["remaining"])
 
-    def test_security_tracks_live_rls_wrapper_parity_deployed_app_and_advisor_blockers(self):
+    def test_security_tracks_promoted_app_http_boundary_and_remaining_high_risk_gates(self):
         security = module.OBJECTIVE_GROUPS["SECURITY"]
         completed = security["completed"]
         remaining = security["remaining"]
@@ -39,21 +39,27 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
         self.assertIn("exp_create_and_sign_create_null_actor_guard_hardened_live", completed)
         self.assertIn("five_target_old_new_rpc_parity_green_in_rolled_back_prod_transaction", completed)
         self.assertIn("app_gateway_v17_required_target_routes_live", completed)
-        self.assertIn("app_branch_persisted_direct_prod_rpc_callers_zero_ci_34786441006", completed)
-        self.assertIn("live_deploy_channel_identified_as_github_pages_gh_pages", completed)
-        self.assertIn("live_deployed_source_sha_c7a15cff9a387f1f142c8eeb06fd83a799e85a61", completed)
-        self.assertIn("live_deployed_contact_direct_rpc_fenix_prod_contact_create_v2_confirmed", completed)
-        self.assertIn("supabase_security_advisor_inventory_captured_2026_09_14", completed)
+        self.assertIn("reviewed_rpc_migration_pr_376_human_authorized_and_merged", completed)
+        self.assertIn("app_main_merge_sha_dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c", completed)
+        self.assertIn("prod_live_deploy_run_34790008072_success", completed)
+        self.assertIn("gh_pages_prod_snapshot_c8a4bc720ce91eb46ed811c506623c265d043594", completed)
+        self.assertIn("prod_source_sha_matches_main_merge_dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c", completed)
+        self.assertIn("live_deployed_source_direct_prod_rpc_search_zero_after_promotion", completed)
+        self.assertIn("live_gateway_http_health_200_contract_v3", completed)
+        self.assertIn("live_gateway_target_route_without_identity_fails_closed_401", completed)
+        self.assertIn("eight_legacy_rpc_retirement_sql_and_rollback_prepared_not_applied", completed)
+        self.assertIn("cloudflare_pages_parallel_check_failure_recorded_fail_closed", completed)
         self.assertIn("24_authenticated_security_definer_execute_warnings_captured", completed)
         self.assertIn("pg_net_function_namespace_net_confirmed_read_only", completed)
         self.assertIn("leaked_password_protection_disabled_warning_captured", completed)
         self.assertIn("blind_bulk_security_changes_rejected", completed)
-        self.assertIn("deploy_or_promote_reviewed_rpc_migration_without_bypassing_human_prod_gate", remaining)
-        self.assertIn("live_deployed_app_direct_caller_zero_evidence_after_promotion", remaining)
-        self.assertIn("authenticated_http_gateway_e2e_for_target_routes", remaining)
-        self.assertIn("rollback_evidence_for_full_http_write_path", remaining)
-        self.assertIn("caller_retirement_evidence_before_any_legacy_privilege_change", remaining)
-        self.assertIn("controlled_disposition_of_24_security_definer_authenticated_execute_warnings_after_live_caller_retirement", remaining)
+        self.assertNotIn("deploy_or_promote_reviewed_rpc_migration_without_bypassing_human_prod_gate", remaining)
+        self.assertNotIn("live_deployed_app_direct_caller_zero_evidence_after_promotion", remaining)
+        self.assertIn("authenticated_http_gateway_e2e_for_target_routes_with_safe_identity", remaining)
+        self.assertIn("rollback_or_non_durable_cleanup_evidence_for_full_http_write_path", remaining)
+        self.assertIn("selective_retirement_of_only_migrated_legacy_authenticated_execute_after_http_gate", remaining)
+        self.assertIn("post_retirement_gateway_e2e_and_advisor_recheck", remaining)
+        self.assertIn("cloudflare_pages_parallel_routing_role_and_failure_disposition", remaining)
         self.assertIn("pg_net_extension_namespace_dependency_backup_and_rebuild_review_before_any_move", remaining)
         self.assertIn("leaked_password_protection_enablement_when_auth_config_write_channel_is_available", remaining)
 
