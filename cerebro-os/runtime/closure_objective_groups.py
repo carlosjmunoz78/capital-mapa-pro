@@ -69,7 +69,7 @@ OBJECTIVE_GROUPS = {
     },
     "OBSERVABILITY": {
         "target": "per_engine_logs_metrics_incidents_complete",
-        "status": "PARTIAL",
+        "status": "PARTIAL_PROD_LEGACY_SCOPE_REVALIDATED_OFFLOAD_WIRING_OPEN",
         "green": False,
         "completed": (
             "177_engine_structural_observability_contract",
@@ -78,6 +78,7 @@ OBJECTIVE_GROUPS = {
             "selected_family_live_evidence",
             "prod_live_observability_tables_read_only_verified",
             "prod_current_tables_missing_full_multiempresa_scope_confirmed",
+            "prod_legacy_observability_scope_revalidated_2026_09_14",
             "parallel_multiempresa_observability_envelope_defined",
             "parallel_observability_mirror_lab_green",
             "parallel_prod_mirroring_wiring_gate_green_fail_closed",
@@ -92,6 +93,7 @@ OBJECTIVE_GROUPS = {
         ),
         "remaining": (
             "parallel_prod_mirroring_wiring_without_legacy_table_breakage",
+            "persistent_zero_cost_auxiliary_sink_for_prod_mirror",
             "per_engine_prod_live_log_coverage",
             "per_engine_prod_live_metric_coverage",
             "per_engine_prod_live_incident_coverage",
@@ -101,14 +103,16 @@ OBJECTIVE_GROUPS = {
     },
     "FINOPS": {
         "target": "monthly_cost_measured",
-        "status": "PARTIAL",
+        "status": "PARTIAL_AUTHORITATIVE_EMAIL_EVIDENCE_EXACT_EXTERNAL_AMOUNTS_OPEN",
         "green": False,
         "completed": (
             "supabase_monthly_cost_measured",
             "make_monthly_cost_measured",
             "canva_monthly_cost_measured",
             "hostinger_business_email_monthly_cost_measured",
-            "google_cloud_and_notion_billing_email_search_exhausted_without_amount",
+            "notion_authoritative_email_confirms_plus_plan_and_three_seats",
+            "notion_authoritative_email_confirms_recent_payment_failure_without_exact_amount",
+            "google_cloud_authoritative_email_confirms_paid_billing_and_payment_problem_without_exact_amount",
             "provider_to_family_attribution_model_defined_without_fake_allocation",
             "no_free_tier_overage_claim_without_evidence",
             "incremental_cerebro_cost_target_zero_eur",
