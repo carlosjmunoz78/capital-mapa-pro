@@ -7,7 +7,7 @@ from __future__ import annotations
 OBJECTIVE_GROUPS = {
     "SECURITY": {
         "target": "supabase_security_review_green",
-        "status": "PARTIAL_HIGH_RISK",
+        "status": "PARTIAL_LIVE_RLS_AND_TARGET_WRAPPER_PARITY_GREEN_CALLER_RETIREMENT_OPEN",
         "green": False,
         "completed": (
             "15_authenticated_security_definer_rpcs_inventory",
@@ -25,18 +25,19 @@ OBJECTIVE_GROUPS = {
             "notifications_profile_socials_profile_update_signature_lab_contracts_green",
             "signature_required_gate_preserved",
             "corrected_frontend_caller_blob_shas_canonicalized",
-            "four_prod_rls_tables_callers_backend_paths_and_privileges_audited",
-            "four_table_rls_isolated_lab_green",
-            "four_table_rls_rollback_rehearsal_green",
-            "four_table_rls_high_risk_human_gate_approved",
-            "four_table_rls_prod_attempt_blocked_by_execution_tool_without_partial_change",
+            "44_of_44_fenix_prod_tables_rls_enabled_live",
+            "five_target_server_wrappers_live_security_definer_service_role_only",
+            "five_target_server_wrappers_unknown_actor_fail_closed",
+            "exp_create_and_sign_create_null_actor_guard_hardened_live",
+            "five_target_old_new_rpc_parity_green_in_rolled_back_prod_transaction",
+            "app_gateway_v17_required_target_routes_live",
+            "app_branch_persisted_direct_prod_rpc_callers_zero_ci_34786441006",
         ),
         "remaining": (
-            "global_caller_absence_or_retirement_evidence_not_yet_proven",
-            "13_server_wrapper_real_db_replay_and_tests_in_isolated_non_prod",
-            "rollback_evidence_for_real_security_write_path",
-            "caller_migration_and_retirement_evidence_before_any_privilege_change",
-            "apply_approved_four_table_rls_change_in_prod_when_execution_channel_allows",
+            "live_deployed_app_direct_caller_zero_evidence",
+            "authenticated_http_gateway_e2e_for_target_routes",
+            "rollback_evidence_for_full_http_write_path",
+            "caller_retirement_evidence_before_any_legacy_privilege_change",
         ),
     },
     "RECOVERY": {
