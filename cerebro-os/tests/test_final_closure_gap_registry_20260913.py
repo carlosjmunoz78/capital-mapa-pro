@@ -25,15 +25,24 @@ class FinalClosureGapRegistryTests(unittest.TestCase):
         self.assertNotIn("OBSERVABILITY:monthly_cost_measured", gaps)
         self.assertFalse(gaps["FINOPS:monthly_cost_measured"]["estimated_amounts_used"])
 
-    def test_youtube_reauth_does_not_fake_retained_metric_green(self):
+    def test_youtube_retained_metric_is_green_but_observability_stays_blocked(self):
         row = self.mod["GAPS"]["OBSERVABILITY:per_engine_logs_metrics_incidents_complete"]
         self.assertTrue(row["youtube_reauthorized_and_rewired_green"])
-        self.assertFalse(row["youtube_retained_metric_green"])
+        self.assertTrue(row["youtube_retained_metric_green"])
+        self.assertTrue(row["blocking"])
+        self.assertIn("parallel_prod_mirroring_wiring_without_legacy_breakage", row["required_evidence"])
 
     def test_rls_human_gate_is_approved_but_prod_change_stays_blocked(self):
         row = self.mod["GAPS"]["SECURITY:supabase_security_review_green"]
         self.assertEqual(row["human_gate_for_four_table_rls"], "APPROVED")
         self.assertFalse(row["automatic_prod_change_allowed"])
+        self.assertTrue(row["blocking"])
+
+    def test_recovery_cost_is_approved_but_branch_creation_is_execution_blocked(self):
+        row = self.mod["GAPS"]["RECOVERY:provider_restore_drill_proven"]
+        self.assertEqual(row["branch_hourly_cost_usd"], 0.01344)
+        self.assertTrue(row["cost_understood_and_approved"])
+        self.assertTrue(row["branch_creation_attempt_blocked_by_execution_tool"])
         self.assertTrue(row["blocking"])
 
 
