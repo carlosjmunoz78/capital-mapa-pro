@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 # Conservative caller/wrapper evidence for the 15 authenticated SECURITY DEFINER mutators.
-# This module is evidence-only: it does not execute RPCs, alter grants/RLS, mutate PROD,
-# or retire any function. Exact frontend/direct caller coverage remains required before remediation.
+# Evidence-only: no RPC execution, grants/RLS changes, PROD mutation, or retirement.
 
 MUTATORS = {
     "fenix_prod_chat_attachment_add_user": {"family": "chat", "wrapper_evidence": "UNKNOWN", "caller_evidence": "PENDING"},
@@ -22,10 +21,6 @@ MUTATORS = {
     "fenix_prod_sign_create": {"family": "signature", "wrapper_evidence": "UNKNOWN", "caller_evidence": "PENDING", "human_gate": "SIGNATURE_REQUIRED"},
 }
 
-# Live Edge source inspected read-only from PROD project cluhljgonannaafpmblx.
-# These inspected canonical/specialized APIs do not directly reference the 15
-# authenticated direct mutator names above. Most route writes through *_server RPCs;
-# the B2B action surface writes to Notion directly under its own scoped controls.
 EDGE_SURFACE_EVIDENCE = {
     "fenix-app-gateway": {"version": 16, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True},
     "fenix-profile-api": {"version": 1, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True},
@@ -39,6 +34,9 @@ EDGE_SURFACE_EVIDENCE = {
     "fenix-bank-api": {"version": 8, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True},
     "fenix-user-admin": {"version": 2, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "admin_actor_allowlist_observed": True},
     "fenix-ana-api": {"version": 10, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "human_learning_gate_observed": True},
+    "fenix-expediente-people": {"version": 2, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True},
+    "fenix-economia-api": {"version": 8, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "read_only_surface_observed": True},
+    "fenix-document-actions": {"version": 9, "environment": "PROD", "direct_15_mutator_name_reference_observed": False, "server_rpc_routing_observed": True, "source_read_only_inspected": True, "expected_version_guard_observed": True},
 }
 
 
@@ -47,14 +45,8 @@ def assess_mutator_caller_evidence() -> dict:
     exact_caller_green = tuple(name for name, row in MUTATORS.items() if row["caller_evidence"] == "GREEN")
     pending = tuple(name for name in MUTATORS if name not in exact_caller_green)
     inspected_edges = tuple(name for name, row in EDGE_SURFACE_EVIDENCE.items() if row["source_read_only_inspected"])
-    inspected_direct_mutator_absence_proven = all(
-        row["source_read_only_inspected"] and not row["direct_15_mutator_name_reference_observed"]
-        for row in EDGE_SURFACE_EVIDENCE.values()
-    )
-    server_or_scoped_backend_proven = all(
-        row.get("server_rpc_routing_observed", False) or row.get("alternative_scoped_backend_observed", False)
-        for row in EDGE_SURFACE_EVIDENCE.values()
-    )
+    inspected_direct_mutator_absence_proven = all(row["source_read_only_inspected"] and not row["direct_15_mutator_name_reference_observed"] for row in EDGE_SURFACE_EVIDENCE.values())
+    server_or_scoped_backend_proven = all(row.get("server_rpc_routing_observed", False) or row.get("alternative_scoped_backend_observed", False) for row in EDGE_SURFACE_EVIDENCE.values())
     return {
         "mutator_count": len(MUTATORS),
         "wrapper_observed_count": len(wrapper_observed),
@@ -69,11 +61,12 @@ def assess_mutator_caller_evidence() -> dict:
         "special_cases_sensitive_confirmation_gated": EDGE_SURFACE_EVIDENCE["fenix-special-cases-api"]["sensitive_confirmation_explicitly_gated"],
         "user_admin_allowlist_observed": EDGE_SURFACE_EVIDENCE["fenix-user-admin"]["admin_actor_allowlist_observed"],
         "ana_human_learning_gate_observed": EDGE_SURFACE_EVIDENCE["fenix-ana-api"]["human_learning_gate_observed"],
+        "document_expected_version_guard_observed": EDGE_SURFACE_EVIDENCE["fenix-document-actions"]["expected_version_guard_observed"],
         "frontend_or_other_direct_callers_still_pending": True,
         "security_remediation_allowed": False,
         "automatic_prod_mutation_allowed": False,
         "automatic_grant_or_rls_change_allowed": False,
         "automatic_retirement_allowed": False,
         "signature_human_gate": "SIGNATURE_REQUIRED",
-        "status": "TWELVE_PROD_EDGE_SURFACES_CLEARED_OTHER_CALLERS_PENDING" if inspected_direct_mutator_absence_proven and server_or_scoped_backend_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
+        "status": "FIFTEEN_PROD_EDGE_SURFACES_CLEARED_OTHER_CALLERS_PENDING" if inspected_direct_mutator_absence_proven and server_or_scoped_backend_proven else "CALLER_EVIDENCE_PARTIAL_WRAPPERS_OBSERVED",
     }
