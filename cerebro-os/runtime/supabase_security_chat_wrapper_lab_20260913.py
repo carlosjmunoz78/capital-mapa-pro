@@ -53,33 +53,28 @@ def send_v2_decision(*, actor_present: bool, member: bool, body: str) -> tuple[i
 
 
 REPLAY_FIXTURES = (
-    ("attachment_v1_ok", attachment_decision(dict(actor_present=True, message_owned=True, member=True, storage_owned=True, size_bytes=1024, mime_type="application/pdf", v2=False)), (201, "attachment_created")),
-    ("attachment_v2_member_required", attachment_decision(dict(actor_present=True, message_owned=True, member=False, storage_owned=True, size_bytes=1024, mime_type="application/pdf", v2=True)), (403, "message_not_owned")),
-    ("attachment_size_limit", attachment_decision(dict(actor_present=True, message_owned=True, member=True, storage_owned=True, size_bytes=20 * 1024 * 1024 + 1, mime_type="application/pdf", v2=False)), (400, "invalid_size")),
-    ("conversation_members", conversation_decision(dict(actor_present=True, valid_members=True, member_count=2, group=False)), (201, "conversation_created_or_reused")),
-    ("group_invalid_member", conversation_decision(dict(actor_present=True, valid_members=False, member_count=3, group=True)), (400, "invalid_member")),
-    ("send_v2_body_limit", send_v2_decision(dict(actor_present=True, member=True, body="x" * 5001)), (400, "invalid_body")),
-    ("send_v2_ok", send_v2_decision(dict(actor_present=True, member=True, body=" hola ")), (201, "message_created_or_idempotent")),
+    ("attachment_v1_ok", attachment_decision(actor_present=True, message_owned=True, member=True, storage_owned=True, size_bytes=1024, mime_type="application/pdf", v2=False), (201, "attachment_created")),
+    ("attachment_v2_member_required", attachment_decision(actor_present=True, message_owned=True, member=False, storage_owned=True, size_bytes=1024, mime_type="application/pdf", v2=True), (403, "message_not_owned")),
+    ("attachment_size_limit", attachment_decision(actor_present=True, message_owned=True, member=True, storage_owned=True, size_bytes=20 * 1024 * 1024 + 1, mime_type="application/pdf", v2=False), (400, "invalid_size")),
+    ("conversation_members", conversation_decision(actor_present=True, valid_members=True, member_count=2, group=False), (201, "conversation_created_or_reused")),
+    ("group_invalid_member", conversation_decision(actor_present=True, valid_members=False, member_count=3, group=True), (400, "invalid_member")),
+    ("send_v2_body_limit", send_v2_decision(actor_present=True, member=True, body="x" * 5001), (400, "invalid_body")),
+    ("send_v2_ok", send_v2_decision(actor_present=True, member=True, body=" hola "), (201, "message_created_or_idempotent")),
 )
 
 
 def replay() -> dict:
-    results = []
-    for name, call, expected in REPLAY_FIXTURES:
-        try:
-            actual = call(**{}) if callable(call) else call
-        except TypeError:
-            actual = call
-        results.append((name, actual, expected, actual == expected))
+    results = [(name, actual, expected, actual == expected) for name, actual, expected in REPLAY_FIXTURES]
+    green = all(row[3] for row in results)
     return {
         "target_count": len(CHAT_TARGETS),
         "fixture_count": len(results),
-        "all_fixture_semantics_match": all(row[3] for row in results),
+        "all_fixture_semantics_match": green,
         "prod_mutation_allowed": False,
         "grant_change_allowed": False,
         "legacy_retirement_allowed": False,
-        "lab_chat_semantic_replay_green": all(row[3] for row in results),
+        "lab_chat_semantic_replay_green": green,
         "rollback_path_proven": False,
         "prod_parity_green": False,
-        "status": "CHAT_LAB_SEMANTIC_REPLAY_GREEN_ROLLBACK_AND_REAL_DB_REPLAY_PENDING" if all(row[3] for row in results) else "CHAT_LAB_SEMANTIC_REPLAY_RED",
+        "status": "CHAT_LAB_SEMANTIC_REPLAY_GREEN_ROLLBACK_AND_REAL_DB_REPLAY_PENDING" if green else "CHAT_LAB_SEMANTIC_REPLAY_RED",
     }
