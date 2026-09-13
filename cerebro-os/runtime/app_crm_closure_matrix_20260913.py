@@ -26,6 +26,16 @@ BLOCKERS = {
         "live_parity_proven": False,
         "authenticated_execute_revoke_allowed": False,
         "execution_channel_blocked_prior_attempts": True,
+        "branch_persisted_migrations": {
+            "notifications_list": True,
+            "notification_mark": True,
+            "signature_create": True,
+            "branch_head": "48638f5ebc6a4fa2ab01f3d1084944434e95a8bd",
+            "audit_ci_run": 34781974358,
+            "audit_ci_success": True,
+            "main_modified": False,
+            "prod_rpc_permissions_modified": False,
+        },
     },
     "communications": {
         "prod_gateway_exists": True,
