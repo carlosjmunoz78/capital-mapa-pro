@@ -7,7 +7,7 @@ from __future__ import annotations
 OBJECTIVE_GROUPS = {
     "SECURITY": {
         "target": "supabase_security_review_green",
-        "status": "PARTIAL_SOURCE_PROMOTION_GREEN_AUTH_HTTP_E2E_AND_SELECTIVE_RETIREMENT_OPEN",
+        "status": "PARTIAL_SOURCE_PROMOTION_GREEN_AUTH_HTTP_E2E_AND_SELECTIVE_RETIREMENT_OPEN_SECDEF_CLASSIFIED",
         "green": False,
         "completed": (
             "15_authenticated_security_definer_rpcs_inventory",
@@ -35,6 +35,8 @@ OBJECTIVE_GROUPS = {
             "reviewed_rpc_migration_pr_376_human_authorized_and_merged",
             "app_main_merge_sha_dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c",
             "prod_live_deploy_run_34790008072_success",
+            "prod_runtime_smoke_run_34790008059_success",
+            "prod_runtime_smoke_exact_live_sha_and_gateway_boundary_green",
             "prod_live_deploy_asserted_no_preprod_backend",
             "gh_pages_prod_snapshot_c8a4bc720ce91eb46ed811c506623c265d043594",
             "prod_source_sha_matches_main_merge_dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c",
@@ -48,6 +50,8 @@ OBJECTIVE_GROUPS = {
             "supabase_security_advisor_inventory_captured_2026_09_14",
             "44_rls_enabled_no_policy_info_findings_classified_fail_closed_not_open_access",
             "24_authenticated_security_definer_execute_warnings_captured",
+            "24_security_definer_warnings_partitioned_8_legacy_7_read_session_9_mutators",
+            "nine_remaining_mutator_names_default_branch_negative_search_recorded_fail_closed",
             "pg_net_public_extension_namespace_warning_captured_version_0_20_4",
             "pg_net_function_namespace_net_confirmed_read_only",
             "leaked_password_protection_disabled_warning_captured",
@@ -58,7 +62,7 @@ OBJECTIVE_GROUPS = {
             "rollback_or_non_durable_cleanup_evidence_for_full_http_write_path",
             "selective_retirement_of_only_migrated_legacy_authenticated_execute_after_http_gate",
             "post_retirement_gateway_e2e_and_advisor_recheck",
-            "controlled_disposition_of_remaining_security_definer_authenticated_execute_warnings",
+            "caller_and_contract_disposition_of_7_read_session_and_9_mutating_security_definer_surfaces",
             "cloudflare_pages_parallel_routing_role_and_failure_disposition",
             "pg_net_extension_namespace_dependency_backup_and_rebuild_review_before_any_move",
             "leaked_password_protection_enablement_when_auth_config_write_channel_is_available",
@@ -66,7 +70,7 @@ OBJECTIVE_GROUPS = {
     },
     "RECOVERY": {
         "target": "provider_restore_and_prod_rollback_green",
-        "status": "PARTIAL_LOCAL_ISOLATED_RESTORE_GREEN_PROVIDER_RESTORE_TARGET_OPEN",
+        "status": "PARTIAL_APP_SOURCE_ROLLBACK_REHEARSAL_GREEN_PROVIDER_DB_RESTORE_OPEN",
         "green": False,
         "completed": (
             "immutable_git_source_snapshot",
@@ -87,6 +91,10 @@ OBJECTIVE_GROUPS = {
             "zero_cost_local_ci_post_restore_smoke_green",
             "zero_cost_local_ci_cleanup_green",
             "zero_cost_local_ci_recovery_run_34788667726_green",
+            "previous_prod_source_c7a15cff9a387f1f142c8eeb06fd83a799e85a61_resolves",
+            "app_previous_prod_source_rollback_rehearsal_run_34808719859_green",
+            "app_rollback_artifact_10333274904_sha256_1d461022a00576a41acac8857af809aeff7666e0b4cdbd541f6fc67f6e4e787a",
+            "real_release_or_provider_rollback_target_proven",
         ),
         "remaining": (
             "isolated_provider_non_prod_restore_target_proven_without_unapproved_cost",
@@ -94,7 +102,6 @@ OBJECTIVE_GROUPS = {
             "provider_restore_integrity_check",
             "application_smoke_after_provider_restore",
             "cleanup_or_retention_evidence_for_successful_provider_restore",
-            "real_release_or_provider_rollback_target_proven",
         ),
     },
     "OBSERVABILITY": {
@@ -140,7 +147,7 @@ OBJECTIVE_GROUPS = {
     },
     "FINOPS": {
         "target": "monthly_cost_measured",
-        "status": "PARTIAL_HISTORICAL_NOTION_PRICE_ANCHORED_CURRENT_NOTION_AND_GCP_EXACT_AMOUNTS_OPEN",
+        "status": "PARTIAL_CURRENT_NOTION_LIST_REFERENCE_FOUND_CURRENT_NOTION_AND_GCP_EXACT_AMOUNTS_OPEN",
         "green": False,
         "completed": (
             "supabase_monthly_cost_measured",
@@ -151,6 +158,8 @@ OBJECTIVE_GROUPS = {
             "notion_authoritative_email_confirms_recent_payment_failure_without_exact_amount",
             "notion_authoritative_historical_trial_price_2025_04_04_eur_11_50_per_member_three_members_eur_34_50_month",
             "notion_historical_price_not_misclassified_as_current_2026_cost",
+            "notion_cost_matrix_2026_08_26_business_reference_20_usd_per_member_month_found",
+            "notion_business_reference_not_misclassified_as_exact_current_invoice",
             "google_cloud_authoritative_email_confirms_paid_billing_and_payment_problem_without_exact_amount",
             "google_cloud_recent_billing_email_search_found_no_exact_amount",
             "provider_to_family_attribution_model_defined_without_fake_allocation",
