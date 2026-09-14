@@ -10,5 +10,6 @@
   {"engine_id":"AUD-001","name":"Audit Trazabilidad","status":"DOCUMENTED_PARTIAL","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
   {"engine_id":"OBSERV-001","name":"Observabilidad","status":"DOCUMENTED_PARTIAL","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
   {"engine_id":"SUP-001","name":"Supervisor","status":"DOCUMENTED_PARTIAL","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"},
-  {"engine_id":"TENANT-001","name":"Multi-Tenant Isolation Engine","status":"DEFINED_NOT_BUILT","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_ONLY"}
+  {"engine_id":"TENANT-001","name":"Multi-Tenant Isolation Engine","status":"DEFINED_NOT_BUILT","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_ONLY"},
+  {"engine_id":"TAX-001","name":"Fiscal Engine","status":"DOCUMENTED_PARTIAL","version":"0.1.0","environment":"LAB","company_scope":"GLOBAL_OR_SCOPED"}
 ]

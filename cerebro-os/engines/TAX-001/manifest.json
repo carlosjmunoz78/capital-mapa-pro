@@ -1,0 +1,73 @@
+{
+  "engine_id": "TAX-001",
+  "name": "Fiscal Engine",
+  "company_scope": "GLOBAL_OR_SCOPED",
+  "environment": "LAB",
+  "version": "0.1.0",
+  "status": "DOCUMENTED_PARTIAL",
+  "owner": "CEREBRO_ADVISORY",
+  "inputs": [
+    "company_id",
+    "request_id",
+    "operation",
+    "facts",
+    "effective_date",
+    "jurisdiction",
+    "evidence_refs"
+  ],
+  "outputs": [
+    "decision_support",
+    "confidence",
+    "evidence_refs",
+    "human_required",
+    "audit_record"
+  ],
+  "permissions": [
+    "knowledge:read",
+    "decision_support:execute"
+  ],
+  "policies": [
+    "deny_cross_company_by_default",
+    "deterministic_before_ai",
+    "zero_new_cost_by_default",
+    "official_source_required",
+    "effective_date_required",
+    "jurisdiction_required",
+    "regulated_action_fail_closed"
+  ],
+  "events_in": ["tax.decision_support.requested"],
+  "events_out": ["tax.decision_support.completed", "human.required"],
+  "tests": ["unit", "contract", "policy", "knowledge_gate"],
+  "evaluation": ["evidence_gate", "currentness_gate", "tribunal_gate"],
+  "observability": [
+    "request_id",
+    "company_id",
+    "engine_id",
+    "version",
+    "environment",
+    "result",
+    "confidence",
+    "duration_ms",
+    "cost_eur"
+  ],
+  "cost_budget": {"target_additional_eur": 0},
+  "backup": {"required": true, "verified": false},
+  "rollback": {"required": true, "verified": false},
+  "rebuild": {"required": true, "verified": false},
+  "dependencies": ["POL-001", "HEX-001", "PRV-001", "KNW-001", "EVA-001", "JDG-001", "AUD-001", "OBSERV-001"],
+  "autonomy_level": "DECISION_SUPPORT_ONLY",
+  "human_exception_codes": [
+    "LEGAL_REQUIRED",
+    "SIGNATURE_REQUIRED",
+    "LOW_CONFIDENCE",
+    "HIGH_RISK",
+    "POLICY_CONFLICT",
+    "SECURITY_INCIDENT",
+    "MONEY_LIMIT",
+    "CUSTOMER_HUMAN_REQUEST"
+  ],
+  "knowledge_status": "KNOWLEDGE_GREEN",
+  "capability_status": "BUILDING",
+  "autonomy_status": "DISABLED",
+  "prod_enabled": false
+}
