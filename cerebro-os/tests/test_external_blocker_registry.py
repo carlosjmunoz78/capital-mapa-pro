@@ -41,6 +41,13 @@ class ExternalBlockerRegistryTests(unittest.TestCase):
         self.assertIn("inactive_scope_probe_scenario_creation_refused_because_make_requires_precreated_datastore", row["facts"])
         self.assertIn("scope_probe_created_no_scenario_and_wrote_no_records", row["facts"])
 
+    def test_youtube_health_does_not_stay_green_after_connection_verify_failure(self):
+        row = module.BLOCKERS["OBSERVABILITY_YOUTUBE_HEALTH"]
+        self.assertEqual(row["human_required"], "HIGH_RISK")
+        self.assertEqual(row["status"], "BLOCKED_CONNECTION_VERIFICATION_400")
+        self.assertIn("execution_a96383dd40b54b3c91688fe1039a84f4_failed_before_operations", row["facts"])
+        self.assertIn("execution_consumed_zero_operations_and_zero_credits", row["facts"])
+
     def test_finops_does_not_estimate_unknown_current_amounts(self):
         row = module.BLOCKERS["FINOPS_EXACT_CURRENT_INVOICES"]
         self.assertIsNone(row["human_required"])
