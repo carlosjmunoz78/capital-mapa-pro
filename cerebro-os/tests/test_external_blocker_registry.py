@@ -21,6 +21,13 @@ class ExternalBlockerRegistryTests(unittest.TestCase):
         self.assertIn("no_dedicated_safe_prod_test_identity_proven", row["facts"])
         self.assertIn("raw_auth_users_insertion_forbidden", row["facts"])
 
+    def test_cloudflare_secret_exposure_is_security_incident_and_value_is_not_persisted(self):
+        row = module.BLOCKERS["SECURITY_CLOUDFLARE_SECRET_EXPOSURE"]
+        self.assertEqual(row["human_required"], "SECURITY_INCIDENT")
+        self.assertEqual(row["status"], "SECURITY_INCIDENT_RAW_SECRET_RETURNED_BY_READ_ONLY_INVENTORY")
+        self.assertIn("secret_value_not_persisted_into_cerebro_docs_or_tests", row["facts"])
+        self.assertIn("automatic_rotation_rejected_until_dependency_inventory_and_rollback_are_complete", row["facts"])
+
     def test_provider_restore_is_money_limit_not_false_green(self):
         row = module.BLOCKERS["RECOVERY_PROVIDER_RESTORE"]
         self.assertEqual(row["human_required"], "MONEY_LIMIT")
