@@ -42,6 +42,7 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
         self.assertIn("reviewed_rpc_migration_pr_376_human_authorized_and_merged", completed)
         self.assertIn("app_main_merge_sha_dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c", completed)
         self.assertIn("prod_live_deploy_run_34790008072_success", completed)
+        self.assertIn("prod_runtime_smoke_run_34790008059_success", completed)
         self.assertIn("gh_pages_prod_snapshot_c8a4bc720ce91eb46ed811c506623c265d043594", completed)
         self.assertIn("prod_source_sha_matches_main_merge_dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c", completed)
         self.assertIn("live_deployed_source_direct_prod_rpc_search_zero_after_promotion", completed)
@@ -50,18 +51,28 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
         self.assertIn("eight_legacy_rpc_retirement_sql_and_rollback_prepared_not_applied", completed)
         self.assertIn("cloudflare_pages_parallel_check_failure_recorded_fail_closed", completed)
         self.assertIn("24_authenticated_security_definer_execute_warnings_captured", completed)
+        self.assertIn("24_security_definer_warnings_partitioned_8_legacy_7_read_session_9_mutators", completed)
         self.assertIn("pg_net_function_namespace_net_confirmed_read_only", completed)
         self.assertIn("leaked_password_protection_disabled_warning_captured", completed)
         self.assertIn("blind_bulk_security_changes_rejected", completed)
-        self.assertNotIn("deploy_or_promote_reviewed_rpc_migration_without_bypassing_human_prod_gate", remaining)
-        self.assertNotIn("live_deployed_app_direct_caller_zero_evidence_after_promotion", remaining)
         self.assertIn("authenticated_http_gateway_e2e_for_target_routes_with_safe_identity", remaining)
         self.assertIn("rollback_or_non_durable_cleanup_evidence_for_full_http_write_path", remaining)
         self.assertIn("selective_retirement_of_only_migrated_legacy_authenticated_execute_after_http_gate", remaining)
         self.assertIn("post_retirement_gateway_e2e_and_advisor_recheck", remaining)
+        self.assertIn("caller_and_contract_disposition_of_7_read_session_and_9_mutating_security_definer_surfaces", remaining)
         self.assertIn("cloudflare_pages_parallel_routing_role_and_failure_disposition", remaining)
         self.assertIn("pg_net_extension_namespace_dependency_backup_and_rebuild_review_before_any_move", remaining)
         self.assertIn("leaked_password_protection_enablement_when_auth_config_write_channel_is_available", remaining)
+
+    def test_recovery_records_real_app_source_rollback_but_not_provider_restore(self):
+        recovery = module.OBJECTIVE_GROUPS["RECOVERY"]
+        completed = recovery["completed"]
+        remaining = recovery["remaining"]
+        self.assertIn("app_previous_prod_source_rollback_rehearsal_run_34808719859_green", completed)
+        self.assertIn("real_release_or_provider_rollback_target_proven", completed)
+        self.assertNotIn("real_release_or_provider_rollback_target_proven", remaining)
+        self.assertIn("isolated_provider_non_prod_restore_target_proven_without_unapproved_cost", remaining)
+        self.assertIn("completed_provider_restore", remaining)
 
     def test_observability_tracks_linkedin_green_and_youtube_reauth_without_false_retained_metric(self):
         observability = module.OBJECTIVE_GROUPS["OBSERVABILITY"]
@@ -70,10 +81,12 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
         self.assertIn("youtube_health_connection_rewired_green", observability["completed"])
         self.assertIn("youtube_retained_metric_execution_or_explicit_approved_absence_policy", observability["remaining"])
 
-    def test_finops_keeps_historical_notion_price_separate_from_current_unknown_amount(self):
+    def test_finops_keeps_reference_separate_from_current_unknown_invoice(self):
         finops = module.OBJECTIVE_GROUPS["FINOPS"]
         self.assertIn("notion_authoritative_historical_trial_price_2025_04_04_eur_11_50_per_member_three_members_eur_34_50_month", finops["completed"])
         self.assertIn("notion_historical_price_not_misclassified_as_current_2026_cost", finops["completed"])
+        self.assertIn("notion_cost_matrix_2026_08_26_business_reference_20_usd_per_member_month_found", finops["completed"])
+        self.assertIn("notion_business_reference_not_misclassified_as_exact_current_invoice", finops["completed"])
         self.assertIn("google_cloud_recent_billing_email_search_found_no_exact_amount", finops["completed"])
         self.assertIn("notion_current_2026_exact_monthly_amount_from_authoritative_billing_source", finops["remaining"])
         self.assertIn("google_cloud_exact_monthly_amount_or_zero_cost_proof_from_authoritative_billing_source", finops["remaining"])
