@@ -27,6 +27,10 @@ def test_security_stays_fail_closed_until_safe_authenticated_e2e():
     assert row["target_callers_zero_green"] is True
     assert row["rls_no_policy_info_count"] == 44
     assert row["security_definer_authenticated_warn_count"] == 24
+    assert row["security_definer_migrated_legacy_targets"] == 8
+    assert row["security_definer_read_session_surfaces"] == 7
+    assert row["security_definer_mutators_review_required"] == 9
+    assert row["security_definer_partition_complete"] is True
     assert row["cloudflare_pages_failure_blocks_app_runtime"] is False
     assert row["cloudflare_pages_resource_mutation_allowed"] is False
     assert row["authenticated_http_e2e_green"] is False
@@ -35,13 +39,15 @@ def test_security_stays_fail_closed_until_safe_authenticated_e2e():
     assert row["human_required"] == "HIGH_RISK"
 
 
-def test_recovery_has_real_candidate_but_not_false_green():
+def test_recovery_app_source_rollback_is_green_but_provider_restore_stays_open():
     row = mod.CUT["recovery"]
     assert row["previous_prod_source_resolves"] is True
     assert row["rollback_rehearsal_workflow_present"] is True
     assert row["rollback_rehearsal_is_non_mutating"] is True
-    assert row["historical_workflow_dispatch_runs"] == 0
-    assert row["old_sha_rehearsal_green"] is False
+    assert row["rollback_rehearsal_run"] == 34808719859
+    assert row["old_sha_rehearsal_green"] is True
+    assert row["rollback_artifact_id"] == 10333274904
+    assert row["rollback_artifact_sha256"] == "1d461022a00576a41acac8857af809aeff7666e0b4cdbd541f6fc67f6e4e787a"
     assert row["provider_restore_green"] is False
     assert row["paid_restore_resource_created"] is False
 
