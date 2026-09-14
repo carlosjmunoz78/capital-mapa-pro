@@ -1,14 +1,18 @@
 # CEREBRO closure evidence — identity + YouTube — 2026-09-14
 
-## Dedicated operational identity
+## Permanent operational identity
 
 State: PARTIAL_GREEN
 
 Human-verified live browser evidence:
-- Dedicated Supabase Auth identity created and email confirmed through the supported dashboard flow.
-- Identity was linked to CEREBRO operational actor `CEREBRO-OPS-01` with role `Direccion` by an explicitly authorized SQL action in Supabase SQL Editor.
-- The dedicated identity authenticated successfully in the live Fénix App.
+- Permanent Supabase Auth identity is active and email-confirmed through the supported dashboard flow.
+- Identity is linked to CEREBRO operational actor `CEREBRO-OPS-01` with role `Direccion`.
+- The permanent identity authenticated successfully in the live Fénix App.
 - The live Notifications screen opened normally under that identity without an error.
+
+Governance note:
+- This is a permanent CEREBRO operational identity, not a disposable test user.
+- It must not be deleted, retired, duplicated or unlinked as cleanup for E2E work.
 
 Safety boundary still enforced:
 - This proves authentication + read-path usability.
@@ -20,12 +24,17 @@ Safety boundary still enforced:
 
 State: GREEN
 
-Make scenario `9537666` (`FENIX · HEALTH · YouTube · Canal, vídeos y permisos · V1`) was reauthorized through the supported user OAuth flow and its connection reported healthy.
+Make scenario `9537666` (`FENIX · HEALTH · YouTube · Canal, vídeos y permisos · V1`) is active after OAuth reauthorization and its modules use the repaired connection.
 
-A controlled manual run completed successfully on 2026-09-14:
-- execution: `bcdc124704c147daafc12363cee431a5`
+Current post-repair evidence on 2026-09-14 includes two automatic successful runs:
+- execution `744479b8867e47d095feaba7177d35c6` — success — 3 operations
+- execution `f8815f34b158474aac91f031a832075a` — success — 3 operations
+
+Earlier controlled manual proof also remains valid:
+- execution `bcdc124704c147daafc12363cee431a5`
 - status: success
 - operations: 3
-- no video upload/modification was part of the health scenario contract.
 
-Conclusion: YouTube OAuth + read-only health execution is GREEN.
+The scenario contract is read-only health monitoring; no video upload or modification is part of this flow.
+
+Conclusion: repaired YouTube OAuth + automatic read-only health execution is **GREEN**.
