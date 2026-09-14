@@ -15,10 +15,12 @@ class ExternalBlockerRegistryTests(unittest.TestCase):
         self.assertTrue(result["valid"])
         self.assertEqual(result["invalid_codes"], ())
 
-    def test_security_authenticated_e2e_is_high_risk_not_auto_executable(self):
+    def test_security_authenticated_e2e_tracks_dedicated_identity_and_keeps_write_gate(self):
         row = module.BLOCKERS["SECURITY_AUTHENTICATED_HTTP_E2E"]
         self.assertEqual(row["human_required"], "HIGH_RISK")
-        self.assertIn("no_dedicated_safe_prod_test_identity_proven", row["facts"])
+        self.assertIn("dedicated_identity_authenticated_in_live_app", row["facts"])
+        self.assertIn("notifications_read_path_user_verified_green_in_live_app", row["facts"])
+        self.assertIn("four_write_target_http_cleanup_routes_not_proven", row["facts"])
         self.assertIn("raw_auth_users_insertion_forbidden", row["facts"])
 
     def test_cloudflare_secret_exposure_is_security_incident_and_value_is_not_persisted(self):
@@ -26,6 +28,7 @@ class ExternalBlockerRegistryTests(unittest.TestCase):
         self.assertEqual(row["human_required"], "SECURITY_INCIDENT")
         self.assertEqual(row["status"], "SECURITY_INCIDENT_RAW_SECRET_RETURNED_BY_READ_ONLY_INVENTORY")
         self.assertIn("secret_value_not_persisted_into_cerebro_docs_or_tests", row["facts"])
+        self.assertIn("user_elected_to_preserve_current_cloudflare_configuration_for_now", row["facts"])
         self.assertIn("automatic_rotation_rejected_until_dependency_inventory_and_rollback_are_complete", row["facts"])
 
     def test_provider_restore_is_money_limit_not_false_green(self):
@@ -39,25 +42,27 @@ class ExternalBlockerRegistryTests(unittest.TestCase):
         self.assertEqual(row["human_required"], "HIGH_RISK")
         self.assertIn("current_supabase_connector_has_no_auth_config_write_action", row["facts"])
 
-    def test_make_store_discovery_does_not_get_misclassified_as_prod_sink(self):
+    def test_persistent_sink_is_lab_green_but_prod_parallel_wiring_remains_open(self):
         row = module.BLOCKERS["OBSERVABILITY_PERSISTENT_PROD_SINK"]
         self.assertIsNone(row["human_required"])
-        self.assertIn("make_datastore_171764_is_live_shared_core_health_and_dedupe_store", row["facts"])
-        self.assertIn("make_datastore_172319_is_temp_test_schema_audit_store", row["facts"])
-        self.assertIn("reusing_shared_core_store_without_schema_contract_rejected", row["facts"])
-        self.assertIn("inactive_scope_probe_scenario_creation_refused_because_make_requires_precreated_datastore", row["facts"])
-        self.assertIn("scope_probe_created_no_scenario_and_wrote_no_records", row["facts"])
+        self.assertEqual(row["status"], "PARTIAL_ZERO_COST_PERSISTENT_SINK_LAB_GREEN_PARALLEL_PROD_WIRING_OPEN")
+        self.assertIn("dedicated_google_sheets_sink_created_without_new_subscription", row["facts"])
+        self.assertIn("final_synthetic_lab_execution_4c9be20f08e54126b4a8a3ab9bb9fd09_success", row["facts"])
+        self.assertIn("independent_google_sheets_readback_confirmed_all_ten_fields_persisted", row["facts"])
+        self.assertIn("existing_prod_observability_paths_untouched", row["facts"])
 
-    def test_youtube_health_does_not_stay_green_after_connection_verify_failure(self):
+    def test_youtube_health_is_green_after_supported_reauthorization_and_controlled_run(self):
         row = module.BLOCKERS["OBSERVABILITY_YOUTUBE_HEALTH"]
-        self.assertEqual(row["human_required"], "HIGH_RISK")
-        self.assertEqual(row["status"], "BLOCKED_CONNECTION_VERIFICATION_400")
-        self.assertIn("execution_a96383dd40b54b3c91688fe1039a84f4_failed_before_operations", row["facts"])
-        self.assertIn("execution_consumed_zero_operations_and_zero_credits", row["facts"])
+        self.assertIsNone(row["human_required"])
+        self.assertEqual(row["status"], "GREEN_CONTROLLED_READ_ONLY_HEALTH_EXECUTION")
+        self.assertIn("connection_14591497_status_ok", row["facts"])
+        self.assertIn("manual_execution_bcdc124704c147daafc12363cee431a5_success", row["facts"])
 
-    def test_finops_does_not_estimate_unknown_current_amounts(self):
+    def test_finops_does_not_estimate_unknown_gcp_monthly_total(self):
         row = module.BLOCKERS["FINOPS_EXACT_CURRENT_INVOICES"]
         self.assertIsNone(row["human_required"])
+        self.assertIn("notion_current_billing_ui_amount_user_reported_eur_68_97_for_two_users", row["facts"])
+        self.assertIn("google_cloud_monthly_period_total_not_yet_proven", row["facts"])
         self.assertIn("estimation_for_green_forbidden", row["facts"])
 
 
