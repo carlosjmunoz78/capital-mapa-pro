@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-# Evidence-backed blockers that cannot be turned green by safe autonomous mutation.
+# Evidence-backed blockers and evidence gaps that cannot be turned green by unsafe autonomous mutation.
 # Only canonical HUMAN_REQUIRED codes are allowed here.
 
 CANONICAL_HUMAN_REQUIRED = {
@@ -17,16 +17,16 @@ CANONICAL_HUMAN_REQUIRED = {
 BLOCKERS = {
     "SECURITY_AUTHENTICATED_HTTP_E2E": {
         "group": "SECURITY",
-        "status": "BLOCKED_SAFE_TEST_IDENTITY_ABSENT",
+        "status": "PARTIAL_DEDICATED_IDENTITY_AND_READ_PATH_GREEN_WRITE_CLEANUP_OPEN",
         "human_required": "HIGH_RISK",
         "facts": (
-            "prod_active_auth_linked_actor_carlos_admin_is_real_human",
-            "prod_active_auth_linked_actor_belen_dir_is_real_human",
-            "ana_system_is_not_auth_linked",
-            "no_dedicated_safe_prod_test_identity_proven",
+            "dedicated_prod_auth_identity_created_by_user_through_supported_dashboard_flow",
+            "dedicated_identity_authenticated_in_live_app",
+            "notifications_read_path_user_verified_green_in_live_app",
             "raw_auth_users_insertion_forbidden",
+            "four_write_target_http_cleanup_routes_not_proven",
         ),
-        "unblock": "explicitly_authorized_safe_test_identity_or_equivalent_non_human_prod_test_channel",
+        "unblock": "prove_cleanup_or_non_durable_write_test_strategy_then_complete_authenticated_gateway_write_e2e",
     },
     "SECURITY_CLOUDFLARE_SECRET_EXPOSURE": {
         "group": "SECURITY",
@@ -39,9 +39,10 @@ BLOCKERS = {
             "cloudflare_pages_preview_deploy_for_audit_branch_was_skipped_by_preview_policy",
             "app_repository_is_vite_but_cloudflare_pages_build_command_is_next_on_pages",
             "app_repo_default_branch_search_found_no_app_secret_reference",
+            "user_elected_to_preserve_current_cloudflare_configuration_for_now",
             "automatic_rotation_rejected_until_dependency_inventory_and_rollback_are_complete",
         ),
-        "unblock": "inventory_secret_consumers_then_rotate_secret_through_authorized_channel_and_verify_no_breakage",
+        "unblock": "accepted_risk_policy_or_inventory_secret_consumers_then_rotate_through_authorized_channel_and_verify_no_breakage",
     },
     "RECOVERY_PROVIDER_RESTORE": {
         "group": "RECOVERY",
@@ -71,45 +72,49 @@ BLOCKERS = {
     },
     "OBSERVABILITY_PERSISTENT_PROD_SINK": {
         "group": "OBSERVABILITY",
-        "status": "PARTIAL_EXISTING_MAKE_DATASTORE_NOT_SCOPE_COMPATIBLE",
+        "status": "PARTIAL_ZERO_COST_PERSISTENT_SINK_LAB_GREEN_PARALLEL_PROD_WIRING_OPEN",
         "human_required": None,
         "facts": (
-            "make_team_reachable",
-            "make_datastore_171764_is_live_shared_core_health_and_dedupe_store",
-            "make_datastore_172319_is_temp_test_schema_audit_store",
-            "neither_proven_with_company_id_engine_id_environment_version_kind_schema",
-            "reusing_shared_core_store_without_schema_contract_rejected",
-            "no_dedicated_datastore_create_or_schema_change_action_exposed_in_current_tool_surface",
-            "inactive_scope_probe_scenario_creation_refused_because_make_requires_precreated_datastore",
-            "scope_probe_created_no_scenario_and_wrote_no_records",
+            "make_datastore_171764_is_live_shared_core_health_and_dedupe_store_and_was_not_repurposed",
+            "make_datastore_172319_is_temp_test_schema_audit_store_and_was_not_repurposed",
+            "dedicated_google_sheets_sink_created_without_new_subscription",
+            "sink_contract_includes_timestamp_company_id_engine_id_environment_version_kind_run_id_status_message_payload_json",
+            "make_on_demand_bridge_scenario_9804649_created_with_existing_google_connection",
+            "first_bridge_run_failed_closed_missing_value_input_option",
+            "second_mapper_shape_inserted_blank_row_and_was_corrected",
+            "final_synthetic_lab_execution_4c9be20f08e54126b4a8a3ab9bb9fd09_success",
+            "independent_google_sheets_readback_confirmed_all_ten_fields_persisted",
+            "existing_prod_observability_paths_untouched",
         ),
-        "unblock": "prove_existing_isolated_scope_compatible_store_or_add_safe_zero_cost_persistent_store_contract",
+        "unblock": "parallel_wire_selected_prod_engine_family_then_compare_old_new_and_expand_gradually",
     },
     "OBSERVABILITY_YOUTUBE_HEALTH": {
         "group": "OBSERVABILITY",
-        "status": "BLOCKED_CONNECTION_VERIFICATION_400",
-        "human_required": "HIGH_RISK",
+        "status": "GREEN_CONTROLLED_READ_ONLY_HEALTH_EXECUTION",
+        "human_required": None,
         "facts": (
-            "make_youtube_health_scenario_9537666_activation_attempted",
-            "execution_a96383dd40b54b3c91688fe1039a84f4_failed_before_operations",
-            "youtube_connection_verification_returned_http_400",
-            "execution_consumed_zero_operations_and_zero_credits",
-            "scenario_remains_inactive_after_fail_closed_attempt",
+            "previous_connection_verify_400_failure_recorded",
+            "youtube_oauth_reauthorized_through_supported_user_flow",
+            "connection_14591497_status_ok",
+            "manual_execution_bcdc124704c147daafc12363cee431a5_success",
+            "execution_completed_three_operations",
+            "scenario_contract_read_only_except_health_datastore_write",
         ),
-        "unblock": "explicit_secure_youtube_oauth_reauthorization_then_read_only_health_rerun",
+        "unblock": "resolved",
     },
     "FINOPS_EXACT_CURRENT_INVOICES": {
         "group": "FINOPS",
-        "status": "BLOCKED_AUTHORITATIVE_EXACT_AMOUNTS_NOT_FOUND",
+        "status": "PARTIAL_NOTION_CURRENT_AMOUNT_CAPTURED_GCP_MONTHLY_PERIOD_TOTAL_OPEN",
         "human_required": None,
         "facts": (
-            "notion_2026_business_list_reference_20_usd_per_member_month_is_not_invoice",
-            "notion_exact_current_invoice_eur_not_found",
-            "google_cloud_billing_problem_email_found_without_exact_amount",
-            "google_cloud_exact_current_amount_not_found",
+            "notion_current_billing_ui_amount_user_reported_eur_68_97_for_two_users",
+            "notion_plan_rightsizing_deferred_until_after_current_closure_loop",
+            "google_cloud_billing_ui_showed_eur_0_34_current_charge_for_fenix_trading_lab_snapshot",
+            "google_cloud_billing_ui_showed_eur_0_00_for_fenix_capital_snapshot",
+            "google_cloud_monthly_period_total_not_yet_proven",
             "estimation_for_green_forbidden",
         ),
-        "unblock": "authoritative_current_invoice_or_billing_ledger_amounts",
+        "unblock": "authoritative_google_cloud_monthly_period_total_or_zero_cost_proof",
     },
 }
 
@@ -129,6 +134,7 @@ def validate() -> dict:
             key for key, row in BLOCKERS.items() if row["human_required"] is not None
         ),
         "non_human_evidence_gaps": tuple(
-            key for key, row in BLOCKERS.items() if row["human_required"] is None
+            key for key, row in BLOCKERS.items()
+            if row["human_required"] is None and not row["status"].startswith("GREEN_")
         ),
     }
