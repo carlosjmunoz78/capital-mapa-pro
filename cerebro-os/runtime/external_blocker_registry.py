@@ -28,6 +28,21 @@ BLOCKERS = {
         ),
         "unblock": "explicitly_authorized_safe_test_identity_or_equivalent_non_human_prod_test_channel",
     },
+    "SECURITY_CLOUDFLARE_SECRET_EXPOSURE": {
+        "group": "SECURITY",
+        "status": "SECURITY_INCIDENT_RAW_SECRET_RETURNED_BY_READ_ONLY_INVENTORY",
+        "human_required": "SECURITY_INCIDENT",
+        "facts": (
+            "cloudflare_read_only_inventory_response_included_raw_app_secret_value",
+            "secret_value_not_persisted_into_cerebro_docs_or_tests",
+            "cloudflare_pages_project_has_only_pages_dev_domain_no_app_fenixcapital_custom_domain",
+            "cloudflare_pages_preview_deploy_for_audit_branch_was_skipped_by_preview_policy",
+            "app_repository_is_vite_but_cloudflare_pages_build_command_is_next_on_pages",
+            "app_repo_default_branch_search_found_no_app_secret_reference",
+            "automatic_rotation_rejected_until_dependency_inventory_and_rollback_are_complete",
+        ),
+        "unblock": "inventory_secret_consumers_then_rotate_secret_through_authorized_channel_and_verify_no_breakage",
+    },
     "RECOVERY_PROVIDER_RESTORE": {
         "group": "RECOVERY",
         "status": "BLOCKED_ISOLATED_PROVIDER_TARGET_REQUIRES_COST",
