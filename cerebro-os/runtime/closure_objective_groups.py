@@ -9,6 +9,7 @@ OBJECTIVE_GROUPS = {
         "target": "supabase_security_review_green",
         "status": "PARTIAL_SOURCE_PROMOTION_GREEN_AUTH_HTTP_E2E_AND_SELECTIVE_RETIREMENT_OPEN_SECDEF_CLASSIFIED",
         "green": False,
+        "human_required": ("HIGH_RISK",),
         "completed": (
             "15_authenticated_security_definer_rpcs_inventory",
             "15_live_acl_and_definition_fingerprints_captured",
@@ -55,6 +56,8 @@ OBJECTIVE_GROUPS = {
             "pg_net_public_extension_namespace_warning_captured_version_0_20_4",
             "pg_net_function_namespace_net_confirmed_read_only",
             "leaked_password_protection_disabled_warning_captured",
+            "leaked_password_protection_supported_remediation_path_documented",
+            "safe_prod_authenticated_test_identity_absence_proven",
             "blind_bulk_security_changes_rejected",
         ),
         "remaining": (
@@ -70,8 +73,9 @@ OBJECTIVE_GROUPS = {
     },
     "RECOVERY": {
         "target": "provider_restore_and_prod_rollback_green",
-        "status": "PARTIAL_APP_SOURCE_ROLLBACK_REHEARSAL_GREEN_PROVIDER_DB_RESTORE_OPEN",
+        "status": "PARTIAL_APP_SOURCE_ROLLBACK_GREEN_PROVIDER_DB_RESTORE_MONEY_LIMIT",
         "green": False,
+        "human_required": ("MONEY_LIMIT",),
         "completed": (
             "immutable_git_source_snapshot",
             "runtime_rebuild_rehearsal_ci",
@@ -95,9 +99,12 @@ OBJECTIVE_GROUPS = {
             "app_previous_prod_source_rollback_rehearsal_run_34808719859_green",
             "app_rollback_artifact_10333274904_sha256_1d461022a00576a41acac8857af809aeff7666e0b4cdbd541f6fc67f6e4e787a",
             "real_release_or_provider_rollback_target_proven",
+            "supabase_restore_to_new_project_paid_and_additional_monthly_expense_documented",
+            "supabase_pitr_paid_addon_documented",
+            "no_existing_zero_incremental_cost_isolated_provider_target_proven",
         ),
         "remaining": (
-            "isolated_provider_non_prod_restore_target_proven_without_unapproved_cost",
+            "money_limit_authorization_or_zero_incremental_cost_isolated_provider_target",
             "completed_provider_restore",
             "provider_restore_integrity_check",
             "application_smoke_after_provider_restore",
@@ -106,8 +113,9 @@ OBJECTIVE_GROUPS = {
     },
     "OBSERVABILITY": {
         "target": "per_engine_logs_metrics_incidents_complete",
-        "status": "PARTIAL_ZERO_COST_AUX_SINK_LAB_GREEN_PROD_MIRROR_WIRING_OPEN",
+        "status": "PARTIAL_ZERO_COST_AUX_SINK_LAB_GREEN_PROD_MIRROR_AND_YOUTUBE_AUTH_OPEN",
         "green": False,
+        "human_required": ("HIGH_RISK",),
         "completed": (
             "177_engine_structural_observability_contract",
             "177_engine_lab_log_metric_incident_runtime_proven",
@@ -131,9 +139,11 @@ OBJECTIVE_GROUPS = {
             "seo_retained_run_replay_green",
             "seo_nonprod_incident_capture_fixture_green",
             "linkedin_retained_health_execution_green",
-            "youtube_health_reauthorization_green",
-            "youtube_health_connection_rewired_green",
-            "youtube_health_scenario_returned_inactive_after_controlled_attempt",
+            "make_datastore_171764_shared_core_health_and_dedupe_inventory_captured",
+            "make_datastore_172319_temp_test_schema_audit_inventory_captured",
+            "make_existing_stores_rejected_as_unproven_multiempresa_prod_sink",
+            "make_scope_probe_scenario_creation_refused_precreated_datastore_required_no_record_written",
+            "youtube_health_activation_attempt_20260914_failed_closed_connection_verify_400_zero_operations_zero_credits",
         ),
         "remaining": (
             "parallel_prod_mirroring_wiring_without_legacy_table_breakage",
@@ -141,6 +151,7 @@ OBJECTIVE_GROUPS = {
             "per_engine_prod_live_log_coverage",
             "per_engine_prod_live_metric_coverage",
             "per_engine_prod_live_incident_coverage",
+            "youtube_secure_oauth_reauthorization_and_retained_health_execution_green",
             "youtube_retained_metric_execution_or_explicit_approved_absence_policy",
             "seo_prod_incident_capture_evidence_after_safe_wiring",
         ),
@@ -149,6 +160,7 @@ OBJECTIVE_GROUPS = {
         "target": "monthly_cost_measured",
         "status": "PARTIAL_CURRENT_NOTION_LIST_REFERENCE_FOUND_CURRENT_NOTION_AND_GCP_EXACT_AMOUNTS_OPEN",
         "green": False,
+        "human_required": (),
         "completed": (
             "supabase_monthly_cost_measured",
             "make_monthly_cost_measured",
@@ -176,6 +188,7 @@ OBJECTIVE_GROUPS = {
         "target": "prod_candidate_human_gated",
         "status": "BLOCKED_BY_UPSTREAM_GAPS",
         "green": False,
+        "human_required": (),
         "completed": (
             "factory_ci_green",
             "177_lab_green_baseline",
@@ -199,11 +212,17 @@ def assess_objective_groups() -> dict:
     groups = {name: OBJECTIVE_GROUPS[name] for name in EXECUTION_ORDER}
     green = tuple(name for name, row in groups.items() if row["green"])
     pending = tuple(name for name, row in groups.items() if not row["green"])
+    human_required = tuple(
+        (name, code)
+        for name, row in groups.items()
+        for code in row.get("human_required", ())
+    )
     return {
         "execution_order": EXECUTION_ORDER,
         "groups": groups,
         "green_groups": green,
         "pending_groups": pending,
+        "human_required": human_required,
         "all_green": not pending,
         "prod_candidate_allowed": False,
         "automatic_prod_promotion_allowed": False,
