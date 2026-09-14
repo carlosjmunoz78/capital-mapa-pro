@@ -45,6 +45,20 @@ Final controlled synthetic smoke:
 
 Independent Google Sheets read-back confirmed all ten fields persisted in row 2 with the expected values.
 
+## RETEST 2026-09-14
+
+The persistent bridge was re-executed after the Console/YouTube closure work to prove it still accepts the full multi-company observability contract without relying on the original smoke state.
+
+- scenario id: `9804649`
+- execution id: `f0113899318149ec8f2e755323317c42`
+- result: `success`
+- returned `ok`: `true`
+- inserted row: `3`
+- connection status at audit time: `ok`
+- incomplete executions: `0`
+
+Result: base persistent observability infrastructure remains **GREEN**. Production-wide engine wiring is still intentionally **PARCIAL**; no claim is made that every PROD engine emits to this sink yet.
+
 ## ESTADO
 
 Persistent zero-cost auxiliary storage contract: **GREEN LAB / READY FOR PARALLEL WIRING**.
