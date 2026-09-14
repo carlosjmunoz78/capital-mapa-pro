@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1.0",
+  "engine_id": "TAX-001",
+  "environment": "LAB",
+  "status": "UNBOUND",
+  "required_artifacts": ["AW", "AV", "BH"],
+  "artifacts": {
+    "AW": {"sha256": null, "source_ref": null},
+    "AV": {"sha256": null, "source_ref": null},
+    "BH": {"sha256": null, "source_ref": null}
+  },
+  "policy": {
+    "fail_closed_when_unbound": true,
+    "hash_algorithm": "sha256",
+    "allow_placeholders": false,
+    "manual_hash_inference_forbidden": true
+  },
+  "note": "Canonical hashes must be bound from verified project evidence. This file intentionally remains UNBOUND until those exact artifacts are verified."
+}

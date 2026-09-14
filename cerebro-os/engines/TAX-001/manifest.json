@@ -13,10 +13,13 @@
     "facts",
     "effective_date",
     "jurisdiction",
-    "evidence_refs"
+    "evidence_refs",
+    "versioned_rule",
+    "corpus_lock"
   ],
   "outputs": [
     "decision_support",
+    "rule_result",
     "confidence",
     "evidence_refs",
     "human_required",
@@ -33,12 +36,15 @@
     "official_source_required",
     "effective_date_required",
     "jurisdiction_required",
-    "regulated_action_fail_closed"
+    "regulated_action_fail_closed",
+    "corpus_lock_required",
+    "rule_version_required",
+    "python_eval_forbidden"
   ],
   "events_in": ["tax.decision_support.requested"],
-  "events_out": ["tax.decision_support.completed", "human.required"],
-  "tests": ["unit", "contract", "policy", "knowledge_gate"],
-  "evaluation": ["evidence_gate", "currentness_gate", "tribunal_gate"],
+  "events_out": ["tax.decision_support.completed", "tax.decision_support.audited", "human.required"],
+  "tests": ["unit", "contract", "policy", "knowledge_gate", "corpus_lock", "currentness", "deterministic_rule", "audit_contract"],
+  "evaluation": ["evidence_gate", "currentness_gate", "corpus_lock_gate", "tribunal_gate"],
   "observability": [
     "request_id",
     "company_id",
@@ -47,6 +53,9 @@
     "environment",
     "result",
     "confidence",
+    "rule_id",
+    "rule_version",
+    "corpus_lock_verified",
     "duration_ms",
     "cost_eur"
   ],
@@ -67,6 +76,9 @@
     "CUSTOMER_HUMAN_REQUEST"
   ],
   "knowledge_status": "KNOWLEDGE_GREEN",
+  "corpus_lock_status": "UNBOUND",
+  "rule_executor_status": "IMPLEMENTED_LAB_FAIL_CLOSED",
+  "audit_persistence_status": "DELEGATED_TO_AUD-001_NOT_VERIFIED",
   "capability_status": "BUILDING",
   "autonomy_status": "DISABLED",
   "prod_enabled": false
