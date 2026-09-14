@@ -21,6 +21,7 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
         self.assertFalse(result["automatic_prod_promotion_allowed"])
         self.assertEqual(result["status"], "GREEN_LOOP_IN_PROGRESS")
         self.assertIn(("SECURITY", "HIGH_RISK"), result["human_required"])
+        self.assertIn(("SECURITY", "SECURITY_INCIDENT"), result["human_required"])
         self.assertIn(("RECOVERY", "MONEY_LIMIT"), result["human_required"])
         self.assertIn(("OBSERVABILITY", "HIGH_RISK"), result["human_required"])
 
@@ -36,13 +37,15 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
         security = module.OBJECTIVE_GROUPS["SECURITY"]
         completed = security["completed"]
         remaining = security["remaining"]
-        self.assertEqual(security["human_required"], ("HIGH_RISK",))
+        self.assertEqual(security["human_required"], ("HIGH_RISK", "SECURITY_INCIDENT"))
         self.assertIn("44_of_44_fenix_prod_tables_rls_enabled_live", completed)
         self.assertIn("five_target_server_wrappers_live_security_definer_service_role_only", completed)
         self.assertIn("five_target_server_wrappers_unknown_actor_fail_closed", completed)
         self.assertIn("exp_create_and_sign_create_null_actor_guard_hardened_live", completed)
         self.assertIn("five_target_old_new_rpc_parity_green_in_rolled_back_prod_transaction", completed)
         self.assertIn("app_gateway_v17_required_target_routes_live", completed)
+        self.assertIn("authenticated_gateway_five_target_e2e_plan_locked_fail_closed", completed)
+        self.assertIn("four_write_targets_without_proven_http_cleanup_route_recorded", completed)
         self.assertIn("reviewed_rpc_migration_pr_376_human_authorized_and_merged", completed)
         self.assertIn("app_main_merge_sha_dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c", completed)
         self.assertIn("prod_live_deploy_run_34790008072_success", completed)
@@ -53,7 +56,14 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
         self.assertIn("live_gateway_http_health_200_contract_v3", completed)
         self.assertIn("live_gateway_target_route_without_identity_fails_closed_401", completed)
         self.assertIn("eight_legacy_rpc_retirement_sql_and_rollback_prepared_not_applied", completed)
-        self.assertIn("cloudflare_pages_parallel_check_failure_recorded_fail_closed", completed)
+        self.assertIn("cloudflare_pages_read_only_inventory_20260914_green", completed)
+        self.assertIn("cloudflare_pages_project_only_pages_dev_domain_no_app_custom_domain", completed)
+        self.assertIn("cloudflare_audit_branch_preview_skip_classified_policy_not_app_runtime_failure", completed)
+        self.assertIn("cloudflare_pages_build_command_next_on_pages_mismatches_vite_app_recorded", completed)
+        self.assertIn("cloudflare_pages_noncanonical_parallel_role_proven_preserved_untouched", completed)
+        self.assertIn("cloudflare_read_only_inventory_raw_secret_exposure_security_incident_recorded_without_persisting_value", completed)
+        self.assertNotIn("cloudflare_pages_parallel_routing_role_and_failure_disposition", remaining)
+        self.assertIn("cloudflare_secret_consumer_inventory_rotation_and_post_rotation_verification", remaining)
         self.assertIn("24_authenticated_security_definer_execute_warnings_captured", completed)
         self.assertIn("24_security_definer_warnings_partitioned_8_legacy_7_read_session_9_mutators", completed)
         self.assertIn("pg_net_function_namespace_net_confirmed_read_only", completed)
@@ -66,7 +76,6 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
         self.assertIn("selective_retirement_of_only_migrated_legacy_authenticated_execute_after_http_gate", remaining)
         self.assertIn("post_retirement_gateway_e2e_and_advisor_recheck", remaining)
         self.assertIn("caller_and_contract_disposition_of_7_read_session_and_9_mutating_security_definer_surfaces", remaining)
-        self.assertIn("cloudflare_pages_parallel_routing_role_and_failure_disposition", remaining)
         self.assertIn("pg_net_extension_namespace_dependency_backup_and_rebuild_review_before_any_move", remaining)
         self.assertIn("leaked_password_protection_enablement_when_auth_config_write_channel_is_available", remaining)
 
