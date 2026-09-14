@@ -1,0 +1,31 @@
+{
+  "contract_version": "0.1.0",
+  "engine_id": "TAX-001",
+  "rule_required_fields": [
+    "rule_id",
+    "rule_version",
+    "jurisdiction",
+    "operation",
+    "effective_from",
+    "effective_to",
+    "required_facts",
+    "evidence_refs",
+    "expression"
+  ],
+  "allowed_operations": ["CLASSIFY", "CALCULATE", "EXPLAIN", "CHECK_DEADLINE"],
+  "allowed_expression_types": [
+    "IDENTITY_FACT",
+    "MULTIPLY_FACT_BY_RATE",
+    "ADD_FACTS",
+    "COMPARE_GTE"
+  ],
+  "policy": {
+    "deterministic_only": true,
+    "python_eval_forbidden": true,
+    "dynamic_rate_memory_forbidden": true,
+    "official_evidence_required": true,
+    "effective_date_match_required": true,
+    "jurisdiction_match_required": true,
+    "corpus_lock_required": true
+  }
+}
