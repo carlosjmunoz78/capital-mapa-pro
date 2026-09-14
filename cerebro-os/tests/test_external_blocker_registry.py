@@ -38,6 +38,8 @@ class ExternalBlockerRegistryTests(unittest.TestCase):
         self.assertIn("make_datastore_171764_is_live_shared_core_health_and_dedupe_store", row["facts"])
         self.assertIn("make_datastore_172319_is_temp_test_schema_audit_store", row["facts"])
         self.assertIn("reusing_shared_core_store_without_schema_contract_rejected", row["facts"])
+        self.assertIn("inactive_scope_probe_scenario_creation_refused_because_make_requires_precreated_datastore", row["facts"])
+        self.assertIn("scope_probe_created_no_scenario_and_wrote_no_records", row["facts"])
 
     def test_finops_does_not_estimate_unknown_current_amounts(self):
         row = module.BLOCKERS["FINOPS_EXACT_CURRENT_INVOICES"]
