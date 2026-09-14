@@ -9,7 +9,7 @@ ENVIRONMENT = "LAB"
 
 
 def build_audit_event(payload: dict[str, Any], result: dict[str, Any], *, duration_ms: int = 0) -> dict[str, Any]:
-    """Build a serializable audit event. Persistence is intentionally delegated to AUD-001."""
+    """Build a serializable audit event. Persistence is delegated to AUD-001."""
     return {
         "event_type": "tax.decision_support.audited",
         "occurred_at": datetime.now(timezone.utc).isoformat(),
@@ -30,3 +30,11 @@ def build_audit_event(payload: dict[str, Any], result: dict[str, Any], *, durati
         "persistence_status": "NOT_PERSISTED_BY_TAX001",
         "persistence_owner": "AUD-001",
     }
+
+
+def persist_audit_event(event: dict[str, Any], sink: Any) -> dict[str, Any]:
+    """Persist through an injected AUD-001-compatible sink without coupling TAX-001 to storage."""
+    persist = getattr(sink, "persist", None)
+    if not callable(persist):
+        raise TypeError("sink must expose persist(event)")
+    return persist(event)
