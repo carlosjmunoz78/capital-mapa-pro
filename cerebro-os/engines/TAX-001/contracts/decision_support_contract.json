@@ -1,0 +1,26 @@
+{
+  "contract_version": "0.1.0",
+  "engine_id": "TAX-001",
+  "environment": "LAB",
+  "company_id_required": true,
+  "required_request_fields": [
+    "request_id",
+    "company_id",
+    "operation",
+    "facts",
+    "effective_date",
+    "jurisdiction",
+    "evidence_refs"
+  ],
+  "allowed_operations": ["CLASSIFY", "CALCULATE", "EXPLAIN", "CHECK_DEADLINE"],
+  "prohibited_external_actions": ["FILE", "SUBMIT", "SIGN", "PAY", "AMEND", "APPEAL"],
+  "source_policy": {
+    "official_source_required": true,
+    "effective_date_required": true,
+    "jurisdiction_required": true,
+    "dynamic_rates_from_memory_forbidden": true
+  },
+  "result_states": ["READY_FOR_RULE_EXECUTION", "HUMAN_REQUIRED", "DENY"],
+  "zero_cost_target_eur": 0,
+  "prod_enabled": false
+}
