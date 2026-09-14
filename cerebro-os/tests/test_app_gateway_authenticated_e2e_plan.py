@@ -19,20 +19,25 @@ class AuthenticatedGatewayE2EPlanTests(unittest.TestCase):
             {"notification_mark", "contact_create", "exp_create", "sign_create"},
         )
 
-    def test_write_e2e_is_fail_closed_without_identity_and_cleanup(self):
+    def test_cleanup_strategies_are_proven_for_all_write_targets(self):
         result = module.assess()
+        self.assertEqual(result["write_targets_without_proven_cleanup_strategy"], ())
+        self.assertEqual(result["write_targets_without_proven_cleanup_route"], ())
+        for name in result["write_targets"]:
+            self.assertTrue(module.TARGETS[name]["cleanup_strategy_proven"])
+            self.assertTrue(module.TARGETS[name]["cleanup_strategy"])
+
+    def test_write_e2e_still_fails_closed_without_high_risk_gate(self):
+        result = module.assess(safe_test_identity_proven=True)
         self.assertFalse(result["write_execution_allowed"])
         self.assertEqual(result["human_required"], "HIGH_RISK")
         self.assertEqual(result["status"], "BLOCKED_FAIL_CLOSED")
-        self.assertEqual(
-            set(result["write_targets_without_proven_cleanup_route"]),
-            {"notification_mark", "contact_create", "exp_create", "sign_create"},
-        )
 
-    def test_high_risk_approval_alone_cannot_bypass_cleanup_contract(self):
+    def test_identity_plus_explicit_high_risk_gate_makes_plan_ready(self):
         result = module.assess(safe_test_identity_proven=True, high_risk_approved=True)
-        self.assertFalse(result["write_execution_allowed"])
-        self.assertEqual(result["status"], "BLOCKED_FAIL_CLOSED")
+        self.assertTrue(result["write_execution_allowed"])
+        self.assertIsNone(result["human_required"])
+        self.assertEqual(result["status"], "READY_FOR_CONTROLLED_EXECUTION")
 
     def test_server_rpc_contracts_match_live_gateway_v17(self):
         self.assertEqual(module.TARGETS["notifications_list"]["server_rpc"], "fenix_prod_notifications_list_server")
