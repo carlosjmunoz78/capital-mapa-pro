@@ -53,20 +53,35 @@ Bloqueo restante:
 
 ## OBSERVABILITY · sink persistente 0 EUR
 
-Estado: `PARTIAL`, sin excepción humana necesaria todavía.
+Estado: `PARTIAL`.
 
 Evidencia Make:
 - Make ya está conectado y en uso por Fénix.
-- Data Store `171764` está compartido por CORE/deduplicación y por health snapshots PROD; por ejemplo YouTube registra `HEALTH_YOUTUBE_CHANNEL` en `environment=PROD`.
-- El monitor CORE usa el mismo Data Store `171764` para configuración, DLQ, health y snapshots.
-- Data Store `172319` aparece en una auditoría temporal TEST de esquema y no es un sink PROD dedicado.
+- Data Store `171764` está compartido por CORE/deduplicación y por health snapshots PROD; YouTube escribe `HEALTH_YOUTUBE_CHANNEL` con `environment=PROD` y el monitor CORE consume/escribe configuración, DLQ y snapshots en el mismo store.
+- Data Store `172319` pertenece a una auditoría temporal TEST de esquema y no es un sink PROD dedicado.
 - Ninguno de estos stores está demostrado con el contrato obligatorio completo `company_id`, `engine_id`, `environment`, `version`, `kind`.
 - El tool surface actual no expone una operación directa para crear/cambiar el schema de un Data Store aislado.
+- Se intentó crear un escenario **inactivo y NO RUN** únicamente para validar compatibilidad del schema con esos cinco campos. Make rechazó la creación porque el módulo exige un Data Store precreado y el canal actual no puede crearlo. No se creó escenario y no se escribió ningún registro.
 
 Decisión fail-closed:
 - No reutilizar ni remodelar `171764`: hacerlo podría romper deduplicación/health existentes.
 - No reciclar `172319` sin inventario, contrato y aislamiento.
 - Mantener el sink JSONL LAB/CI verde, pero OBSERVABILITY PROD sigue abierto hasta demostrar almacenamiento persistente compatible y wiring paralelo sin romper lo existente.
+
+## OBSERVABILITY · YouTube health
+
+Estado: `PARTIAL / HUMAN_REQUIRED: HIGH_RISK` por credencial OAuth.
+
+Evidencia live de Make:
+- Escenario `9537666` (`FENIX · HEALTH · YouTube · Canal, vídeos y permisos · V1`) es read-only sobre YouTube y solo persiste health en Data Store.
+- Se intentó activarlo para una ejecución controlada.
+- Ejecución `a96383dd40b54b3c91688fe1039a84f4` falló antes de ejecutar módulos: Make no pudo verificar la conexión de YouTube y devolvió HTTP 400.
+- La ejecución consumió `0 operations`, `0 credits` y no produjo escrituras.
+- El escenario quedó inactivo/fail-closed.
+
+Decisión:
+- Se retira cualquier afirmación previa de `youtube_health_reauthorization_green` o `youtube_health_connection_rewired_green` como evidencia operativa actual.
+- El siguiente gate es reautorización OAuth segura y nueva ejecución read-only verde; no se automatiza una reautorización de credenciales de una cuenta humana.
 
 ## FINOPS · importes actuales exactos
 
