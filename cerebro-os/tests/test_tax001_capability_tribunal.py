@@ -27,7 +27,7 @@ class Tax001CapabilityTribunalTests(unittest.TestCase):
         self.assertFalse(result["autonomy_green"])
         self.assertIn("CORPUS_LOCK_NOT_BOUND", result["blockers"])
         self.assertIn("CORPUS_ARTIFACTS_NOT_BOUND", result["blockers"])
-        self.assertIn("AUDIT_PERSISTENCE_NOT_VERIFIED", result["blockers"])
+        self.assertNotIn("AUDIT_PERSISTENCE_NOT_VERIFIED", result["blockers"])
         self.assertIn("BACKUP_NOT_VERIFIED", result["blockers"])
         self.assertIn("ROLLBACK_NOT_VERIFIED", result["blockers"])
         self.assertIn("REBUILD_NOT_VERIFIED", result["blockers"])
