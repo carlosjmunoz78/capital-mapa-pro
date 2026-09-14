@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 CUT = {
-    "cut_at": "2026-09-14T07:04:00+02:00",
+    "cut_at": "2026-09-14T07:14:00+02:00",
     "app_prod": {
         "main_sha": "dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c",
         "prod_live_deploy_run": 34790008072,
@@ -14,13 +14,17 @@ CUT = {
         "anonymous_gateway_fail_closed_green": True,
     },
     "security": {
-        "status": "PARTIAL_AUTHENTICATED_HTTP_E2E_HIGH_RISK_GATE",
+        "status": "PARTIAL_AUTHENTICATED_HTTP_E2E_HIGH_RISK_GATE_SECDEF_CLASSIFIED",
         "green": False,
         "source_promotion_green": True,
         "target_callers_zero_green": True,
         "advisor_observed_at": "2026-09-14T05:04:48Z",
         "rls_no_policy_info_count": 44,
         "security_definer_authenticated_warn_count": 24,
+        "security_definer_migrated_legacy_targets": 8,
+        "security_definer_read_session_surfaces": 7,
+        "security_definer_mutators_review_required": 9,
+        "security_definer_partition_complete": True,
         "pg_net_public_warn_count": 1,
         "leaked_password_protection_warn_count": 1,
         "cloudflare_pages_failure_blocks_app_runtime": False,
@@ -31,14 +35,17 @@ CUT = {
         "human_required": "HIGH_RISK",
     },
     "recovery": {
-        "status": "PARTIAL_REAL_ROLLBACK_CANDIDATE_AND_NON_MUTATING_REHEARSAL_WORKFLOW_FOUND",
+        "status": "PARTIAL_APP_SOURCE_ROLLBACK_REHEARSAL_GREEN_PROVIDER_DB_RESTORE_OPEN",
         "green": False,
         "previous_prod_source_sha": "c7a15cff9a387f1f142c8eeb06fd83a799e85a61",
         "previous_prod_source_resolves": True,
         "rollback_rehearsal_workflow_present": True,
         "rollback_rehearsal_is_non_mutating": True,
-        "historical_workflow_dispatch_runs": 0,
-        "old_sha_rehearsal_green": False,
+        "rollback_rehearsal_branch": "cerebro-prod-rollback-rehearsal-c7a15c-20260914",
+        "rollback_rehearsal_run": 34808719859,
+        "old_sha_rehearsal_green": True,
+        "rollback_artifact_id": 10333274904,
+        "rollback_artifact_sha256": "1d461022a00576a41acac8857af809aeff7666e0b4cdbd541f6fc67f6e4e787a",
         "provider_restore_green": False,
         "paid_restore_resource_created": False,
     },
