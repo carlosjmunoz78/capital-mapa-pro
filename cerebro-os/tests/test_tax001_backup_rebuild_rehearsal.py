@@ -28,6 +28,13 @@ class Tax001BackupRebuildRehearsalTests(unittest.TestCase):
         self.assertFalse(result["prod_touched"])
         self.assertGreater(result["files_verified"], 0)
 
+    def test_rollback_restores_exact_known_good_package(self):
+        result = self.rehearsal.rehearse_rollback()
+        self.assertEqual(result["status"], "PASS")
+        self.assertTrue(result["rollback_exact"])
+        self.assertFalse(result["corpus_artifacts_mutated"])
+        self.assertFalse(result["prod_touched"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -43,7 +43,7 @@
   ],
   "events_in": ["tax.decision_support.requested"],
   "events_out": ["tax.decision_support.completed", "tax.decision_support.audited", "human.required"],
-  "tests": ["unit", "contract", "policy", "knowledge_gate", "corpus_lock", "currentness", "deterministic_rule", "audit_contract", "audit_persistence_lab", "capability_tribunal"],
+  "tests": ["unit", "contract", "policy", "knowledge_gate", "corpus_lock", "currentness", "deterministic_rule", "audit_contract", "audit_persistence_lab", "backup_rebuild_rehearsal", "rollback_rehearsal", "capability_tribunal"],
   "evaluation": ["evidence_gate", "currentness_gate", "corpus_lock_gate", "tribunal_gate"],
   "observability": [
     "request_id",
@@ -61,7 +61,7 @@
   ],
   "cost_budget": {"target_additional_eur": 0},
   "backup": {"required": true, "verified": false},
-  "rollback": {"required": true, "verified": false},
+  "rollback": {"required": true, "verified": true, "scope": "LAB_ENGINE_PACKAGE"},
   "rebuild": {"required": true, "verified": false},
   "dependencies": ["POL-001", "HEX-001", "PRV-001", "KNW-001", "EVA-001", "JDG-001", "AUD-001", "OBSERV-001"],
   "autonomy_level": "DECISION_SUPPORT_ONLY",

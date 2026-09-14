@@ -80,5 +80,38 @@ def rehearse() -> dict[str, object]:
         }
 
 
+def rehearse_rollback() -> dict[str, object]:
+    """Simulate a bad LAB change on a temporary copy and restore exact known-good bytes."""
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_root = Path(tmp)
+        known_good = tmp_root / "known_good"
+        working = tmp_root / "working"
+        expected = create_snapshot(ENGINE_DIR, known_good)
+        shutil.copytree(known_good, working)
+        (working / "snapshot_manifest.json").unlink()
+
+        target = working / "manifest.json"
+        original = target.read_text(encoding="utf-8")
+        target.write_text(original + "\nROLLBACK_REHEARSAL_MUTATION\n", encoding="utf-8")
+        if inventory(working) == expected:
+            raise RuntimeError("rollback rehearsal mutation did not change package")
+
+        shutil.rmtree(working)
+        shutil.copytree(known_good, working)
+        (working / "snapshot_manifest.json").unlink()
+        actual = inventory(working)
+        if actual != expected:
+            raise RuntimeError("rollback did not restore exact known-good package")
+
+        return {
+            "engine_id": "TAX-001",
+            "status": "PASS",
+            "scope": "LAB_ENGINE_PACKAGE",
+            "rollback_exact": True,
+            "corpus_artifacts_mutated": False,
+            "prod_touched": False,
+        }
+
+
 if __name__ == "__main__":
-    print(json.dumps(rehearse(), sort_keys=True))
+    print(json.dumps({"backup_rebuild": rehearse(), "rollback": rehearse_rollback()}, sort_keys=True))

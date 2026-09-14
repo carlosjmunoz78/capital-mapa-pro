@@ -29,7 +29,7 @@ class Tax001CapabilityTribunalTests(unittest.TestCase):
         self.assertIn("CORPUS_ARTIFACTS_NOT_BOUND", result["blockers"])
         self.assertNotIn("AUDIT_PERSISTENCE_NOT_VERIFIED", result["blockers"])
         self.assertIn("BACKUP_NOT_VERIFIED", result["blockers"])
-        self.assertIn("ROLLBACK_NOT_VERIFIED", result["blockers"])
+        self.assertNotIn("ROLLBACK_NOT_VERIFIED", result["blockers"])
         self.assertIn("REBUILD_NOT_VERIFIED", result["blockers"])
 
     def test_synthetic_fully_verified_state_passes_capability_only(self):
