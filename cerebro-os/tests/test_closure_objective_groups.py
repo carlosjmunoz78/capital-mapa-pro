@@ -23,7 +23,7 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
         self.assertIn(("SECURITY", "HIGH_RISK"), result["human_required"])
         self.assertIn(("SECURITY", "SECURITY_INCIDENT"), result["human_required"])
         self.assertIn(("RECOVERY", "MONEY_LIMIT"), result["human_required"])
-        self.assertIn(("OBSERVABILITY", "HIGH_RISK"), result["human_required"])
+        self.assertNotIn(("OBSERVABILITY", "HIGH_RISK"), result["human_required"])
 
     def test_all_groups_have_remaining_evidence_until_proven(self):
         result = module.assess_objective_groups()
@@ -46,6 +46,9 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
         self.assertIn("app_gateway_v17_required_target_routes_live", completed)
         self.assertIn("authenticated_gateway_five_target_e2e_plan_locked_fail_closed", completed)
         self.assertIn("four_write_targets_without_proven_http_cleanup_route_recorded", completed)
+        self.assertIn("dedicated_cerebro_ops_identity_created_through_supported_auth_dashboard", completed)
+        self.assertIn("dedicated_cerebro_ops_identity_authenticated_in_live_app", completed)
+        self.assertIn("dedicated_cerebro_ops_notifications_read_path_browser_verified_green", completed)
         self.assertIn("reviewed_rpc_migration_pr_376_human_authorized_and_merged", completed)
         self.assertIn("app_main_merge_sha_dd09153a6d025d9cc75eb2c14e776a9e5bd8e16c", completed)
         self.assertIn("prod_live_deploy_run_34790008072_success", completed)
@@ -69,9 +72,8 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
         self.assertIn("pg_net_function_namespace_net_confirmed_read_only", completed)
         self.assertIn("leaked_password_protection_disabled_warning_captured", completed)
         self.assertIn("leaked_password_protection_supported_remediation_path_documented", completed)
-        self.assertIn("safe_prod_authenticated_test_identity_absence_proven", completed)
         self.assertIn("blind_bulk_security_changes_rejected", completed)
-        self.assertIn("authenticated_http_gateway_e2e_for_target_routes_with_safe_identity", remaining)
+        self.assertIn("authenticated_http_gateway_write_e2e_for_target_routes_after_safe_cleanup_strategy", remaining)
         self.assertIn("rollback_or_non_durable_cleanup_evidence_for_full_http_write_path", remaining)
         self.assertIn("selective_retirement_of_only_migrated_legacy_authenticated_execute_after_http_gate", remaining)
         self.assertIn("post_retirement_gateway_e2e_and_advisor_recheck", remaining)
@@ -92,30 +94,34 @@ class ClosureObjectiveGroupsTests(unittest.TestCase):
         self.assertIn("money_limit_authorization_or_zero_incremental_cost_isolated_provider_target", remaining)
         self.assertIn("completed_provider_restore", remaining)
 
-    def test_observability_tracks_linkedin_and_latest_youtube_failure_without_false_green(self):
+    def test_observability_tracks_linkedin_and_youtube_green_without_false_global_green(self):
         observability = module.OBJECTIVE_GROUPS["OBSERVABILITY"]
         completed = observability["completed"]
         remaining = observability["remaining"]
-        self.assertEqual(observability["human_required"], ("HIGH_RISK",))
+        self.assertEqual(observability["human_required"], ())
+        self.assertFalse(observability["green"])
         self.assertIn("linkedin_retained_health_execution_green", completed)
         self.assertIn("make_datastore_171764_shared_core_health_and_dedupe_inventory_captured", completed)
         self.assertIn("make_scope_probe_scenario_creation_refused_precreated_datastore_required_no_record_written", completed)
         self.assertIn("youtube_health_activation_attempt_20260914_failed_closed_connection_verify_400_zero_operations_zero_credits", completed)
-        self.assertNotIn("youtube_health_reauthorization_green", completed)
-        self.assertNotIn("youtube_health_connection_rewired_green", completed)
-        self.assertIn("youtube_secure_oauth_reauthorization_and_retained_health_execution_green", remaining)
+        self.assertIn("youtube_oauth_reauthorized_supported_user_flow", completed)
+        self.assertIn("youtube_health_manual_execution_bcdc124704c147daafc12363cee431a5_success_three_operations", completed)
+        self.assertNotIn("youtube_secure_oauth_reauthorization_and_retained_health_execution_green", remaining)
         self.assertIn("youtube_retained_metric_execution_or_explicit_approved_absence_policy", remaining)
+        self.assertIn("persistent_zero_cost_auxiliary_sink_for_prod_mirror_deployment", remaining)
 
-    def test_finops_keeps_reference_separate_from_current_unknown_invoice(self):
+    def test_finops_preserves_history_and_records_current_notion_without_faking_gcp_monthly_total(self):
         finops = module.OBJECTIVE_GROUPS["FINOPS"]
         self.assertEqual(finops["human_required"], ())
         self.assertIn("notion_authoritative_historical_trial_price_2025_04_04_eur_11_50_per_member_three_members_eur_34_50_month", finops["completed"])
         self.assertIn("notion_historical_price_not_misclassified_as_current_2026_cost", finops["completed"])
         self.assertIn("notion_cost_matrix_2026_08_26_business_reference_20_usd_per_member_month_found", finops["completed"])
         self.assertIn("notion_business_reference_not_misclassified_as_exact_current_invoice", finops["completed"])
+        self.assertIn("notion_current_billing_ui_user_reported_68_97_eur_month_two_users", finops["completed"])
         self.assertIn("google_cloud_recent_billing_email_search_found_no_exact_amount", finops["completed"])
-        self.assertIn("notion_current_2026_exact_monthly_amount_from_authoritative_billing_source", finops["remaining"])
-        self.assertIn("google_cloud_exact_monthly_amount_or_zero_cost_proof_from_authoritative_billing_source", finops["remaining"])
+        self.assertIn("google_cloud_billing_ui_snapshot_fenix_trading_lab_charge_0_34_eur", finops["completed"])
+        self.assertNotIn("notion_current_2026_exact_monthly_amount_from_authoritative_billing_source", finops["remaining"])
+        self.assertIn("google_cloud_exact_monthly_period_total_or_zero_cost_proof_from_authoritative_billing_source", finops["remaining"])
 
 
 if __name__ == "__main__":
