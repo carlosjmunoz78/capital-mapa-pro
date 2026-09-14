@@ -65,6 +65,8 @@ BLOCKERS = {
             "neither_proven_with_company_id_engine_id_environment_version_kind_schema",
             "reusing_shared_core_store_without_schema_contract_rejected",
             "no_dedicated_datastore_create_or_schema_change_action_exposed_in_current_tool_surface",
+            "inactive_scope_probe_scenario_creation_refused_because_make_requires_precreated_datastore",
+            "scope_probe_created_no_scenario_and_wrote_no_records",
         ),
         "unblock": "prove_existing_isolated_scope_compatible_store_or_add_safe_zero_cost_persistent_store_contract",
     },
