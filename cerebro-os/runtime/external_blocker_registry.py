@@ -70,6 +70,19 @@ BLOCKERS = {
         ),
         "unblock": "prove_existing_isolated_scope_compatible_store_or_add_safe_zero_cost_persistent_store_contract",
     },
+    "OBSERVABILITY_YOUTUBE_HEALTH": {
+        "group": "OBSERVABILITY",
+        "status": "BLOCKED_CONNECTION_VERIFICATION_400",
+        "human_required": "HIGH_RISK",
+        "facts": (
+            "make_youtube_health_scenario_9537666_activation_attempted",
+            "execution_a96383dd40b54b3c91688fe1039a84f4_failed_before_operations",
+            "youtube_connection_verification_returned_http_400",
+            "execution_consumed_zero_operations_and_zero_credits",
+            "scenario_remains_inactive_after_fail_closed_attempt",
+        ),
+        "unblock": "explicit_secure_youtube_oauth_reauthorization_then_read_only_health_rerun",
+    },
     "FINOPS_EXACT_CURRENT_INVOICES": {
         "group": "FINOPS",
         "status": "BLOCKED_AUTHORITATIVE_EXACT_AMOUNTS_NOT_FOUND",
