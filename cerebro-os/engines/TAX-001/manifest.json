@@ -43,7 +43,7 @@
   ],
   "events_in": ["tax.decision_support.requested"],
   "events_out": ["tax.decision_support.completed", "tax.decision_support.audited", "human.required"],
-  "tests": ["unit", "contract", "policy", "knowledge_gate", "corpus_lock", "currentness", "deterministic_rule", "audit_contract"],
+  "tests": ["unit", "contract", "policy", "knowledge_gate", "corpus_lock", "currentness", "deterministic_rule", "audit_contract", "audit_persistence_lab", "capability_tribunal"],
   "evaluation": ["evidence_gate", "currentness_gate", "corpus_lock_gate", "tribunal_gate"],
   "observability": [
     "request_id",
@@ -78,7 +78,7 @@
   "knowledge_status": "KNOWLEDGE_GREEN",
   "corpus_lock_status": "UNBOUND",
   "rule_executor_status": "IMPLEMENTED_LAB_FAIL_CLOSED",
-  "audit_persistence_status": "DELEGATED_TO_AUD-001_NOT_VERIFIED",
+  "audit_persistence_status": "VERIFIED_LAB",
   "capability_status": "BUILDING",
   "autonomy_status": "DISABLED",
   "prod_enabled": false
