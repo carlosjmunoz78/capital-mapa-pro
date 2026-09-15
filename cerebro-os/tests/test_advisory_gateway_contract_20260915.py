@@ -78,6 +78,20 @@ class AdvisoryGatewayContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             resolve_gateway_route(make_request(requested_domains=("NOT_A_DOMAIN",)))
 
+    def test_unknown_engine_id_fails_closed(self):
+        with self.assertRaises(ValueError):
+            resolve_gateway_route(make_request(engine_id="NOT-A-CANONICAL-ID"))
+
+    def test_specific_engine_must_match_routed_domain(self):
+        routed = resolve_gateway_route(
+            make_request(engine_id="TAX-001", requested_service="tax")
+        )
+        self.assertEqual(routed, ("FISCAL",))
+        with self.assertRaises(ValueError):
+            resolve_gateway_route(
+                make_request(engine_id="TAX-001", requested_service="employment")
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
