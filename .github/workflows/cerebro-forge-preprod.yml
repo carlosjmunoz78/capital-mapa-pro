@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - cerebro-forge-preprod-wif
+      - cerebro-engine-factory-v0
     paths:
       - 'cerebro-os/**'
       - '.github/workflows/cerebro-forge-preprod.yml'
