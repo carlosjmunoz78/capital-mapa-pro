@@ -9,7 +9,7 @@ sys.path.insert(0, str(ROOT))
 from advisory.case_context import CaseSnapshot, CaseStore
 from advisory.models import AdvisoryDecision, DomainOpinion
 from advisory.professional_output import normalize_professional_output
-from advisory.source_policy import SourceRecord, assess_sources
+from advisory.source_policy import SourceAssessment, SourceRecord, assess_sources
 
 
 class AdvisoryBlockBTests(unittest.TestCase):
@@ -28,6 +28,24 @@ class AdvisoryBlockBTests(unittest.TestCase):
         self.assertEqual(store.recover("COMPANY-001", "CASE-001"), snapshot)
         with self.assertRaises(KeyError):
             store.recover("COMPANY-002", "CASE-001")
+
+    def test_case_store_detaches_mutable_facts_on_save_and_recover(self):
+        store = CaseStore()
+        facts = {"nested": {"amount": 100}}
+        snapshot = CaseSnapshot(
+            company_id="COMPANY-001",
+            case_id="CASE-MUTABLE",
+            environment="LAB",
+            version="1.0.0",
+            facts=facts,
+        )
+        store.save(snapshot)
+        facts["nested"]["amount"] = 999
+        first = store.recover("COMPANY-001", "CASE-MUTABLE")
+        self.assertEqual(first.facts["nested"]["amount"], 100)
+        first.facts["nested"]["amount"] = 777
+        second = store.recover("COMPANY-001", "CASE-MUTABLE")
+        self.assertEqual(second.facts["nested"]["amount"], 100)
 
     def test_live_source_validity_jurisdiction_and_confidence(self):
         records = (
@@ -110,6 +128,58 @@ class AdvisoryBlockBTests(unittest.TestCase):
         self.assertEqual(output.risks, ("risk-1",))
         self.assertEqual(output.deadlines, ("2026-10-01",))
         self.assertEqual(output.next_actions, ("action-1",))
+
+    def test_red_and_blocked_statuses_are_not_downgraded_by_human_review(self):
+        for severe in ("RED", "BLOCKED"):
+            with self.subTest(status=severe):
+                decision = AdvisoryDecision(
+                    case_id="CASE-SEVERE",
+                    domains=("FISCAL",),
+                    opinions=(
+                        DomainOpinion(
+                            domain="FISCAL",
+                            status=severe,
+                            summary="Severe result",
+                            source_refs=("SRC-OK",),
+                            human_exception="HIGH_RISK",
+                        ),
+                    ),
+                    overall_status=severe,
+                )
+                assessment = SourceAssessment(
+                    status="GREEN",
+                    human_exception=None,
+                    accepted_source_ids=("SRC-OK",),
+                    reasons=(),
+                )
+                output = normalize_professional_output(decision, assessment)
+                self.assertEqual(output.overall_status, severe)
+                self.assertIn("HIGH_RISK", output.human_required)
+
+    def test_unrelated_accepted_source_cannot_replace_opinion_provenance(self):
+        decision = AdvisoryDecision(
+            case_id="CASE-PROVENANCE",
+            domains=("FISCAL",),
+            opinions=(
+                DomainOpinion(
+                    domain="FISCAL",
+                    status="GREEN",
+                    summary="Analysis tied to its own source",
+                    source_refs=("SRC-OPINION",),
+                ),
+            ),
+            overall_status="GREEN",
+        )
+        assessment = SourceAssessment(
+            status="GREEN",
+            human_exception=None,
+            accepted_source_ids=("SRC-OTHER",),
+            reasons=(),
+        )
+        output = normalize_professional_output(decision, assessment)
+        self.assertEqual(output.overall_status, "HUMAN_REQUIRED")
+        self.assertEqual(output.human_required, ("LOW_CONFIDENCE",))
+        self.assertEqual(output.source_ids, ())
 
 
 if __name__ == "__main__":
