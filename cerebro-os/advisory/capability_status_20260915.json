@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "environment": "LAB",
+  "knowledge": {
+    "domains": 12,
+    "knowledge_green": 12,
+    "knowledge_tribunal": "PASS"
+  },
+  "capability_runtime": {
+    "shared_runtime": true,
+    "case_router": true,
+    "domain_dependency_registry": true,
+    "coordinator": true,
+    "fail_closed_missing_handler": true,
+    "canonical_human_exception_gate": true,
+    "cross_domain_execution_contract": true,
+    "external_domain_handlers_bound": false,
+    "e2e_real_case_validation": false,
+    "capability_green": false
+  },
+  "autonomy_green": false,
+  "prod_enabled": false,
+  "app_crm_prod_touched": false,
+  "next_gate": "Bind LAB handlers to existing engine implementations and execute evidence-backed multi-domain E2E cases."
+}
