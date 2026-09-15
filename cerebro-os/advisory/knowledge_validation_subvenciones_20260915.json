@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "domain": "SUBVENCIONES_AYUDAS",
+  "environment": "LAB",
+  "source_file": "REPOSITORIO_PRO_ASESORIA_SUBVENCIONES_AYUDAS_FINAL_v2_0.md",
+  "source_sha256": "f8e007f13e85436f8f2d3f97fe07a50546c2c9aa74885c8ceb7199760542e62f",
+  "validation_mode": "REPRESENTATIVE_HIGH_RISK_OFFICIAL_SOURCE_CHECKS",
+  "decision_support_only": true,
+  "live_verification_required_per_case": true,
+  "regulated_actions_require_human_when_applicable": true,
+  "checks": [
+    {"id":"SUB-001","claim":"Spanish public subsidies are governed by Ley 38/2003 and its implementing regulation, subject to each call's specific rules","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2003-20977"},
+    {"id":"SUB-002","claim":"Real Decreto 887/2006 implements Ley 38/2003 and applies alongside the specific regulatory bases of each subsidy","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2006-13371"},
+    {"id":"SUB-003","claim":"The BDNS/Sistema Nacional de Publicidad de Subvenciones is part of the statutory publication system for calls and awards","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2003-20977"},
+    {"id":"SUB-004","claim":"The general EU de minimis ceiling under Regulation 2023/2831 is 300,000 EUR per single undertaking over any three-year period","status":"PASS","official_source":"https://eur-lex.europa.eu/legal-content/ES/ALL/?uri=CELEX:32023R2831"},
+    {"id":"SUB-005","claim":"De minimis assessment must account for the definition of a single undertaking, including control relationships between companies","status":"PASS","official_source":"https://eur-lex.europa.eu/legal-content/ES/ALL/?uri=CELEX:32023R2831"},
+    {"id":"SUB-006","claim":"Eligibility, deadlines, eligible costs, award criteria, justification and reimbursement conditions must be checked against the live call and its regulatory bases","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2006-13371"}
+  ],
+  "dynamic_gates": [
+    "live_call_status",
+    "beneficiary_type",
+    "territory",
+    "sector",
+    "eligible_costs",
+    "application_deadline",
+    "execution_period",
+    "justification_deadline",
+    "de_minimis_and_state_aid_regime",
+    "cumulation_rules",
+    "tax_and_social_security_compliance",
+    "reimbursement_and_penalty_risk"
+  ],
+  "summary": {
+    "checks": 6,
+    "passed": 6,
+    "failed": 0,
+    "critical_gap": false,
+    "knowledge_green": true,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "limitations": [
+    "This validates suitability as a maintained subsidy/advisory knowledge source, not every call or sentence exhaustively.",
+    "Calls, budgets, eligible costs, deadlines, de minimis accumulation, sector exclusions and territorial rules are dynamic and must be rechecked live before advice or submission.",
+    "Submission, declarations, signatures, acceptance of obligations and reimbursement litigation remain subject to legal/human gates where applicable."
+  ]
+}
