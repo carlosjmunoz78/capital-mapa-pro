@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import sys
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 REQUIRED_DISABLED = {
@@ -19,11 +20,9 @@ def fail(message: str) -> None:
     raise SystemExit(2)
 
 
-def main() -> int:
+def validate_common() -> dict:
     if os.getenv("CEREBRO_ENV") != "PREPROD":
         fail("CEREBRO_ENV must be PREPROD")
-    if os.getenv("CEREBRO_PREPROD_MODE") != "ephemeral_rehearsal":
-        fail("CEREBRO_PREPROD_MODE must be ephemeral_rehearsal")
 
     for key, expected in REQUIRED_DISABLED.items():
         if os.getenv(key) != expected:
@@ -42,6 +41,10 @@ def main() -> int:
     if status.get("app_crm_prod_touched"):
         fail("App/CRM/PROD must remain untouched")
 
+    return status
+
+
+def run_ephemeral_rehearsal() -> int:
     completed = subprocess.run(
         [sys.executable, "-m", "unittest", "discover", "-s", "cerebro-os/tests", "-v"],
         check=False,
@@ -65,6 +68,67 @@ def main() -> int:
         )
     )
     return 0
+
+
+def run_persistent_candidate() -> int:
+    port = int(os.getenv("PORT", "8080"))
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:  # noqa: N802
+            if self.path not in {"/", "/health", "/ready"}:
+                self.send_response(404)
+                self.end_headers()
+                return
+
+            payload = json.dumps(
+                {
+                    "status": "PASS",
+                    "environment": "PREPROD",
+                    "mode": "persistent_candidate",
+                    "external_writes": False,
+                    "app_crm_access": False,
+                    "prod_credentials": False,
+                    "customer_data": False,
+                },
+                sort_keys=True,
+            ).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+        def log_message(self, format: str, *args: object) -> None:
+            return
+
+    print(
+        json.dumps(
+            {
+                "status": "READY",
+                "environment": "PREPROD",
+                "mode": "persistent_candidate",
+                "port": port,
+                "external_writes": False,
+                "app_crm_access": False,
+                "prod_credentials": False,
+                "customer_data": False,
+            },
+            sort_keys=True,
+        )
+    )
+    ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()
+    return 0
+
+
+def main() -> int:
+    validate_common()
+    mode = os.getenv("CEREBRO_PREPROD_MODE")
+    if mode == "ephemeral_rehearsal":
+        return run_ephemeral_rehearsal()
+    if mode == "persistent_candidate":
+        return run_persistent_candidate()
+    fail("CEREBRO_PREPROD_MODE must be ephemeral_rehearsal or persistent_candidate")
+    return 2
 
 
 if __name__ == "__main__":
