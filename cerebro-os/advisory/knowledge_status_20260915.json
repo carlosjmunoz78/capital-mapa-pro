@@ -13,13 +13,13 @@
     {"domain":"SUBVENCIONES_AYUDAS","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_subvenciones_20260915.json"},
     {"domain":"PROTECCION_DATOS_COMPLIANCE","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_compliance_20260915.json"},
     {"domain":"EMPRESARIAL_ESTRATEGICA","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_estrategica_20260915.json"},
-    {"domain":"PATRIMONIAL","status":"VALIDATION_PENDING"},
+    {"domain":"PATRIMONIAL","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_patrimonial_20260915.json"},
     {"domain":"JURIDICA_GENERAL","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_juridica_20260915.json"}
   ],
   "summary": {
     "domains":12,
-    "knowledge_green":11,
-    "validation_pending":1,
+    "knowledge_green":12,
+    "validation_pending":0,
     "capability_green":false,
     "autonomy_green":false,
     "prod_enabled":false
