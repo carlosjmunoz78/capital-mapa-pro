@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "domain": "MERCANTIL",
+  "environment": "LAB",
+  "source_file": "REPOSITORIO_PRO_ASESORIA_MERCANTIL_FINAL_v1.0.md",
+  "source_sha256": "f31f733e64f7bb96369416c4bfe0758a9aa860882e0066cd08302749b26e5caf",
+  "validation_mode": "REPRESENTATIVE_HIGH_RISK_OFFICIAL_SOURCE_CHECKS",
+  "decision_support_only": true,
+  "live_verification_required_per_case": true,
+  "regulated_actions_require_human_when_applicable": true,
+  "checks": [
+    {"id":"MER-001","claim":"Ley de Sociedades de Capital consolidada identificada como RDL 1/2010","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2010-10544"},
+    {"id":"MER-002","claim":"Reglamento del Registro Mercantil identificado como RD 1784/1996 y consolidado en BOE","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1996-17533"},
+    {"id":"MER-003","claim":"Ley 18/2022 modificó el capital social mínimo de la sociedad limitada permitiendo capital desde un euro","status":"PASS","official_source":"https://www.boe.es/eli/es/l/2022/09/28/18/con"},
+    {"id":"MER-004","claim":"Texto refundido de la Ley Concursal identificado como RDL 1/2020 y vigente como marco concursal consolidado","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2020-4859"},
+    {"id":"MER-005","claim":"Constitución, estatutos, administradores, poderes, acuerdos y modificaciones societarias requieren comprobar forma societaria, escritura/inscripción y situación registral concreta","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2010-10544"},
+    {"id":"MER-006","claim":"Situaciones preconcursales, insolvencia actual o probable y reestructuración deben validarse contra la Ley Concursal vigente antes de emitir decision support","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2020-4859"}
+  ],
+  "summary": {
+    "checks": 6,
+    "passed": 6,
+    "failed": 0,
+    "critical_gap": false,
+    "knowledge_green": true,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "limitations": [
+    "La situación registral real, estatutos vigentes, acuerdos sociales, poderes y titularidad deben verificarse por expediente.",
+    "Operaciones estructurales, conflictos societarios, insolvencia, reestructuración, responsabilidad de administradores y actos reservados permanecen sujetos a LEGAL_REQUIRED o HIGH_RISK cuando proceda.",
+    "Esta validación acredita idoneidad como base mantenida de decision support; no valida exhaustivamente cada frase del repositorio."
+  ]
+}

@@ -6,7 +6,7 @@
     {"domain":"FISCAL","status":"KNOWLEDGE_GREEN","evidence":"engines/TAX-001/manifest.json knowledge_status=KNOWLEDGE_GREEN"},
     {"domain":"CONTABLE","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_contable_20260915.json"},
     {"domain":"LABORAL","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_laboral_20260915.json"},
-    {"domain":"MERCANTIL","status":"VALIDATION_PENDING"},
+    {"domain":"MERCANTIL","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_mercantil_20260915.json"},
     {"domain":"FINANCIERA","status":"VALIDATION_PENDING"},
     {"domain":"INMOBILIARIA","status":"VALIDATION_PENDING"},
     {"domain":"HIPOTECARIA","status":"VALIDATION_PENDING"},
@@ -18,8 +18,8 @@
   ],
   "summary": {
     "domains":12,
-    "knowledge_green":4,
-    "validation_pending":8,
+    "knowledge_green":5,
+    "validation_pending":7,
     "capability_green":false,
     "autonomy_green":false,
     "prod_enabled":false
