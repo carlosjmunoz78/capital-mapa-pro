@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.1",
+  "schema_version": "2.1.0",
   "scope": "PROFESSIONAL_ADVISORY",
   "environment": "PREPROD",
   "knowledge": {
@@ -64,6 +64,11 @@
     "block_c_postmerge_run_id": "35025424337",
     "block_d_merge_commit": "eff999dbbd60adc44a1ea372fd947f4d6d867f96",
     "block_d_postmerge_run_id": "35025812256",
+    "block_e_pr": 56,
+    "block_e_merge_commit": "e946f724ab6d63f4579b7eda53542eaab0183639",
+    "block_e_postmerge_run_id": "35026392556",
+    "block_e_postmerge_run_number": 19,
+    "block_e_postmerge_status": "SUCCESS",
     "capability_green_lab": true,
     "capability_green_preprod": true,
     "capability_green_global": false,
@@ -74,5 +79,5 @@
   "prod_enabled": false,
   "app_crm_prod_touched": false,
   "additional_cost_target_eur": 0,
-  "next_gate": "Professional Advisory is green as an isolated PREPROD capability and PREPROD advisory-autonomy candidate. Global capability/autonomy and PROD remain false until separate customer-data authorization, security, cost and PROD promotion gates are explicitly evidenced. App/CRM PROD remains untouched."
+  "next_gate": "Professional Advisory Blocks A-E are GREEN in isolated PREPROD. Global capability/autonomy and PROD remain separate and disabled until their own gates are explicitly evidenced. App/CRM PROD remains untouched."
 }
