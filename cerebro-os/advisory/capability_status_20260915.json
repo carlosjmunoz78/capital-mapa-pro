@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.3.0",
+  "schema_version": "1.4.0",
   "scope": "PROFESSIONAL_ADVISORY",
   "environment": "LAB",
   "knowledge": {
@@ -27,6 +27,15 @@
     "immutable_nonprod_casepack": true,
     "immutable_nonprod_casepack_version": "1.0.0",
     "immutable_nonprod_casepack_sha256": "2f7667de19bffaf8c1dca52837268e51ca44b849a60d6ce7235055920cf1e63d",
+    "preprod_prerequisite_contracts": {
+      "observability": true,
+      "rollback_rehearsal": true,
+      "backup_rebuild": true,
+      "zero_additional_cost_default": true,
+      "policy_gate": true,
+      "tribunal": true
+    },
+    "ready_for_preprod_candidate": true,
     "e2e_real_customer_case_validation": false,
     "capability_green_lab": true,
     "capability_green_global": false
@@ -35,5 +44,5 @@
   "preprod_enabled": false,
   "prod_enabled": false,
   "app_crm_prod_touched": false,
-  "next_gate": "Define and pass PREPROD promotion prerequisites (observability, rollback, backup/rebuild, cost, policy, tribunal) without touching App/CRM."
+  "next_gate": "Prepare isolated PREPROD candidate deployment/rehearsal. This status does not authorize PREPROD activation, autonomy or PROD, and App/CRM remain excluded."
 }
