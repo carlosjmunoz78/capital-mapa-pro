@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "domain": "CONTABLE",
+  "environment": "LAB",
+  "source_file": "REPO_ASESORIA_CONTABLE_ENTERPRISE_MASTER_FINAL.md",
+  "source_sha256": "547b7c0c29d7c13223340acd77548a6ff351a031fc0c1408e25b152d4183d0be",
+  "validation_mode": "REPRESENTATIVE_HIGH_RISK_OFFICIAL_SOURCE_CHECKS",
+  "decision_support_only": true,
+  "live_verification_required_per_case": true,
+  "checks": [
+    {"id":"ACC-K-001","claim":"PGC-PYMES article 2 thresholds are asset <= EUR 4,000,000, net turnover <= EUR 8,000,000 and average employees <= 50, meeting at least two during two consecutive years","status":"PASS","official_source":"https://www.boe.es/eli/es/rd/2007/11/16/1515/con"},
+    {"id":"ACC-K-002","claim":"PGC-PYMES application is not determined only by size; article 2 includes exclusions and conditions that must be checked","status":"PASS","official_source":"https://www.boe.es/eli/es/rd/2007/11/16/1515/con"},
+    {"id":"ACC-K-003","claim":"Corporate annual accounts must be formulated by directors within three months from financial year end","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2010-10544"},
+    {"id":"ACC-K-004","claim":"Annual accounts form a unit and must show a true and fair view under the Companies Act and Commercial Code","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2010-10544"},
+    {"id":"ACC-K-005","claim":"Business books, correspondence, documentation and supporting records must generally be preserved for six years under article 30 of the Commercial Code","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1885-6627"},
+    {"id":"ACC-K-006","claim":"ICAC publishes BOICAC accounting consultations against the PGC and PGC-PYMES and the corpus requires recurring BOICAC maintenance","status":"PASS","official_source":"https://www.icac.gob.es/contabilidad/consultas-boicac"},
+    {"id":"ACC-K-007","claim":"BOICAC continues to receive new accounting consultations in 2026, therefore static accounting knowledge requires maintenance","status":"PASS","official_source":"https://www.icac.gob.es/contabilidad/consultas-boicac"}
+  ],
+  "source_supported_controls": [
+    "entity_and_applicable_accounting_framework_first",
+    "separate_invoice_accrual_and_cash_collection",
+    "do_not_invent_missing_decisive_facts",
+    "separate_accounting_treatment_from_tax_analysis",
+    "maintain_versioned_ICAC_BOICAC_sources",
+    "territorial_layer_only_when_entity_form_grant_or_local_fact_changes_the_case",
+    "periodic_offboarding_and_traceable_handover",
+    "second_review_depth_increases_with_client_risk"
+  ],
+  "summary": {
+    "checks": 7,
+    "passed": 7,
+    "failed": 0,
+    "critical_gap": false,
+    "knowledge_green": true,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "limitations": [
+    "This validates suitability as a maintained accounting decision-support knowledge source, not every sentence exhaustively.",
+    "Tax positions, filing obligations, current registry forms, grants, sector rules, thresholds and new BOICAC doctrine must be rechecked live before use.",
+    "Audit opinions, expert valuations, legal conclusions and regulated professional actions remain outside automatic authority."
+  ]
+}
