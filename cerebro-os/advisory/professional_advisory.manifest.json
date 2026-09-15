@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.3.0",
+  "schema_version": "1.4.0",
   "component_id": "PROFESSIONAL_ADVISORY",
   "component_type": "CAPABILITY_ORCHESTRATOR",
   "environment": "LAB",
@@ -82,6 +82,39 @@
       "audit_refs"
     ]
   },
+  "integrations": {
+    "mode": "OUTBOX_ADAPTER_INJECTION",
+    "targets": [
+      "CRM",
+      "COMPANY_REGISTRY",
+      "VENTURE_FACTORY",
+      "CONTRACTS",
+      "HR",
+      "FINANCE",
+      "OPERATIONS",
+      "EXTENSION"
+    ],
+    "idempotency_required": true,
+    "correlation_id_required": true,
+    "retry_supported": true,
+    "no_external_write_without_adapter": true
+  },
+  "observability": {
+    "health": true,
+    "readiness": true,
+    "structured_logs": true,
+    "metrics": ["executions", "errors", "error_rate", "latency_ms_avg", "latency_ms_max", "cost_eur_total"],
+    "tracks_confidence": true,
+    "tracks_audit_refs": true,
+    "tracks_correlation_id": true,
+    "tracks_cost": true
+  },
+  "recovery": {
+    "backup_bundle": true,
+    "sha256_integrity": true,
+    "rebuild_case_store": true,
+    "rollback_ref": true
+  },
   "policy": {
     "fail_closed": true,
     "additional_cost_target_eur": 0,
@@ -108,6 +141,7 @@
     "The gateway envelope keeps component_id and canonical underlying engine_id separate while preserving the existing AdvisoryCase runtime contract.",
     "PROFESSIONAL_ADVISORY is a component_id, not a canonical engine_id.",
     "Block B adds a deterministic V0 case-store abstraction and source policy without moving heavy workloads into Supabase.",
+    "Block C adds decoupled idempotent integration events, deterministic observability and recoverable backup/rebuild primitives without enabling external writes by default.",
     "JURIDICA_GENERAL remains MISSING_ARTIFACT until its master repository is supplied or otherwise evidenced."
   ]
 }
