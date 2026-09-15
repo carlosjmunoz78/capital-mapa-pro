@@ -8,6 +8,7 @@ on:
     paths:
       - 'cerebro-os/**'
       - '.github/workflows/cerebro-engine-factory-v0.yml'
+      - '.github/workflows/cerebro-forge-preprod.yml'
 
 permissions:
   contents: read
