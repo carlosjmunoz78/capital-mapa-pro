@@ -12,7 +12,8 @@ from advisory.models import Territory
 def make_request(**overrides):
     values = {
         "company_id": "COMPANY-001",
-        "engine_id": "PROFESSIONAL_ADVISORY",
+        "component_id": "PROFESSIONAL_ADVISORY",
+        "engine_id": "TAX-001",
         "environment": "LAB",
         "version": "1.0.0",
         "case_id": "CASE-001",
@@ -35,6 +36,7 @@ class AdvisoryGatewayContractTests(unittest.TestCase):
         make_request().validate()
         for field in (
             "company_id",
+            "component_id",
             "engine_id",
             "version",
             "case_id",
@@ -45,12 +47,20 @@ class AdvisoryGatewayContractTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     make_request(**{field: ""}).validate()
 
+    def test_orchestrator_identity_is_separate_from_engine_identity(self):
+        make_request(component_id="PROFESSIONAL_ADVISORY", engine_id="TAX-001").validate()
+        with self.assertRaises(ValueError):
+            make_request(engine_id="PROFESSIONAL_ADVISORY").validate()
+        with self.assertRaises(ValueError):
+            make_request(component_id="NOT_ADVISORY").validate()
+
     def test_service_hints_route_multiple_domains(self):
         routed = resolve_gateway_route(make_request(requested_service="tax accounting finance"))
         self.assertEqual(routed, ("FISCAL", "CONTABLE", "FINANCIERA"))
 
     def test_cross_domain_trigger_routes_automatically(self):
         request = make_request(
+            engine_id="TAX-001",
             requested_service="advisory",
             facts={
                 "scenario": "property acquisition",
