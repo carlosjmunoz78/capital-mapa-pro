@@ -84,7 +84,7 @@ jobs:
             --cap-drop ALL \
             --security-opt no-new-privileges \
             -e CEREBRO_ENV=PREPROD \
-            -e CEREBRO_PREPROD_MODE=persistent_candidate \
+            -e CEREBRO_PREPROD_MODE=ephemeral_rehearsal \
             -e CEREBRO_EXTERNAL_WRITES=disabled \
             -e CEREBRO_APP_CRM_ACCESS=disabled \
             -e CEREBRO_PROD_CREDENTIALS=disabled \
