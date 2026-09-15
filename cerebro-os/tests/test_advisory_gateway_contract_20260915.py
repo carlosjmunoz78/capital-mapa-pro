@@ -5,8 +5,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from advisory.gateway import AdvisoryGatewayRequest, resolve_gateway_route
-from advisory.models import Territory
+from advisory.gateway import (
+    AdvisoryGatewayRequest,
+    execute_gateway_request,
+    resolve_gateway_route,
+)
+from advisory.models import DomainOpinion, Territory
 
 
 def make_request(**overrides):
@@ -18,6 +22,9 @@ def make_request(**overrides):
         "version": "1.0.0",
         "case_id": "CASE-001",
         "correlation_id": "CORR-001",
+        "actor": {"actor_id": "ACTOR-001", "actor_type": "SYSTEM"},
+        "context": {"source": "test"},
+        "permissions": ("advisory:execute",),
         "requested_service": "tax accounting",
         "territory": Territory(
             country="ES",
@@ -46,6 +53,12 @@ class AdvisoryGatewayContractTests(unittest.TestCase):
             with self.subTest(field=field):
                 with self.assertRaises(ValueError):
                     make_request(**{field: ""}).validate()
+
+    def test_actor_and_execute_permission_are_fail_closed(self):
+        with self.assertRaises(ValueError):
+            make_request(actor={}).validate()
+        with self.assertRaises(PermissionError):
+            make_request(permissions=()).validate()
 
     def test_orchestrator_identity_is_separate_from_engine_identity(self):
         make_request(component_id="PROFESSIONAL_ADVISORY", engine_id="TAX-001").validate()
@@ -101,6 +114,28 @@ class AdvisoryGatewayContractTests(unittest.TestCase):
             resolve_gateway_route(
                 make_request(engine_id="TAX-001", requested_service="employment")
             )
+
+    def test_gateway_executes_runtime_and_returns_traceable_response(self):
+        request = make_request(requested_service="tax")
+
+        def fiscal_handler(case, dependencies):
+            self.assertIn("TAX-001", dependencies)
+            return DomainOpinion(
+                domain="FISCAL",
+                status="GREEN",
+                summary="validated",
+                source_refs=("SRC-001",),
+            )
+
+        response = execute_gateway_request(request, {"FISCAL": fiscal_handler})
+        self.assertEqual(response.company_id, request.company_id)
+        self.assertEqual(response.case_id, request.case_id)
+        self.assertEqual(response.correlation_id, request.correlation_id)
+        self.assertEqual(response.decision.domains, ("FISCAL",))
+        self.assertIn(
+            "gateway://COMPANY-001/CASE-001/CORR-001",
+            response.decision.audit_refs,
+        )
 
 
 if __name__ == "__main__":
