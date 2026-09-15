@@ -44,13 +44,27 @@ def validate_common() -> dict:
     return status
 
 
-def run_ephemeral_rehearsal() -> int:
+def run_test_discovery(pattern: str, failure_reason: str) -> None:
     completed = subprocess.run(
-        [sys.executable, "-m", "unittest", "discover", "-s", "cerebro-os/tests", "-v"],
+        [
+            sys.executable,
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "cerebro-os/tests",
+            "-p",
+            pattern,
+            "-v",
+        ],
         check=False,
     )
     if completed.returncode != 0:
-        fail("unit test suite failed inside isolated PREPROD container")
+        fail(failure_reason)
+
+
+def run_ephemeral_rehearsal() -> int:
+    run_test_discovery("test_*.py", "unit test suite failed inside isolated PREPROD container")
 
     print(
         json.dumps(
@@ -70,7 +84,33 @@ def run_ephemeral_rehearsal() -> int:
     return 0
 
 
+def run_persistent_representative_validation() -> None:
+    run_test_discovery(
+        "test_advisory_representative_cases_20260915.py",
+        "persistent PREPROD representative case validation failed",
+    )
+    print(
+        json.dumps(
+            {
+                "marker": "PERSISTENT_REPRESENTATIVE_VALIDATION_PASS",
+                "status": "PASS",
+                "environment": "PREPROD",
+                "mode": "persistent_candidate",
+                "representative_cases": 3,
+                "domain_coverage": "12/12",
+                "external_writes": False,
+                "app_crm_access": False,
+                "prod_credentials": False,
+                "customer_data": False,
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+
+
 def run_persistent_candidate() -> int:
+    run_persistent_representative_validation()
     port = int(os.getenv("PORT", "8080"))
 
     class Handler(BaseHTTPRequestHandler):
@@ -85,6 +125,9 @@ def run_persistent_candidate() -> int:
                     "status": "PASS",
                     "environment": "PREPROD",
                     "mode": "persistent_candidate",
+                    "representative_validation": "PASS",
+                    "representative_cases": 3,
+                    "domain_coverage": "12/12",
                     "external_writes": False,
                     "app_crm_access": False,
                     "prod_credentials": False,
@@ -108,13 +151,17 @@ def run_persistent_candidate() -> int:
                 "environment": "PREPROD",
                 "mode": "persistent_candidate",
                 "port": port,
+                "representative_validation": "PASS",
+                "representative_cases": 3,
+                "domain_coverage": "12/12",
                 "external_writes": False,
                 "app_crm_access": False,
                 "prod_credentials": False,
                 "customer_data": False,
             },
             sort_keys=True,
-        )
+        ),
+        flush=True,
     )
     ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()
     return 0
