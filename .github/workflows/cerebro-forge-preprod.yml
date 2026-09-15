@@ -120,9 +120,32 @@ jobs:
           set -euo pipefail
           REVISION="$(gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format='value(status.latestReadyRevisionName)')"
           test -n "$REVISION"
+
           IMAGE_DEPLOYED="$(gcloud run revisions describe "$REVISION" --region="$REGION" --format='value(spec.containers[0].image)')"
-          test "$IMAGE_DEPLOYED" = "$IMAGE"
+          EXPECTED_DIGEST="$(gcloud artifacts docker images describe "$IMAGE" --format='value(image_summary.digest)')"
+          test -n "$EXPECTED_DIGEST"
+          IMAGE_REPO="${IMAGE%:*}"
+          EXPECTED_CANONICAL="${IMAGE_REPO}@${EXPECTED_DIGEST}"
+          if [ "$IMAGE_DEPLOYED" != "$IMAGE" ] && [ "$IMAGE_DEPLOYED" != "$EXPECTED_CANONICAL" ]; then
+            echo "Unexpected deployed image: $IMAGE_DEPLOYED"
+            echo "Expected tag: $IMAGE"
+            echo "Expected digest: $EXPECTED_CANONICAL"
+            exit 1
+          fi
+
+          REVISION_SA="$(gcloud run revisions describe "$REVISION" --region="$REGION" --format='value(spec.serviceAccountName)')"
+          test "$REVISION_SA" = "$RUNTIME_SERVICE_ACCOUNT"
+
+          ENV_DUMP="$(gcloud run revisions describe "$REVISION" --region="$REGION" --format='value(spec.containers[0].env.map().join(","))')"
+          echo "$ENV_DUMP" | grep -q 'CEREBRO_ENV=PREPROD'
+          echo "$ENV_DUMP" | grep -q 'CEREBRO_PREPROD_MODE=persistent_candidate'
+          echo "$ENV_DUMP" | grep -q 'CEREBRO_EXTERNAL_WRITES=disabled'
+          echo "$ENV_DUMP" | grep -q 'CEREBRO_APP_CRM_ACCESS=disabled'
+          echo "$ENV_DUMP" | grep -q 'CEREBRO_PROD_CREDENTIALS=disabled'
+          echo "$ENV_DUMP" | grep -q 'CEREBRO_CUSTOMER_DATA=disabled'
+
           echo "REVISION=$REVISION" >> "$GITHUB_ENV"
+          echo "IMAGE_DIGEST=$EXPECTED_DIGEST" >> "$GITHUB_ENV"
           echo "Persistent PREPROD revision: $REVISION"
 
       - name: Capture evidence
@@ -137,6 +160,7 @@ jobs:
             echo "service=$SERVICE_NAME"
             echo "revision=$REVISION"
             echo "image=$IMAGE"
+            echo "image_digest=$IMAGE_DIGEST"
             echo "runtime_service_account=$RUNTIME_SERVICE_ACCOUNT"
             echo "external_writes=disabled"
             echo "app_crm_access=disabled"
