@@ -3,8 +3,19 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Mapping
 
+from .capabilities import CAPABILITY_REGISTRY
 from .models import AdvisoryCase, EvidenceRef, Territory
 from .router import route_case
+
+ADVISORY_ORCHESTRATOR_ID = "PROFESSIONAL_ADVISORY"
+
+
+def canonical_advisory_engine_ids() -> frozenset[str]:
+    return frozenset(
+        engine_id
+        for capability in CAPABILITY_REGISTRY.values()
+        for engine_id in capability.engine_ids
+    )
 
 
 @dataclass(frozen=True)
@@ -43,6 +54,9 @@ class AdvisoryGatewayRequest:
             )
         if self.environment not in {"LAB", "PREPROD", "PROD"}:
             raise ValueError("invalid environment")
+        allowed_engine_ids = canonical_advisory_engine_ids() | {ADVISORY_ORCHESTRATOR_ID}
+        if self.engine_id not in allowed_engine_ids:
+            raise ValueError(f"unknown advisory engine_id: {self.engine_id}")
         self.territory.validate()
         if not self.facts:
             raise ValueError("facts required")
@@ -67,8 +81,19 @@ class AdvisoryGatewayRequest:
 def resolve_gateway_route(request: AdvisoryGatewayRequest) -> tuple[str, ...]:
     """Validate the boundary contract and resolve explicit/automatic routing.
 
-    ``route_case`` already combines explicit domains, service hints and
-    cross-domain triggers. Unknown or empty routes fail closed.
+    ``route_case`` combines explicit domains, service hints and cross-domain
+    triggers. Unknown IDs, incompatible engine/domain selections and empty
+    routes fail closed.
     """
 
-    return route_case(request.to_case())
+    routed = route_case(request.to_case())
+    if request.engine_id != ADVISORY_ORCHESTRATOR_ID:
+        compatible = any(
+            request.engine_id in CAPABILITY_REGISTRY[domain].engine_ids
+            for domain in routed
+        )
+        if not compatible:
+            raise ValueError(
+                f"engine_id {request.engine_id} is not compatible with routed domains {routed}"
+            )
+    return routed
