@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "component_id": "PROFESSIONAL_ADVISORY",
   "component_type": "CAPABILITY_ORCHESTRATOR",
   "environment": "LAB",
@@ -22,6 +22,23 @@
     "PATRIMONIAL",
     "JURIDICA_GENERAL"
   ],
+  "gateway_contract": {
+    "required": [
+      "company_id",
+      "engine_id",
+      "environment",
+      "version",
+      "case_id",
+      "correlation_id",
+      "requested_service",
+      "territory",
+      "facts"
+    ],
+    "supports_explicit_domains": true,
+    "supports_service_hint_routing": true,
+    "supports_cross_domain_triggers": true,
+    "fail_closed_unroutable": true
+  },
   "shared_case_contract": {
     "required": ["company_id", "case_id", "environment", "version", "requested_service", "territory", "facts"],
     "supports_multiple_domains": true,
@@ -51,6 +68,7 @@
   "notes": [
     "TAX-001 is the Fiscal capability under this orchestrator, not the root of Advisory.",
     "Original repository documents remain source artifacts and must not be flattened destructively.",
+    "The gateway envelope adds engine_id and correlation_id without breaking the existing AdvisoryCase runtime contract.",
     "JURIDICA_GENERAL remains MISSING_ARTIFACT until its master repository is supplied or otherwise evidenced."
   ]
 }
