@@ -1,11 +1,11 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "project": "CEREBRO OS",
   "scope": "PROFESSIONAL_ADVISORY",
   "cutoff": "2026-09-15",
   "repository": "carlosjmunoz78/capital-mapa-pro",
   "base_branch": "cerebro-engine-factory-v0",
-  "current_verified_base_commit_before_block_e": "eff999dbbd60adc44a1ea372fd947f4d6d867f96",
+  "verified_base_commit_after_block_e": "e946f724ab6d63f4579b7eda53542eaab0183639",
   "gcp": {
     "project": "cerebro-forge",
     "region": "europe-southwest1",
@@ -42,8 +42,11 @@
       "postmerge_run_number": 18
     },
     "E": {
-      "status": "IN_PROGRESS",
-      "branch": "cerebro-advisory-block-e-closure-v1"
+      "status": "GREEN",
+      "pr": 56,
+      "merge_commit": "e946f724ab6d63f4579b7eda53542eaab0183639",
+      "postmerge_run_id": 35026392556,
+      "postmerge_run_number": 19
     }
   },
   "validated": {
@@ -60,7 +63,9 @@
     "observability": true,
     "backup_rebuild_rollback": true,
     "old_vs_new_comparison": true,
-    "isolated_preprod_autonomy_tribunal": true
+    "isolated_preprod_autonomy_tribunal": true,
+    "block_e_ci": "SUCCESS",
+    "block_e_postmerge_forge_preprod": "SUCCESS"
   },
   "flags": {
     "preprod_enabled": true,
@@ -91,5 +96,5 @@
     "MONEY_LIMIT",
     "CUSTOMER_HUMAN_REQUEST"
   ],
-  "next_gate": "Finish Block E documentation/CI/post-merge. Global autonomy and PROD remain separate and disabled."
+  "next_gate": "Professional Advisory Blocks A-E are GREEN in isolated PREPROD. Global capability/autonomy and PROD remain separate, disabled promotion gates; App/CRM PROD remains untouched."
 }
