@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Mapping
 
@@ -28,19 +29,32 @@ class CaseStore:
 
     V0 is in-memory on purpose: callers can wrap it with file/SQL persistence
     without changing the advisory contract. Keys always include company_id to
-    prevent cross-company case leakage.
+    prevent cross-company case leakage. Snapshots are defensively copied on
+    save and recover so mutable caller objects cannot alter stored state.
     """
 
     def __init__(self) -> None:
         self._cases: dict[tuple[str, str], CaseSnapshot] = {}
 
+    @staticmethod
+    def _copy(snapshot: CaseSnapshot) -> CaseSnapshot:
+        return CaseSnapshot(
+            company_id=snapshot.company_id,
+            case_id=snapshot.case_id,
+            environment=snapshot.environment,
+            version=snapshot.version,
+            facts=deepcopy(dict(snapshot.facts)),
+            internal_document_refs=tuple(snapshot.internal_document_refs),
+            source_ids=tuple(snapshot.source_ids),
+        )
+
     def save(self, snapshot: CaseSnapshot) -> None:
         snapshot.validate()
-        self._cases[(snapshot.company_id, snapshot.case_id)] = snapshot
+        self._cases[(snapshot.company_id, snapshot.case_id)] = self._copy(snapshot)
 
     def recover(self, company_id: str, case_id: str) -> CaseSnapshot:
         try:
-            return self._cases[(company_id, case_id)]
+            return self._copy(self._cases[(company_id, case_id)])
         except KeyError as exc:
             raise KeyError(f"case not found for company={company_id} case={case_id}") from exc
 
