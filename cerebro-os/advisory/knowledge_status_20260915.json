@@ -4,7 +4,7 @@
   "environment": "LAB",
   "domains": [
     {"domain":"FISCAL","status":"KNOWLEDGE_GREEN","evidence":"engines/TAX-001/manifest.json knowledge_status=KNOWLEDGE_GREEN"},
-    {"domain":"CONTABLE","status":"VALIDATION_PENDING"},
+    {"domain":"CONTABLE","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_contable_20260915.json"},
     {"domain":"LABORAL","status":"VALIDATION_PENDING"},
     {"domain":"MERCANTIL","status":"VALIDATION_PENDING"},
     {"domain":"FINANCIERA","status":"VALIDATION_PENDING"},
@@ -18,8 +18,8 @@
   ],
   "summary": {
     "domains":12,
-    "knowledge_green":2,
-    "validation_pending":10,
+    "knowledge_green":3,
+    "validation_pending":9,
     "capability_green":false,
     "autonomy_green":false,
     "prod_enabled":false
