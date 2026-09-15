@@ -1,7 +1,7 @@
 {
-  "schema_version": "1.7.0",
+  "schema_version": "1.8.0",
   "scope": "PROFESSIONAL_ADVISORY",
-  "environment": "LAB",
+  "environment": "PREPROD",
   "knowledge": {
     "domains": 12,
     "knowledge_green": 12,
@@ -53,14 +53,28 @@
     "ephemeral_physical_preprod_capabilities_dropped": true,
     "ephemeral_physical_preprod_no_new_privileges": true,
     "ephemeral_physical_preprod_rehearsal": "PASS",
-    "persistent_preprod_environment": false,
+    "persistent_preprod_environment": true,
+    "persistent_preprod_runtime": "gcp_cloud_run",
+    "persistent_preprod_project": "cerebro-forge",
+    "persistent_preprod_region": "europe-southwest1",
+    "persistent_preprod_service": "cerebro-advisory-preprod",
+    "persistent_preprod_functional_validation": true,
+    "persistent_preprod_representative_cases": 3,
+    "persistent_preprod_domain_coverage": 12,
+    "persistent_preprod_external_writes_disabled": true,
+    "persistent_preprod_app_crm_access_disabled": true,
+    "persistent_preprod_prod_credentials_disabled": true,
+    "persistent_preprod_customer_data_disabled": true,
+    "persistent_preprod_evidence_run_id": "35002286131",
+    "persistent_preprod_evidence_commit": "1dc5c5a9581bde68c2993b27d1a21281b3bf317c",
+    "persistent_preprod_artifact_id": "10410222357",
     "e2e_real_customer_case_validation": false,
     "capability_green_lab": true,
     "capability_green_global": false
   },
   "autonomy_green": false,
-  "preprod_enabled": false,
+  "preprod_enabled": true,
   "prod_enabled": false,
   "app_crm_prod_touched": false,
-  "next_gate": "Provision a persistent isolated PREPROD runtime only when an approved zero-cost/existing runtime target is available. Until then keep PREPROD_ENABLED=false. App/CRM, customer data and PROD credentials remain excluded."
+  "next_gate": "PREPROD persistente está habilitado para validación no-productiva y fixtures representativos. Antes de cualquier autonomía global o PROD deben completarse los gates separados de capability global, autonomía, casos/customer-data autorizados, seguridad, coste y promoción PROD. App/CRM PROD y credenciales PROD permanecen excluidos."
 }
