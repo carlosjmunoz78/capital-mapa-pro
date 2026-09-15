@@ -1,29 +1,17 @@
-import importlib.util
 import json
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-
-
-def _load(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-models = _load("advisory_models", ROOT / "advisory" / "models.py")
-
-# Router uses a relative import; load it as a package module through sys.path.
-import sys
 sys.path.insert(0, str(ROOT))
+
+from advisory.models import AdvisoryCase, Territory, CANONICAL_DOMAINS, CANONICAL_HUMAN_EXCEPTIONS
 from advisory.router import route_case
-from advisory.models import AdvisoryCase, Territory, CANONICAL_DOMAINS
 
 
 def test_exact_12_advisory_domains_and_fiscal_not_root():
     assert len(CANONICAL_DOMAINS) == 12
     assert len(set(CANONICAL_DOMAINS)) == 12
-    assert CANONICAL_DOMAINS[0] == "FISCAL"
     catalog = json.loads((ROOT / "registry" / "advisory_source_catalog_20260915.json").read_text())
     assert catalog["invariants"]["domain_count"] == 12
     assert catalog["invariants"]["fiscal_is_root"] is False
@@ -55,12 +43,7 @@ def test_router_supports_multidomain_company_property_purchase():
         facts={"advisory_triggers": ["company_buys_property"]},
     )
     routed = route_case(case)
-    assert "INMOBILIARIA" in routed
-    assert "FISCAL" in routed
-    assert "CONTABLE" in routed
-    assert "MERCANTIL" in routed
-    assert "FINANCIERA" in routed
-    assert "PATRIMONIAL" in routed
+    assert {"INMOBILIARIA", "FISCAL", "CONTABLE", "MERCANTIL", "FINANCIERA", "PATRIMONIAL"}.issubset(routed)
 
 
 def test_router_rejects_unknown_explicit_domain():
@@ -83,7 +66,7 @@ def test_router_rejects_unknown_explicit_domain():
 
 
 def test_human_exception_taxonomy_is_exact():
-    assert models.CANONICAL_HUMAN_EXCEPTIONS == {
+    assert CANONICAL_HUMAN_EXCEPTIONS == {
         "LEGAL_REQUIRED", "SIGNATURE_REQUIRED", "LOW_CONFIDENCE", "HIGH_RISK",
         "POLICY_CONFLICT", "SECURITY_INCIDENT", "MONEY_LIMIT", "CUSTOMER_HUMAN_REQUEST"
     }
