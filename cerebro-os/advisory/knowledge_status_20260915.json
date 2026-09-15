@@ -9,7 +9,7 @@
     {"domain":"MERCANTIL","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_mercantil_20260915.json"},
     {"domain":"FINANCIERA","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_financiera_20260915.json"},
     {"domain":"INMOBILIARIA","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_inmobiliaria_20260915.json"},
-    {"domain":"HIPOTECARIA","status":"VALIDATION_PENDING"},
+    {"domain":"HIPOTECARIA","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_hipotecaria_20260915.json"},
     {"domain":"SUBVENCIONES_AYUDAS","status":"VALIDATION_PENDING"},
     {"domain":"PROTECCION_DATOS_COMPLIANCE","status":"VALIDATION_PENDING"},
     {"domain":"EMPRESARIAL_ESTRATEGICA","status":"VALIDATION_PENDING"},
@@ -18,8 +18,8 @@
   ],
   "summary": {
     "domains":12,
-    "knowledge_green":7,
-    "validation_pending":5,
+    "knowledge_green":8,
+    "validation_pending":4,
     "capability_green":false,
     "autonomy_green":false,
     "prod_enabled":false
