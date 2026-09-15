@@ -12,14 +12,14 @@
     {"domain":"HIPOTECARIA","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_hipotecaria_20260915.json"},
     {"domain":"SUBVENCIONES_AYUDAS","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_subvenciones_20260915.json"},
     {"domain":"PROTECCION_DATOS_COMPLIANCE","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_compliance_20260915.json"},
-    {"domain":"EMPRESARIAL_ESTRATEGICA","status":"VALIDATION_PENDING"},
+    {"domain":"EMPRESARIAL_ESTRATEGICA","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_estrategica_20260915.json"},
     {"domain":"PATRIMONIAL","status":"VALIDATION_PENDING"},
     {"domain":"JURIDICA_GENERAL","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_juridica_20260915.json"}
   ],
   "summary": {
     "domains":12,
-    "knowledge_green":10,
-    "validation_pending":2,
+    "knowledge_green":11,
+    "validation_pending":1,
     "capability_green":false,
     "autonomy_green":false,
     "prod_enabled":false
