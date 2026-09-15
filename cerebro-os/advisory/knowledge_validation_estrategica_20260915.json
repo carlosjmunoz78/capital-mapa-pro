@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "domain": "EMPRESARIAL_ESTRATEGICA",
+  "environment": "LAB",
+  "source_file": "Repositorio_PRO_Asesoria_Empresarial_Estrategica_Espana_v6.md",
+  "source_sha256": "2747560dfca0d2bfdd3ceb2d354e758be2ccfe4fa13af86b6b72aa25d2f0dd2f",
+  "validation_mode": "REPRESENTATIVE_OFFICIAL_DATA_AND_BOUNDARY_CHECKS",
+  "decision_support_only": true,
+  "live_verification_required_per_case": true,
+  "regulated_actions_require_human_when_applicable": true,
+  "checks": [
+    {"id":"EST-001","claim":"Current Spanish company-population and sector structure can be grounded in INE DIRCE rather than static internal assumptions","status":"PASS","official_source":"https://www.ine.es/dyngs/INEbase/operacion.htm?c=Estadistica_C&cid=1254736160707&idp=1254735576550"},
+    {"id":"EST-002","claim":"DIRCE provides company information by activity, size, legal form and geography and is updated periodically","status":"PASS","official_source":"https://www.ine.es/metodologia/t37/t3730201.htm"},
+    {"id":"EST-003","claim":"Macroeconomic assumptions used in strategic planning must be refreshed because Banco de España updates its Spanish-economy projections quarterly","status":"PASS","official_source":"https://www.bde.es/wbe/es/publicaciones/analisis-economico-investigacion/proyecciones-macro-informe-trimestral/"},
+    {"id":"EST-004","claim":"Material mergers/acquisitions can trigger prior competition-control obligations and therefore cannot be treated as a purely strategic execution step","status":"PASS","official_source":"https://www.cnmc.es/ambitos-de-actuacion/competencia/concentraciones"},
+    {"id":"EST-005","claim":"Market-size, competitor, pricing, demand, financing and macro assumptions are time-sensitive inputs and must not be promoted from a static repository without current evidence","status":"PASS","official_source":"https://www.bde.es/wbe/es/publicaciones/analisis-economico-investigacion/proyecciones-macro-informe-trimestral/proyecciones-e-informe-trimestral-de-la-economia-espanola-junio-2026.html"},
+    {"id":"EST-006","claim":"Strategic advice is an orchestration layer and does not replace domain-specific fiscal, accounting, labour, legal, financial, subsidy or compliance validation","status":"PASS","official_source":"https://www.ine.es/dyngs/IOE/fichaInventario.htm?cid=1259930827974&inv=92026"}
+  ],
+  "dynamic_gates": [
+    "market_date",
+    "sector_and_geography",
+    "competitor_set",
+    "macroeconomic_scenario",
+    "financing_cost",
+    "customer_demand",
+    "unit_economics",
+    "capacity_constraints",
+    "regulatory_dependencies",
+    "competition_control",
+    "cross_domain_advisory_dependencies"
+  ],
+  "summary": {
+    "checks": 6,
+    "passed": 6,
+    "failed": 0,
+    "critical_gap": false,
+    "knowledge_green": true,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "limitations": [
+    "This validates the repository as a maintained strategic decision-support framework, not forecasts, market sizes or competitor claims as timeless facts.",
+    "All market, competitive, macroeconomic, pricing, financing and demand inputs must be refreshed before each material recommendation.",
+    "Execution of regulated, legal, financial, tax, employment or competition-sensitive actions remains routed to the relevant domain and human/legal gates."
+  ]
+}
