@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "environment": "LAB",
+  "domains": [
+    {"domain":"FISCAL","status":"KNOWLEDGE_GREEN","evidence":"engines/TAX-001/manifest.json knowledge_status=KNOWLEDGE_GREEN"},
+    {"domain":"CONTABLE","status":"VALIDATION_PENDING"},
+    {"domain":"LABORAL","status":"VALIDATION_PENDING"},
+    {"domain":"MERCANTIL","status":"VALIDATION_PENDING"},
+    {"domain":"FINANCIERA","status":"VALIDATION_PENDING"},
+    {"domain":"INMOBILIARIA","status":"VALIDATION_PENDING"},
+    {"domain":"HIPOTECARIA","status":"VALIDATION_PENDING"},
+    {"domain":"SUBVENCIONES_AYUDAS","status":"VALIDATION_PENDING"},
+    {"domain":"PROTECCION_DATOS_COMPLIANCE","status":"VALIDATION_PENDING"},
+    {"domain":"EMPRESARIAL_ESTRATEGICA","status":"VALIDATION_PENDING"},
+    {"domain":"PATRIMONIAL","status":"VALIDATION_PENDING"},
+    {"domain":"JURIDICA_GENERAL","status":"KNOWLEDGE_GREEN","evidence":"advisory/knowledge_validation_juridica_20260915.json"}
+  ],
+  "summary": {
+    "domains":12,
+    "knowledge_green":2,
+    "validation_pending":10,
+    "capability_green":false,
+    "autonomy_green":false,
+    "prod_enabled":false
+  }
+}
