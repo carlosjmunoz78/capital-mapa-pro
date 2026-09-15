@@ -7,7 +7,7 @@ from .capabilities import CAPABILITY_REGISTRY
 from .models import AdvisoryCase, EvidenceRef, Territory
 from .router import route_case
 
-ADVISORY_ORCHESTRATOR_ID = "PROFESSIONAL_ADVISORY"
+ADVISORY_COMPONENT_ID = "PROFESSIONAL_ADVISORY"
 
 
 def canonical_advisory_engine_ids() -> frozenset[str]:
@@ -22,12 +22,14 @@ def canonical_advisory_engine_ids() -> frozenset[str]:
 class AdvisoryGatewayRequest:
     """Versioned multi-company gateway contract for Professional Advisory.
 
-    This envelope is intentionally separate from ``AdvisoryCase`` so the
-    existing case/runtime contract remains backward-compatible. The gateway is
-    the only boundary that requires engine_id and correlation_id.
+    The orchestrator is represented by ``component_id``. ``engine_id`` always
+    refers to a canonical underlying logical engine. Keeping those identities
+    separate preserves the manifest contract (the orchestrator is not itself a
+    new engine) and prevents fail-open routing through a pseudo engine ID.
     """
 
     company_id: str
+    component_id: str
     engine_id: str
     environment: str
     version: str
@@ -42,6 +44,7 @@ class AdvisoryGatewayRequest:
     def validate(self) -> None:
         required = (
             self.company_id,
+            self.component_id,
             self.engine_id,
             self.version,
             self.case_id,
@@ -50,12 +53,13 @@ class AdvisoryGatewayRequest:
         )
         if not all(value.strip() for value in required):
             raise ValueError(
-                "company_id, engine_id, version, case_id, correlation_id and requested_service required"
+                "company_id, component_id, engine_id, version, case_id, correlation_id and requested_service required"
             )
+        if self.component_id != ADVISORY_COMPONENT_ID:
+            raise ValueError(f"invalid advisory component_id: {self.component_id}")
         if self.environment not in {"LAB", "PREPROD", "PROD"}:
             raise ValueError("invalid environment")
-        allowed_engine_ids = canonical_advisory_engine_ids() | {ADVISORY_ORCHESTRATOR_ID}
-        if self.engine_id not in allowed_engine_ids:
+        if self.engine_id not in canonical_advisory_engine_ids():
             raise ValueError(f"unknown advisory engine_id: {self.engine_id}")
         self.territory.validate()
         if not self.facts:
@@ -79,21 +83,15 @@ class AdvisoryGatewayRequest:
 
 
 def resolve_gateway_route(request: AdvisoryGatewayRequest) -> tuple[str, ...]:
-    """Validate the boundary contract and resolve explicit/automatic routing.
-
-    ``route_case`` combines explicit domains, service hints and cross-domain
-    triggers. Unknown IDs, incompatible engine/domain selections and empty
-    routes fail closed.
-    """
+    """Resolve explicit/automatic routing with fail-closed engine binding."""
 
     routed = route_case(request.to_case())
-    if request.engine_id != ADVISORY_ORCHESTRATOR_ID:
-        compatible = any(
-            request.engine_id in CAPABILITY_REGISTRY[domain].engine_ids
-            for domain in routed
+    compatible = any(
+        request.engine_id in CAPABILITY_REGISTRY[domain].engine_ids
+        for domain in routed
+    )
+    if not compatible:
+        raise ValueError(
+            f"engine_id {request.engine_id} is not compatible with routed domains {routed}"
         )
-        if not compatible:
-            raise ValueError(
-                f"engine_id {request.engine_id} is not compatible with routed domains {routed}"
-            )
     return routed
