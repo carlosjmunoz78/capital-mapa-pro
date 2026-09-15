@@ -10,16 +10,16 @@
     {"id":5,"name":"router_interdisciplinar","status":"GREEN","evidence":"advisory/router.py"},
     {"id":6,"name":"integridad_fuentes_fisicas","status":"GREEN","evidence":"source_bootstrap_report_20260915.json"},
     {"id":7,"name":"tax001_reposicionado_como_capability_fiscal","status":"GREEN","evidence":"PROFESSIONAL_ADVISORY_ARCHITECTURE_V1_2026-09-15.md"},
-    {"id":8,"name":"tests_invariantes_advisory","status":"GREEN","evidence":"CI runs 948/950/952/954 SUCCESS"},
+    {"id":8,"name":"tests_invariantes_advisory","status":"GREEN","evidence":"CI runs 948/950/952/954/956 SUCCESS"},
     {"id":9,"name":"ingesta_markdown_no_destructiva","status":"GREEN","evidence":"advisory/markdown_ingest.py"},
     {"id":10,"name":"coordinacion_dictamenes_cross_domain","status":"GREEN","evidence":"advisory/coordinator.py"},
-    {"id":11,"name":"repositorio_juridica_general","status":"BLOCKED_MISSING_ARTIFACT","evidence":null},
-    {"id":12,"name":"tribunal_final_12_dominios","status":"BLOCKED_DEPENDENCY","evidence":"depends_on step 11"}
+    {"id":11,"name":"repositorio_juridica_general","status":"GREEN","evidence":"REPOSITORIO_PRO_ASESORIA_JURIDICA_ESPANA_FINAL_v3_2026-09-15.md sha256 8179f07736929056603445f856482c59a5da6f09dd2f981793ea7a5825a86b36"},
+    {"id":12,"name":"tribunal_final_12_dominios","status":"GREEN","evidence":"12 physical domain sources present; ready for knowledge validation"}
   ],
   "summary": {
-    "green": 10,
-    "blocked_missing_artifact": 1,
-    "blocked_dependency": 1,
+    "green": 12,
+    "blocked_missing_artifact": 0,
+    "blocked_dependency": 0,
     "prod_touched": false,
     "app_crm_touched": false
   }
