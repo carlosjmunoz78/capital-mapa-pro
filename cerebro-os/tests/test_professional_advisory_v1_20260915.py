@@ -25,11 +25,12 @@ def test_laboral_final_supersedes_v01():
     assert any(x.endswith("v0.1.md") for x in labor["supersedes"])
 
 
-def test_missing_general_legal_is_explicit_not_invented_green():
+def test_general_legal_v3_is_explicit_canonical_source():
     catalog = json.loads((ROOT / "registry" / "advisory_source_catalog_20260915.json").read_text())
     legal = next(x for x in catalog["domains"] if x["domain"] == "JURIDICA_GENERAL")
-    assert legal["canonical_source"] is None
-    assert legal["source_status"] == "MISSING_ARTIFACT"
+    assert legal["canonical_source"] == "REPOSITORIO_PRO_ASESORIA_JURIDICA_ESPANA_FINAL_v3_2026-09-15.md"
+    assert legal["source_status"] == "AVAILABLE"
+    assert legal["engine_refs"] == ["LEG-001"]
 
 
 def test_router_supports_multidomain_company_property_purchase():
