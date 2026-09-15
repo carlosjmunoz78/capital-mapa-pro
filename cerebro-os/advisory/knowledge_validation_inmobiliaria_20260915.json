@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "domain": "INMOBILIARIA",
+  "environment": "LAB",
+  "source_file": "REPO_Asesoria_Inmobiliaria_PRO_Espana_FINAL_v1_0.md",
+  "source_sha256": "27ed1d1e5336a31d1e3a675f741f9dd7842bb0623a504d06dcb5d7f7b413a68a",
+  "validation_mode": "REPRESENTATIVE_HIGH_RISK_OFFICIAL_SOURCE_CHECKS",
+  "decision_support_only": true,
+  "live_verification_required_per_case": true,
+  "regulated_actions_require_human_when_applicable": true,
+  "checks": [
+    {"id":"INM-001","claim":"Urban residential leases require a cash deposit equivalent to one month of rent; non-residential leases require two months","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003"},
+    {"id":"INM-002","claim":"The refundable cash-deposit balance bears legal interest after one month from delivery of keys if it has not been returned","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003"},
+    {"id":"INM-003","claim":"Horizontal-property agreement challenge periods are generally three months and one year for agreements contrary to law or statutes","status":"PASS","official_source":"https://www.boe.es/biblioteca_juridica/abrir_pdf.php?id=PUB-PR-2026-142"},
+    {"id":"INM-004","claim":"A Registro de la Propiedad nota simple is informative and identifies current registered ownership and the nature, extent and limitations of registered rights","status":"PASS","official_source":"https://sede.registradores.org/site/propiedad?lang=es"},
+    {"id":"INM-005","claim":"Rental-deposit administrative obligations are territorial and must be checked against the applicable autonomous-community rules rather than inferred from the national LAU alone","status":"PASS","official_source":"https://www.boe.es/eli/es/l/1994/11/24/29/con"},
+    {"id":"INM-006","claim":"Andalusia changed its rental-deposit administrative regime with effect from 2026-01-24, so Andalusian cases require effective-date verification","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1998-2572"}
+  ],
+  "dynamic_gates": [
+    "autonomous_community_and_municipality",
+    "effective_date",
+    "property_registry_status",
+    "catastro_and_registry_coordination",
+    "urban_planning_status",
+    "tenant_or_consumer_regime",
+    "tax_treatment",
+    "tourist_or_seasonal_lease_rules"
+  ],
+  "summary": {
+    "checks": 6,
+    "passed": 6,
+    "failed": 0,
+    "critical_gap": false,
+    "knowledge_green": true,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "limitations": [
+    "This validates suitability as a maintained real-estate decision-support knowledge source, not every sentence exhaustively.",
+    "Registry, cadastral, urban-planning, autonomous-community, municipal, rent-control, deposit and tourist-rental facts must be rechecked live for each property and effective date.",
+    "Execution of reserved legal, notarial, registry, tax filing, signature or payment acts remains outside autonomous decision support."
+  ]
+}
