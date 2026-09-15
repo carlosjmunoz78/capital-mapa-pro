@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "domain": "JURIDICA_GENERAL",
+  "environment": "LAB",
+  "source_file": "REPOSITORIO_PRO_ASESORIA_JURIDICA_ESPANA_FINAL_v3_2026-09-15.md",
+  "source_sha256": "8179f07736929056603445f856482c59a5da6f09dd2f981793ea7a5825a86b36",
+  "validation_mode": "REPRESENTATIVE_HIGH_RISK_OFFICIAL_SOURCE_CHECKS",
+  "decision_support_only": true,
+  "live_verification_required_per_case": true,
+  "regulated_actions_require_human_when_applicable": true,
+  "checks": [
+    {"id":"JUR-001","claim":"Ley 5/2025 de Vivienda de Andalucía exists and entered into force 2026-01-24","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2026-423"},
+    {"id":"JUR-002","claim":"Andalusia administrative deposit obligation for rental deposits is suppressed for contracts from 2026-01-24","status":"PASS","official_source":"https://www.juntadeandalucia.es/organismos/avra/areas/fianzas/notas-ley-vivienda-andalucia-2025.html"},
+    {"id":"JUR-003","claim":"Andalusian consumer complaint response period is maximum 10 business days","status":"PASS","official_source":"https://www.juntadeandalucia.es/boja/2022/95/42"},
+    {"id":"JUR-004","claim":"LPAC appeal and reconsideration deadlines: one month for express acts; max resolution three months for appeal and one month for reconsideration","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2015-10565"},
+    {"id":"JUR-005","claim":"Horizontal Property Act challenge periods: three months generally and one year for agreements contrary to law or statutes","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1960-10906"},
+    {"id":"JUR-006","claim":"LAU rental deposit is one month for housing and two months for other use; unpaid return balance bears legal interest after one month from key handover","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003"},
+    {"id":"JUR-007","claim":"Insurance contract actions prescribe in two years for damage insurance and five years for personal insurance","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1980-22501"},
+    {"id":"JUR-008","claim":"LOE responsibility periods are one, three and ten years; actions prescribe in two years","status":"PASS","official_source":"https://www.boe.es/buscar/doc.php?id=BOE-A-1999-21567"},
+    {"id":"JUR-009","claim":"LJCA via de hecho filing periods include 10 days after prior requirement period and 20 days without prior requirement","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1998-16718"},
+    {"id":"JUR-010","claim":"Consumer conformity responsibility: three years for goods, two years for single-act digital content/services, second-hand pact not below one year","status":"PASS","official_source":"https://www.boe.es/eli/es/rdlg/2007/11/16/1/con"},
+    {"id":"JUR-011","claim":"GDPR data-subject rights response: one month, extendable by two further months with notice within the first month","status":"PASS","official_source":"https://eur-lex.europa.eu/eli/reg/2016/679/"}
+  ],
+  "summary": {
+    "checks": 11,
+    "passed": 11,
+    "failed": 0,
+    "critical_gap": false,
+    "knowledge_green": true,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "limitations": [
+    "This validates suitability as a maintained decision-support knowledge source, not every sentence exhaustively.",
+    "Dynamic facts, forms, fees, authorities, calls for aid, municipal rules and recent case law must be rechecked live before use.",
+    "Legal representation, signatures and reserved professional acts remain subject to human/legal gates."
+  ]
+}
