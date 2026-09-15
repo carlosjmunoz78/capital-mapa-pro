@@ -133,16 +133,32 @@ jobs:
             exit 1
           fi
 
-          REVISION_SA="$(gcloud run revisions describe "$REVISION" --region="$REGION" --format='value(spec.serviceAccountName)')"
-          test "$REVISION_SA" = "$RUNTIME_SERVICE_ACCOUNT"
-
-          ENV_DUMP="$(gcloud run revisions describe "$REVISION" --region="$REGION" --format='value(spec.containers[0].env.map().join(","))')"
-          echo "$ENV_DUMP" | grep -q 'CEREBRO_ENV=PREPROD'
-          echo "$ENV_DUMP" | grep -q 'CEREBRO_PREPROD_MODE=persistent_candidate'
-          echo "$ENV_DUMP" | grep -q 'CEREBRO_EXTERNAL_WRITES=disabled'
-          echo "$ENV_DUMP" | grep -q 'CEREBRO_APP_CRM_ACCESS=disabled'
-          echo "$ENV_DUMP" | grep -q 'CEREBRO_PROD_CREDENTIALS=disabled'
-          echo "$ENV_DUMP" | grep -q 'CEREBRO_CUSTOMER_DATA=disabled'
+          gcloud run revisions describe "$REVISION" --region="$REGION" --format=json > /tmp/forge-revision.json
+          python - <<'PY'
+          import json, os
+          with open('/tmp/forge-revision.json', encoding='utf-8') as fh:
+              revision = json.load(fh)
+          spec = revision.get('spec') or {}
+          actual_sa = spec.get('serviceAccountName') or spec.get('serviceAccount')
+          expected_sa = os.environ['RUNTIME_SERVICE_ACCOUNT']
+          if actual_sa != expected_sa:
+              raise SystemExit(f'runtime service account mismatch: {actual_sa!r} != {expected_sa!r}')
+          containers = spec.get('containers') or []
+          if len(containers) != 1:
+              raise SystemExit(f'expected exactly one container, got {len(containers)}')
+          actual_env = {item.get('name'): item.get('value') for item in containers[0].get('env', [])}
+          expected_env = {
+              'CEREBRO_ENV': 'PREPROD',
+              'CEREBRO_PREPROD_MODE': 'persistent_candidate',
+              'CEREBRO_EXTERNAL_WRITES': 'disabled',
+              'CEREBRO_APP_CRM_ACCESS': 'disabled',
+              'CEREBRO_PROD_CREDENTIALS': 'disabled',
+              'CEREBRO_CUSTOMER_DATA': 'disabled',
+          }
+          if actual_env != expected_env:
+              raise SystemExit(f'environment contract mismatch: {actual_env!r}')
+          print('Cloud Run isolation contract verified')
+          PY
 
           echo "REVISION=$REVISION" >> "$GITHUB_ENV"
           echo "IMAGE_DIGEST=$EXPECTED_DIGEST" >> "$GITHUB_ENV"
