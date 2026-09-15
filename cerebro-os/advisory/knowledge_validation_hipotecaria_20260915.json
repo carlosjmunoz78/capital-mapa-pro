@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "domain": "HIPOTECARIA",
+  "environment": "LAB",
+  "source_file": "REPOSITORIO_PRO_ASESORIA_HIPOTECARIA_ESPANA_v5.0_FINAL.md",
+  "source_sha256": "8a9aa63738e2b5d8bc6109e0760c2472ed757f3ccb6fbe3494ace2a38c4fd3ab",
+  "validation_mode": "REPRESENTATIVE_HIGH_RISK_OFFICIAL_SOURCE_CHECKS",
+  "decision_support_only": true,
+  "live_verification_required_per_case": true,
+  "regulated_actions_require_human_when_applicable": true,
+  "checks": [
+    {"id":"HIP-001","claim":"For in-scope real-estate credit, FEIN and FiAE must be delivered at least ten natural days before contract signing","status":"PASS","official_source":"https://boe.es/buscar/act.php?id=BOE-A-2019-3814"},
+    {"id":"HIP-002","claim":"The FEIN is binding for the lender for the agreed period and at least ten days before signing","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2019-3814"},
+    {"id":"HIP-003","claim":"The borrower must receive notarial transparency advice and the prior notarial act is a prerequisite to authorising the mortgage deed when the law applies","status":"PASS","official_source":"https://boe.es/buscar/act.php?id=BOE-A-2019-3814"},
+    {"id":"HIP-004","claim":"The borrower must appear before the chosen notary no later than the day before authorisation of the public deed for the prior act","status":"PASS","official_source":"https://boe.es/buscar/act.php?id=BOE-A-2019-3814"},
+    {"id":"HIP-005","claim":"Spanish law provides a statutory process for subrogation and modification of mortgage loans, including binding-offer and debt-certification steps","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1994-7556"},
+    {"id":"HIP-006","claim":"Mortgage valuation is a distinct regulated input whose purpose includes estimating the value of property offered as mortgage collateral","status":"PASS","official_source":"https://www.boe.es/eli/es/rd/1982/03/17/685"}
+  ],
+  "dynamic_gates": [
+    "borrower_type_and_scope_of_law_5_2019",
+    "lender_and_intermediary_status",
+    "effective_date",
+    "fein_fiae_delivery_timestamp",
+    "notarial_act_status",
+    "interest_rate_and_apr",
+    "valuation_date_and_provider",
+    "registry_charges",
+    "bank_credit_policy",
+    "subrogation_or_novation_state",
+    "insurance_and_linked_products"
+  ],
+  "summary": {
+    "checks": 6,
+    "passed": 6,
+    "failed": 0,
+    "critical_gap": false,
+    "knowledge_green": true,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "limitations": [
+    "This validates suitability as a maintained mortgage-advisory decision-support source, not every sentence exhaustively.",
+    "Bank pricing, approval criteria, affordability policies, appraisal validity, product conditions and market rates must be rechecked live for each case.",
+    "Signing, notarial acts, regulated intermediation and binding financial execution remain subject to legal/human gates where applicable."
+  ]
+}
