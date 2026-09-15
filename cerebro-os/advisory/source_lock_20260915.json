@@ -15,10 +15,10 @@
     {"domain":"PROTECCION_DATOS_COMPLIANCE","file":"REPO_PRO_Asesoria_Proteccion_Datos_Compliance_FINAL_v1_0.md","bytes":72320,"heading_count":213,"sha256":"984a3acefae3c1a8858bea059c8e1f8c12d245c45b54f867370577e9da660b14","status":"BOUND"},
     {"domain":"EMPRESARIAL_ESTRATEGICA","file":"Repositorio_PRO_Asesoria_Empresarial_Estrategica_Espana_v6.md","bytes":190368,"heading_count":1278,"sha256":"2747560dfca0d2bfdd3ceb2d354e758be2ccfe4fa13af86b6b72aa25d2f0dd2f","status":"BOUND"},
     {"domain":"PATRIMONIAL","file":"Repositorio_PRO_Asesoria_Patrimonial_Integral_FINAL_v1.0.md","bytes":129890,"heading_count":568,"sha256":"8dd142ebfb4858cb45955fab2537eda5e6bc31d64cbff9f333194b23cc80e134","status":"BOUND"},
-    {"domain":"JURIDICA_GENERAL","file":null,"bytes":null,"heading_count":null,"sha256":null,"status":"MISSING_ARTIFACT"}
+    {"domain":"JURIDICA_GENERAL","file":"REPOSITORIO_PRO_ASESORIA_JURIDICA_ESPANA_FINAL_v3_2026-09-15.md","bytes":155506,"heading_count":915,"sha256":"8179f07736929056603445f856482c59a5da6f09dd2f981793ea7a5825a86b36","status":"BOUND"}
   ],
   "historical_sources": [
     {"domain":"LABORAL","file":"REPOSITORIO_PRO_ASESORIA_LABORAL_ESPANA_v0.1.md","bytes":70878,"sha256":"c587594c2c9051c83db9abe1e6d11504c3477bef7d5636939ed474126d776086","status":"SUPERSEDED_PRESERVED"}
   ],
-  "summary": {"domains":12,"bound":11,"missing_artifact":1,"historical_preserved":1}
+  "summary": {"domains":12,"bound":12,"missing_artifact":0,"historical_preserved":1}
 }
