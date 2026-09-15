@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "domain": "PATRIMONIAL",
+  "environment": "LAB",
+  "source_file": "Repositorio_PRO_Asesoria_Patrimonial_Integral_FINAL_v1.0.md",
+  "source_sha256": "8dd142ebfb4858cb45955fab2537eda5e6bc31d64cbff9f333194b23cc80e134",
+  "validation_mode": "REPRESENTATIVE_HIGH_RISK_OFFICIAL_SOURCE_CHECKS",
+  "decision_support_only": true,
+  "live_verification_required_per_case": true,
+  "regulated_actions_require_human_when_applicable": true,
+  "checks": [
+    {"id":"PAT-001","claim":"Spanish inheritance and gift tax covers acquisitions by inheritance or legacy, donations and certain life-insurance benefits to individuals","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1987-28141"},
+    {"id":"PAT-002","claim":"Inheritance and gift tax analysis is territorial and may depend on autonomous-community and foral rules, so jurisdiction must be checked per case","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1987-28141"},
+    {"id":"PAT-003","claim":"Spanish wealth tax is levied on the net wealth of individuals and territorial/foral rules can affect the applicable treatment","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1991-14392"},
+    {"id":"PAT-004","claim":"The Civil Code defines the legítima as the portion of the estate that the testator cannot freely dispose of because it is reserved to forced heirs, subject to applicable civil-law territory","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1889-4763"},
+    {"id":"PAT-005","claim":"Transfers of assets can generate personal-income-tax capital gains or losses and statutory exemptions such as main-residence reinvestment must be checked against the current facts and law","status":"PASS","official_source":"https://www.boe.es/eli/es/l/2006/11/28/35/con"},
+    {"id":"PAT-006","claim":"Patrimonial planning necessarily crosses tax, civil-law, financial, real-estate, succession and company domains, so no single static rule may bypass those specialist validations","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1987-28141"}
+  ],
+  "dynamic_gates": [
+    "civil_law_territory",
+    "tax_residence",
+    "asset_location",
+    "family_relationship",
+    "marital_property_regime",
+    "forced_heir_rules",
+    "asset_valuation_date",
+    "autonomous_community_tax_rules",
+    "foral_tax_rules",
+    "capital_gains_consequences",
+    "company_shareholding_and_business_assets",
+    "cross_border_assets",
+    "insurance_beneficiaries",
+    "debt_and_encumbrances"
+  ],
+  "summary": {
+    "checks": 6,
+    "passed": 6,
+    "failed": 0,
+    "critical_gap": false,
+    "knowledge_green": true,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "limitations": [
+    "This validates suitability as a maintained patrimonial decision-support source, not every sentence or personal scenario exhaustively.",
+    "Tax rates, allowances, regional/foral benefits, valuations, civil-law territory, succession facts and cross-border consequences must be checked live per case.",
+    "Wills, signatures, filings, legal representation, tax submissions, investment execution and reserved professional acts remain subject to legal/human gates where applicable."
+  ]
+}
