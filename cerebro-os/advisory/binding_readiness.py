@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from .capabilities import CAPABILITY_REGISTRY
 
 # Engine IDs with executable LAB primitives physically verified in the current
-# repository modules. This is deliberately conservative: documentary coverage
-# or canonical registration alone does not count as a runtime binding.
+# repository modules. Documentary coverage or canonical registration alone does
+# not count as a runtime binding.
 EXECUTABLE_LAB_ENGINES = frozenset({
     # cerebro-os/enterprise/engines.py
     "HR-001", "HR-002", "HR-003", "HR-004", "HR-005", "HR-006",
@@ -14,6 +14,10 @@ EXECUTABLE_LAB_ENGINES = frozenset({
     "INV-001", "COL-001", "TRE-001", "ACC-001",
     # cerebro-os/strategy/engines.py
     "STR-001", "FRC-001", "CAPA-001", "OPP-001", "INN-001", "EXP-001",
+    # cerebro-os/advisory/missing_primitives.py
+    "FINOPS-001", "PROP-001", "REGP-001", "CAT-001", "NOT-001",
+    "VIA-001", "BNK-001", "BNK-002", "BNK-003", "BNK-004", "BNK-005", "BNK-006",
+    "OFR-001", "REC-001", "AML-001", "KYC-001",
 })
 
 
