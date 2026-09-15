@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2.0",
+  "schema_version": "1.3.0",
   "component_id": "PROFESSIONAL_ADVISORY",
   "component_type": "CAPABILITY_ORCHESTRATOR",
   "environment": "LAB",
@@ -31,24 +31,56 @@
       "version",
       "case_id",
       "correlation_id",
+      "actor",
+      "context",
+      "permissions",
       "requested_service",
       "territory",
       "facts"
     ],
+    "required_permission": "advisory:execute",
     "component_id": "PROFESSIONAL_ADVISORY",
     "engine_id_semantics": "canonical_underlying_engine_only",
     "supports_explicit_domains": true,
     "supports_service_hint_routing": true,
     "supports_cross_domain_triggers": true,
+    "runtime_execution": "Gateway -> Router -> Advisory runtime",
+    "versioned_response": true,
     "fail_closed_unknown_engine": true,
     "fail_closed_incompatible_engine_domain": true,
-    "fail_closed_unroutable": true
+    "fail_closed_unroutable": true,
+    "fail_closed_missing_permission": true
   },
   "shared_case_contract": {
     "required": ["company_id", "case_id", "environment", "version", "requested_service", "territory", "facts"],
     "supports_multiple_domains": true,
     "preserve_source_provenance": true,
-    "single_case_cross_domain": true
+    "single_case_cross_domain": true,
+    "recoverable_company_scoped_case": true
+  },
+  "source_policy": {
+    "types": ["STABLE_KNOWLEDGE", "LIVE_SOURCE", "INTERNAL_DOCUMENT", "CASE_FACT"],
+    "tracks_jurisdiction": true,
+    "tracks_validity_window": true,
+    "tracks_checked_at": true,
+    "tracks_confidence": true,
+    "current_live_source_can_be_required": true,
+    "insufficient_current_evidence": "LOW_CONFIDENCE"
+  },
+  "professional_output": {
+    "normalized": true,
+    "fields": [
+      "case_id",
+      "overall_status",
+      "domains",
+      "executive_summary",
+      "risks",
+      "deadlines",
+      "next_actions",
+      "source_ids",
+      "human_required",
+      "audit_refs"
+    ]
   },
   "policy": {
     "fail_closed": true,
@@ -75,6 +107,7 @@
     "Original repository documents remain source artifacts and must not be flattened destructively.",
     "The gateway envelope keeps component_id and canonical underlying engine_id separate while preserving the existing AdvisoryCase runtime contract.",
     "PROFESSIONAL_ADVISORY is a component_id, not a canonical engine_id.",
+    "Block B adds a deterministic V0 case-store abstraction and source policy without moving heavy workloads into Supabase.",
     "JURIDICA_GENERAL remains MISSING_ARTIFACT until its master repository is supplied or otherwise evidenced."
   ]
 }
