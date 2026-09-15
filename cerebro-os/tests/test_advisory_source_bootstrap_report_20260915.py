@@ -14,20 +14,21 @@ def test_bootstrap_report_matches_source_lock_hashes():
         expected = lock_by_domain[row["domain"]]
         assert row["file"] == expected["file"]
         assert row["sha256"] == expected["sha256"]
-        if row["verification"] == "VERIFIED":
-            assert expected["status"] == "BOUND"
-            assert row["bytes"] == expected["bytes"]
-            assert row["section_count"] == expected["heading_count"]
+        assert row["verification"] == "VERIFIED"
+        assert expected["status"] == "BOUND"
+        assert row["bytes"] == expected["bytes"]
+        assert row["section_count"] == expected["heading_count"]
 
 
 def test_bootstrap_totals_are_exact():
     report = json.loads(REPORT.read_text())
     verified = [x for x in report["domains"] if x["verification"] == "VERIFIED"]
     summary = report["summary"]
-    assert len(verified) == 11
-    assert sum(x["bytes"] for x in verified) == summary["verified_bytes"] == 1716815
-    assert sum(x["line_count"] for x in verified) == summary["verified_lines"] == 69614
-    assert sum(x["section_count"] for x in verified) == summary["verified_sections"] == 6495
+    assert len(verified) == 12
+    assert sum(x["bytes"] for x in verified) == summary["verified_bytes"] == 1872321
+    assert sum(x["line_count"] for x in verified) == summary["verified_lines"] == 78088
+    assert sum(x["section_count"] for x in verified) == summary["verified_sections"] == 7410
+    assert summary["missing_artifact"] == 0
 
 
 def test_source_integrity_green_does_not_promote_knowledge_or_autonomy():
