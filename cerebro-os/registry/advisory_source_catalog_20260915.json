@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "status": "SOURCE_INVENTORY",
+  "domains": [
+    {"domain":"FISCAL","canonical_source":"REPO_FISCALIDAD_ESPANA_PARTE_01_ARQUITECTURA_v1.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":["TAX-001"]},
+    {"domain":"CONTABLE","canonical_source":"REPO_ASESORIA_CONTABLE_ENTERPRISE_MASTER_FINAL.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":["ACC-001","INV-001","COL-001"]},
+    {"domain":"LABORAL","canonical_source":"REPOSITORIO_PRO_ASESORIA_LABORAL_ESPANA_v1.0_FINAL.md","supersedes":["REPOSITORIO_PRO_ASESORIA_LABORAL_ESPANA_v0.1.md"],"source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":["HR-001","HR-002","HR-003","HR-004","HR-005","HR-006","LEG-001"]},
+    {"domain":"MERCANTIL","canonical_source":"REPOSITORIO_PRO_ASESORIA_MERCANTIL_FINAL_v1.0.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":["LEG-001"]},
+    {"domain":"FINANCIERA","canonical_source":"REPOSITORIO_PRO_ASESORIA_FINANCIERA_ENTERPRISE_FINAL_2026-09-14.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":["TRE-001","FINOPS-001","FRC-001"]},
+    {"domain":"INMOBILIARIA","canonical_source":"REPO_Asesoria_Inmobiliaria_PRO_Espana_FINAL_v1_0.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":["PROP-001","REGP-001","CAT-001","NOT-001"]},
+    {"domain":"HIPOTECARIA","canonical_source":"REPOSITORIO_PRO_ASESORIA_HIPOTECARIA_ESPANA_v5.0_FINAL.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":["VIA-001","BNK-001","BNK-002","BNK-003","BNK-004","BNK-005","BNK-006","OFR-001","REC-001"]},
+    {"domain":"SUBVENCIONES_AYUDAS","canonical_source":"REPOSITORIO_PRO_ASESORIA_SUBVENCIONES_AYUDAS_FINAL_v2_0.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":[]},
+    {"domain":"PROTECCION_DATOS_COMPLIANCE","canonical_source":"REPO_PRO_Asesoria_Proteccion_Datos_Compliance_FINAL_v1_0.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":["CMP-002","DPO-001","CONS-001","KYC-001","AML-001"]},
+    {"domain":"EMPRESARIAL_ESTRATEGICA","canonical_source":"Repositorio_PRO_Asesoria_Empresarial_Estrategica_Espana_v6.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":["STR-001","FRC-001","CAPA-001","OPP-001","INN-001","EXP-001"]},
+    {"domain":"PATRIMONIAL","canonical_source":"Repositorio_PRO_Asesoria_Patrimonial_Integral_FINAL_v1.0.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":[]},
+    {"domain":"JURIDICA_GENERAL","canonical_source":null,"source_status":"MISSING_ARTIFACT","advisory_role":"SPECIALTY","engine_refs":["LEG-001"]}
+  ],
+  "invariants": {
+    "domain_count": 12,
+    "fiscal_is_root": false,
+    "professional_advisory_is_orchestrator": true,
+    "invent_new_engine_ids": false,
+    "preserve_original_sources": true
+  }
+}
