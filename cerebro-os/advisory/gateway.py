@@ -4,10 +4,12 @@ from dataclasses import dataclass, field
 from typing import Mapping
 
 from .capabilities import CAPABILITY_REGISTRY
-from .models import AdvisoryCase, EvidenceRef, Territory
+from .models import AdvisoryCase, AdvisoryDecision, EvidenceRef, Territory
 from .router import route_case
+from .runtime import DomainHandler, execute_case
 
 ADVISORY_COMPONENT_ID = "PROFESSIONAL_ADVISORY"
+ADVISORY_EXECUTE_PERMISSION = "advisory:execute"
 
 
 def canonical_advisory_engine_ids() -> frozenset[str]:
@@ -23,9 +25,9 @@ class AdvisoryGatewayRequest:
     """Versioned multi-company gateway contract for Professional Advisory.
 
     The orchestrator is represented by ``component_id``. ``engine_id`` always
-    refers to a canonical underlying logical engine. Keeping those identities
-    separate preserves the manifest contract (the orchestrator is not itself a
-    new engine) and prevents fail-open routing through a pseudo engine ID.
+    refers to a canonical underlying logical engine. Actor, context and
+    permissions live at the gateway boundary so the preserved AdvisoryCase
+    contract does not need a breaking change.
     """
 
     company_id: str
@@ -35,6 +37,9 @@ class AdvisoryGatewayRequest:
     version: str
     case_id: str
     correlation_id: str
+    actor: Mapping[str, str]
+    context: Mapping[str, object]
+    permissions: tuple[str, ...]
     requested_service: str
     territory: Territory
     facts: Mapping[str, object]
@@ -61,6 +66,12 @@ class AdvisoryGatewayRequest:
             raise ValueError("invalid environment")
         if self.engine_id not in canonical_advisory_engine_ids():
             raise ValueError(f"unknown advisory engine_id: {self.engine_id}")
+        actor_id = self.actor.get("actor_id", "").strip()
+        actor_type = self.actor.get("actor_type", "").strip()
+        if not actor_id or not actor_type:
+            raise ValueError("actor.actor_id and actor.actor_type required")
+        if ADVISORY_EXECUTE_PERMISSION not in self.permissions:
+            raise PermissionError(f"missing permission: {ADVISORY_EXECUTE_PERMISSION}")
         self.territory.validate()
         if not self.facts:
             raise ValueError("facts required")
@@ -82,6 +93,35 @@ class AdvisoryGatewayRequest:
         )
 
 
+@dataclass(frozen=True)
+class AdvisoryGatewayResponse:
+    company_id: str
+    component_id: str
+    engine_id: str
+    environment: str
+    version: str
+    case_id: str
+    correlation_id: str
+    decision: AdvisoryDecision
+
+    def validate(self) -> None:
+        if not all(
+            value.strip()
+            for value in (
+                self.company_id,
+                self.component_id,
+                self.engine_id,
+                self.version,
+                self.case_id,
+                self.correlation_id,
+            )
+        ):
+            raise ValueError("invalid gateway response identity")
+        self.decision.validate()
+        if self.decision.case_id != self.case_id:
+            raise ValueError("gateway response case_id mismatch")
+
+
 def resolve_gateway_route(request: AdvisoryGatewayRequest) -> tuple[str, ...]:
     """Resolve explicit/automatic routing with fail-closed engine binding."""
 
@@ -95,3 +135,33 @@ def resolve_gateway_route(request: AdvisoryGatewayRequest) -> tuple[str, ...]:
             f"engine_id {request.engine_id} is not compatible with routed domains {routed}"
         )
     return routed
+
+
+def execute_gateway_request(
+    request: AdvisoryGatewayRequest,
+    handlers: Mapping[str, DomainHandler],
+    audit_refs: tuple[str, ...] = (),
+) -> AdvisoryGatewayResponse:
+    """Execute Gateway -> Router -> Advisory runtime with traceable response."""
+
+    resolve_gateway_route(request)
+    gateway_audit_ref = (
+        f"gateway://{request.company_id}/{request.case_id}/{request.correlation_id}"
+    )
+    decision = execute_case(
+        request.to_case(),
+        handlers,
+        audit_refs=(*audit_refs, gateway_audit_ref),
+    )
+    response = AdvisoryGatewayResponse(
+        company_id=request.company_id,
+        component_id=request.component_id,
+        engine_id=request.engine_id,
+        environment=request.environment,
+        version=request.version,
+        case_id=request.case_id,
+        correlation_id=request.correlation_id,
+        decision=decision,
+    )
+    response.validate()
+    return response
