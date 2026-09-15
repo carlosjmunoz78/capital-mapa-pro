@@ -43,13 +43,13 @@ jobs:
         with:
           project_id: ${{ env.PROJECT_ID }}
 
-      - name: Verify FORGE target and identities
+      - name: Verify FORGE target
         shell: bash
         run: |
           set -euo pipefail
           test "$(gcloud config get-value project)" = "$PROJECT_ID"
-          gcloud iam service-accounts describe "$DEPLOY_SERVICE_ACCOUNT" >/dev/null
-          gcloud iam service-accounts describe "$RUNTIME_SERVICE_ACCOUNT" >/dev/null
+          ACTIVE_ACCOUNT="$(gcloud auth list --filter=status:ACTIVE --format='value(account)')"
+          test "$ACTIVE_ACCOUNT" = "$DEPLOY_SERVICE_ACCOUNT"
 
       - name: Ensure Artifact Registry repository exists
         shell: bash
