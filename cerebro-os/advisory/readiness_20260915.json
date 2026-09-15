@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "component_id": "PROFESSIONAL_ADVISORY",
+  "environment": "LAB",
+  "steps": [
+    {"id":1,"name":"inventario_repositorios_originales","status":"GREEN","evidence":"source_lock_20260915.json"},
+    {"id":2,"name":"arquitectura_superior_advisory","status":"GREEN","evidence":"professional_advisory.manifest.json"},
+    {"id":3,"name":"catalogo_dominios_y_engine_refs","status":"GREEN","evidence":"advisory_source_catalog_20260915.json"},
+    {"id":4,"name":"contrato_expediente_comun","status":"GREEN","evidence":"advisory/models.py"},
+    {"id":5,"name":"router_interdisciplinar","status":"GREEN","evidence":"advisory/router.py"},
+    {"id":6,"name":"integridad_fuentes_fisicas","status":"GREEN","evidence":"source_bootstrap_report_20260915.json"},
+    {"id":7,"name":"tax001_reposicionado_como_capability_fiscal","status":"GREEN","evidence":"PROFESSIONAL_ADVISORY_ARCHITECTURE_V1_2026-09-15.md"},
+    {"id":8,"name":"tests_invariantes_advisory","status":"GREEN","evidence":"CI runs 948/950/952/954 SUCCESS"},
+    {"id":9,"name":"ingesta_markdown_no_destructiva","status":"GREEN","evidence":"advisory/markdown_ingest.py"},
+    {"id":10,"name":"coordinacion_dictamenes_cross_domain","status":"GREEN","evidence":"advisory/coordinator.py"},
+    {"id":11,"name":"repositorio_juridica_general","status":"BLOCKED_MISSING_ARTIFACT","evidence":null},
+    {"id":12,"name":"tribunal_final_12_dominios","status":"BLOCKED_DEPENDENCY","evidence":"depends_on step 11"}
+  ],
+  "summary": {
+    "green": 10,
+    "blocked_missing_artifact": 1,
+    "blocked_dependency": 1,
+    "prod_touched": false,
+    "app_crm_touched": false
+  }
+}
