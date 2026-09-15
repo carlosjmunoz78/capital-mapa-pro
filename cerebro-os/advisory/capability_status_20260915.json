@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "scope": "PROFESSIONAL_ADVISORY",
   "environment": "LAB",
   "knowledge": {
@@ -20,6 +20,10 @@
     "e2e_representative_case_validation": true,
     "representative_cases": 3,
     "representative_domain_coverage": 12,
+    "controlled_shadow_replay_validation": true,
+    "shadow_replay_cases": 3,
+    "shadow_replay_deterministic_match_required": true,
+    "shadow_replay_missing_evidence_fail_closed": true,
     "e2e_real_customer_case_validation": false,
     "capability_green_lab": true,
     "capability_green_global": false
@@ -28,5 +32,5 @@
   "preprod_enabled": false,
   "prod_enabled": false,
   "app_crm_prod_touched": false,
-  "next_gate": "Run controlled shadow/replay validation with non-production evidence before any PREPROD promotion. App/CRM remain excluded."
+  "next_gate": "Validate replay against a sanitized historical-case corpus or equivalent immutable non-production case pack before any PREPROD promotion. App/CRM remain excluded."
 }
