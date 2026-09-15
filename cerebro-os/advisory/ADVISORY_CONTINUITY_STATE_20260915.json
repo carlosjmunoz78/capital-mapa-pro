@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "project": "CEREBRO OS",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "cutoff": "2026-09-15",
+  "repository": "carlosjmunoz78/capital-mapa-pro",
+  "base_branch": "cerebro-engine-factory-v0",
+  "current_verified_base_commit_before_block_e": "eff999dbbd60adc44a1ea372fd947f4d6d867f96",
+  "gcp": {
+    "project": "cerebro-forge",
+    "region": "europe-southwest1",
+    "service": "cerebro-advisory-preprod",
+    "persistent_preprod": true
+  },
+  "blocks": {
+    "A": {
+      "status": "GREEN",
+      "pr": 52,
+      "merge_commit": "6cab9289cfb3747a8779dda32d72bcca3e539f66",
+      "postmerge_run_id": 35010956034,
+      "postmerge_run_number": 15
+    },
+    "B": {
+      "status": "GREEN",
+      "pr": 53,
+      "merge_commit": "ffeb04edfdf45e18521fa3e1ede6916730956694",
+      "postmerge_run_id": 35025072225,
+      "postmerge_run_number": 16
+    },
+    "C": {
+      "status": "GREEN",
+      "pr": 54,
+      "merge_commit": "28b9dd92ad0634380169ff1e32f2f6c34af56d21",
+      "postmerge_run_id": 35025424337,
+      "postmerge_run_number": 17
+    },
+    "D": {
+      "status": "GREEN",
+      "pr": 55,
+      "merge_commit": "eff999dbbd60adc44a1ea372fd947f4d6d867f96",
+      "postmerge_run_id": 35025812256,
+      "postmerge_run_number": 18
+    },
+    "E": {
+      "status": "IN_PROGRESS",
+      "branch": "cerebro-advisory-block-e-closure-v1"
+    }
+  },
+  "validated": {
+    "knowledge_domains": 12,
+    "source_lock_bound": 12,
+    "representative_cases": 3,
+    "representative_domain_coverage": 12,
+    "gateway_router_runtime": true,
+    "case_store_company_scoped": true,
+    "source_policy": true,
+    "professional_output": true,
+    "canonical_human_exception_codes": 8,
+    "idempotent_integration_outbox": true,
+    "observability": true,
+    "backup_rebuild_rollback": true,
+    "old_vs_new_comparison": true,
+    "isolated_preprod_autonomy_tribunal": true
+  },
+  "flags": {
+    "preprod_enabled": true,
+    "capability_green_preprod": true,
+    "advisory_autonomy_preprod_green": true,
+    "capability_green_global": false,
+    "autonomy_green": false,
+    "prod_enabled": false,
+    "app_crm_prod_touched": false
+  },
+  "isolation": {
+    "external_writes_default_disabled": true,
+    "app_crm_access_disabled": true,
+    "prod_credentials_disabled": true,
+    "customer_data_disabled": true
+  },
+  "cost": {
+    "additional_cost_target_eur": 0,
+    "new_subscription_introduced": false
+  },
+  "human_required_codes": [
+    "LEGAL_REQUIRED",
+    "SIGNATURE_REQUIRED",
+    "LOW_CONFIDENCE",
+    "HIGH_RISK",
+    "POLICY_CONFLICT",
+    "SECURITY_INCIDENT",
+    "MONEY_LIMIT",
+    "CUSTOMER_HUMAN_REQUEST"
+  ],
+  "next_gate": "Finish Block E documentation/CI/post-merge. Global autonomy and PROD remain separate and disabled."
+}

@@ -1,8 +1,8 @@
 {
-  "schema_version": "1.5.0",
+  "schema_version": "1.6.0",
   "component_id": "PROFESSIONAL_ADVISORY",
   "component_type": "CAPABILITY_ORCHESTRATOR",
-  "environment": "LAB",
+  "environment": "PREPROD",
   "version": "0.1.0",
   "company_scope": "GLOBAL_OR_SCOPED",
   "engine_id": null,
@@ -133,6 +133,7 @@
   },
   "advisory_autonomy_tribunal": {
     "scope": "ISOLATED_PREPROD_ADVISORY_CANDIDATE",
+    "status": "PASS_PREPROD_ADVISORY_AUTONOMY",
     "can_pass_without_global_promotion": true,
     "global_capability_promotion_separate": true,
     "global_autonomy_promotion_separate": true,
@@ -153,19 +154,26 @@
     ]
   },
   "promotion": {
-    "knowledge_green": false,
+    "knowledge_green": true,
+    "preprod_enabled": true,
+    "capability_green_preprod": true,
+    "advisory_autonomy_preprod_green": true,
+    "capability_green_global": false,
     "capability_green": false,
     "autonomy_green": false,
-    "prod_enabled": false
+    "prod_enabled": false,
+    "app_crm_prod_touched": false
   },
   "notes": [
     "TAX-001 is the Fiscal capability under this orchestrator, not the root of Advisory.",
     "Original repository documents remain source artifacts and must not be flattened destructively.",
     "The gateway envelope keeps component_id and canonical underlying engine_id separate while preserving the existing AdvisoryCase runtime contract.",
     "PROFESSIONAL_ADVISORY is a component_id, not a canonical engine_id.",
+    "The physical source lock records 12 of 12 domains BOUND with zero missing artifacts.",
     "Block B adds a deterministic V0 case-store abstraction and source policy without moving heavy workloads into Supabase.",
     "Block C adds decoupled idempotent integration events, deterministic observability and recoverable backup/rebuild primitives without enabling external writes by default.",
     "Block D validates OLD vs NEW behavior and isolated PREPROD advisory autonomy gates without flipping global autonomy or PROD flags.",
-    "The physical source lock currently records 12 of 12 domains BOUND, including JURIDICA_GENERAL."
+    "Block E records the verified distinction: knowledge and isolated PREPROD capability/autonomy candidate are green; global capability, global autonomy and PROD remain disabled.",
+    "App/CRM PROD remains untouched and no new subscription cost is introduced."
   ]
 }
