@@ -1,0 +1,154 @@
+name: CEREBRO FORGE PREPROD
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - cerebro-forge-preprod-wif
+    paths:
+      - 'cerebro-os/**'
+      - '.github/workflows/cerebro-forge-preprod.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: cerebro-forge
+  PROJECT_NUMBER: '15609183753'
+  REGION: europe-southwest1
+  SERVICE_NAME: cerebro-advisory-preprod
+  REPOSITORY: cerebro-forge
+  RUNTIME_SERVICE_ACCOUNT: cerebro-forge-runtime@cerebro-forge.iam.gserviceaccount.com
+  WORKLOAD_IDENTITY_PROVIDER: projects/15609183753/locations/global/workloadIdentityPools/github-cerebro-forge/providers/github-provider
+  DEPLOY_SERVICE_ACCOUNT: cerebro-forge-deployer@cerebro-forge.iam.gserviceaccount.com
+
+jobs:
+  deploy-preprod:
+    runs-on: ubuntu-latest
+    environment: PREPROD
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud with WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Verify FORGE target and identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gcloud config get-value project)" = "$PROJECT_ID"
+          test "$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')" = "$PROJECT_NUMBER"
+          gcloud iam service-accounts describe "$DEPLOY_SERVICE_ACCOUNT" >/dev/null
+          gcloud iam service-accounts describe "$RUNTIME_SERVICE_ACCOUNT" >/dev/null
+
+      - name: Ensure Artifact Registry repository exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gcloud artifacts repositories describe "$REPOSITORY" --location="$REGION" >/dev/null 2>&1; then
+            gcloud artifacts repositories create "$REPOSITORY" \
+              --repository-format=docker \
+              --location="$REGION" \
+              --description="CEREBRO FORGE PREPROD images"
+          fi
+
+      - name: Configure Docker auth
+        run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+
+      - name: Build image
+        shell: bash
+        run: |
+          set -euo pipefail
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/cerebro-advisory-preprod:${GITHUB_SHA}"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+          docker build -f cerebro-os/preprod/Dockerfile -t "$IMAGE" .
+
+      - name: Run isolated container rehearsal before deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            --network none \
+            --read-only \
+            --tmpfs /tmp:rw,nosuid,nodev,noexec,size=128m \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            -e CEREBRO_ENV=PREPROD \
+            -e CEREBRO_PREPROD_MODE=persistent_candidate \
+            -e CEREBRO_EXTERNAL_WRITES=disabled \
+            -e CEREBRO_APP_CRM_ACCESS=disabled \
+            -e CEREBRO_PROD_CREDENTIALS=disabled \
+            -e CEREBRO_CUSTOMER_DATA=disabled \
+            "$IMAGE"
+
+      - name: Push image
+        run: docker push "$IMAGE"
+
+      - name: Deploy private Cloud Run PREPROD candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud run deploy "$SERVICE_NAME" \
+            --image="$IMAGE" \
+            --region="$REGION" \
+            --platform=managed \
+            --service-account="$RUNTIME_SERVICE_ACCOUNT" \
+            --no-allow-unauthenticated \
+            --ingress=internal \
+            --min-instances=0 \
+            --max-instances=1 \
+            --cpu=1 \
+            --memory=512Mi \
+            --concurrency=1 \
+            --timeout=300 \
+            --set-env-vars=CEREBRO_ENV=PREPROD,CEREBRO_PREPROD_MODE=persistent_candidate,CEREBRO_EXTERNAL_WRITES=disabled,CEREBRO_APP_CRM_ACCESS=disabled,CEREBRO_PROD_CREDENTIALS=disabled,CEREBRO_CUSTOMER_DATA=disabled \
+            --quiet
+
+      - name: Verify revision and isolation contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          REVISION="$(gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format='value(status.latestReadyRevisionName)')"
+          test -n "$REVISION"
+          IMAGE_DEPLOYED="$(gcloud run revisions describe "$REVISION" --region="$REGION" --format='value(spec.containers[0].image)')"
+          test "$IMAGE_DEPLOYED" = "$IMAGE"
+          echo "REVISION=$REVISION" >> "$GITHUB_ENV"
+          echo "Persistent PREPROD revision: $REVISION"
+
+      - name: Capture evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p forge-evidence
+          {
+            echo "project_id=$PROJECT_ID"
+            echo "project_number=$PROJECT_NUMBER"
+            echo "region=$REGION"
+            echo "service=$SERVICE_NAME"
+            echo "revision=$REVISION"
+            echo "image=$IMAGE"
+            echo "runtime_service_account=$RUNTIME_SERVICE_ACCOUNT"
+            echo "external_writes=disabled"
+            echo "app_crm_access=disabled"
+            echo "prod_credentials=disabled"
+            echo "customer_data=disabled"
+            echo "github_sha=$GITHUB_SHA"
+          } > forge-evidence/preprod-deployment.txt
+
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cerebro-forge-preprod-${{ github.sha }}
+          path: forge-evidence/preprod-deployment.txt
+          if-no-files-found: error
