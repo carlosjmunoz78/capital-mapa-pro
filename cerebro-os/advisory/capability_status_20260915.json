@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.6.0",
+  "schema_version": "1.7.0",
   "scope": "PROFESSIONAL_ADVISORY",
   "environment": "LAB",
   "knowledge": {
@@ -46,6 +46,14 @@
     "ready_for_preprod_activation_review": true,
     "preprod_activation_tribunal": "PASS_READY_ONLY",
     "ready_for_preprod_activation": true,
+    "ephemeral_physical_preprod_environment": true,
+    "ephemeral_physical_preprod_runtime": "github_actions_docker",
+    "ephemeral_physical_preprod_network_disabled": true,
+    "ephemeral_physical_preprod_read_only": true,
+    "ephemeral_physical_preprod_capabilities_dropped": true,
+    "ephemeral_physical_preprod_no_new_privileges": true,
+    "ephemeral_physical_preprod_rehearsal": "PASS",
+    "persistent_preprod_environment": false,
     "e2e_real_customer_case_validation": false,
     "capability_green_lab": true,
     "capability_green_global": false
@@ -54,5 +62,5 @@
   "preprod_enabled": false,
   "prod_enabled": false,
   "app_crm_prod_touched": false,
-  "next_gate": "Create a physically isolated PREPROD environment and deploy the candidate there. This tribunal authorizes readiness only; it does not enable PREPROD, autonomy or PROD and does not authorize App/CRM access."
+  "next_gate": "Provision a persistent isolated PREPROD runtime only when an approved zero-cost/existing runtime target is available. Until then keep PREPROD_ENABLED=false. App/CRM, customer data and PROD credentials remain excluded."
 }
