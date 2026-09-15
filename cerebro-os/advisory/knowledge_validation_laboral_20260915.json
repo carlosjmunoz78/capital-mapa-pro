@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "domain": "LABORAL",
+  "environment": "LAB",
+  "source_file": "REPOSITORIO_PRO_ASESORIA_LABORAL_ESPANA_v1.0_FINAL.md",
+  "source_sha256": "a3d27920a7d7f914cca6b82d05a37fa787a6cd7c9699cdbe5bc129a51b6810bc",
+  "validation_mode": "REPRESENTATIVE_HIGH_RISK_OFFICIAL_SOURCE_CHECKS",
+  "decision_support_only": true,
+  "live_verification_required_per_case": true,
+  "regulated_actions_require_human_when_applicable": true,
+  "checks": [
+    {"id":"LAB-001","claim":"Estatuto de los Trabajadores consolidado identificado como RDL 2/2015 y actualizado en BOE","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2015-11430"},
+    {"id":"LAB-002","claim":"SMI 2026 fijado por Real Decreto 126/2026 con efectos desde 1 de enero de 2026","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2026-3815"},
+    {"id":"LAB-003","claim":"Bases de cotización Régimen General 2026 publicadas por Seguridad Social conforme Orden PJC/297/2026","status":"PASS","official_source":"https://www.seg-social.es/wps/portal/wss/internet/Trabajadores/CotizacionRecaudacionTrabajadores/10721/10957/9932/4327?changeLanguage=es"},
+    {"id":"LAB-004","claim":"Tipos de cotización Régimen General 2026 y MEI publicados por Seguridad Social conforme Orden PJC/297/2026","status":"PASS","official_source":"https://www.seg-social.es/wps/portal/wss/internet/Trabajadores/CotizacionRecaudacionTrabajadores/10721/10957/9932/4315?changeLanguage=es"},
+    {"id":"LAB-005","claim":"ERTE y Mecanismo RED forman parte del marco laboral vigente derivado del RDL 32/2021","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2021-21788"},
+    {"id":"LAB-006","claim":"Ley 31/1995 de Prevención de Riesgos Laborales permanece vigente y consolidada en 2026","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-1995-24292"},
+    {"id":"LAB-007","claim":"Empresas de 50 o más personas trabajadoras deben elaborar y aplicar plan de igualdad, salvo supuestos adicionales previstos legalmente","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2007-6115"},
+    {"id":"LAB-008","claim":"El conocimiento laboral debe resolverse con convenio colectivo, territorio, fecha efectiva y situación contractual concretos antes de emitir decision support","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2015-11430"}
+  ],
+  "summary": {
+    "checks": 8,
+    "passed": 8,
+    "failed": 0,
+    "critical_gap": false,
+    "knowledge_green": true,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "limitations": [
+    "Convenio colectivo, grupo profesional, jornada, territorio, antigüedad, tipo de contrato y fecha efectiva deben validarse por caso.",
+    "Nóminas, cotizaciones, bonificaciones, bases, SMI y reglas de Seguridad Social son datos temporales y requieren live verification.",
+    "Despidos, sanciones, ERTE/RED, conflictos colectivos, inspección, representación y otros actos sensibles permanecen sujetos a LEGAL_REQUIRED o HIGH_RISK cuando proceda.",
+    "Esta validación acredita idoneidad del repositorio como base mantenida de decision support; no valida exhaustivamente cada frase del documento."
+  ]
+}
