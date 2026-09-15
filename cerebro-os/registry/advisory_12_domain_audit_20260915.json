@@ -1,0 +1,167 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-09-15",
+  "scope": "PROFESSIONAL_ADVISORY_12_DOMAINS",
+  "source_master": "FENIX_CEREBRO_MASTER_MOTORES_LENGUAJE_IA_V2_2026-09-07.md",
+  "live_branch": "cerebro-engine-factory-v0",
+  "rules": {
+    "do_not_invent_engine_ids": true,
+    "lab_green_is_not_prod": true,
+    "documentary_knowledge_is_not_capability": true,
+    "prod_requires_full_promotion_gates": true
+  },
+  "domains": [
+    {
+      "domain": "FISCAL",
+      "canonical_engine_ids": ["TAX-001"],
+      "dedicated_engine": true,
+      "registry_seeded": true,
+      "dedicated_scaffold_present": true,
+      "live_logic_present": true,
+      "knowledge_state": "KNOWLEDGE_GREEN",
+      "capability_state": "BUILDING_FAIL_CLOSED",
+      "audit_status": "PARCIAL",
+      "notes": "Dedicated TAX-001 exists with manifest/API/contracts/observability/ops/tests; corpus AW/AV/BH binding remains a separate material gate."
+    },
+    {
+      "domain": "CONTABLE",
+      "canonical_engine_ids": ["ACC-001", "INV-001", "COL-001"],
+      "dedicated_engine": false,
+      "registry_seeded": false,
+      "dedicated_scaffold_present": false,
+      "live_logic_present": true,
+      "knowledge_state": "POR_AUDITAR",
+      "capability_state": "LAB_LOGIC_ONLY",
+      "audit_status": "PARCIAL",
+      "notes": "ACC-001 has LAB behavior in enterprise/engines.py; no dedicated advisory scaffold or seeded registry entry evidenced."
+    },
+    {
+      "domain": "LABORAL",
+      "canonical_engine_ids": ["HR-001", "HR-002", "HR-003", "HR-004", "HR-005", "HR-006", "LEG-001"],
+      "dedicated_engine": false,
+      "registry_seeded": false,
+      "dedicated_scaffold_present": false,
+      "live_logic_present": true,
+      "knowledge_state": "POR_AUDITAR",
+      "capability_state": "LAB_LOGIC_ONLY",
+      "audit_status": "PARCIAL",
+      "notes": "Laboral is distributed across HR and LEG; there is no separate canonical Laboral advisory engine in the 177-ID master."
+    },
+    {
+      "domain": "JURIDICA_GENERAL",
+      "canonical_engine_ids": ["LEG-001"],
+      "dedicated_engine": true,
+      "registry_seeded": false,
+      "dedicated_scaffold_present": false,
+      "live_logic_present": true,
+      "knowledge_state": "POR_AUDITAR",
+      "capability_state": "LAB_LOGIC_ONLY",
+      "audit_status": "PARCIAL",
+      "notes": "LEG-001 is canonical and has evidence-aware LAB logic; no dedicated scaffold/seed integration evidenced."
+    },
+    {
+      "domain": "MERCANTIL",
+      "canonical_engine_ids": ["LEG-001"],
+      "dedicated_engine": false,
+      "registry_seeded": false,
+      "dedicated_scaffold_present": false,
+      "live_logic_present": true,
+      "knowledge_state": "POR_AUDITAR",
+      "capability_state": "LAB_LOGIC_ONLY",
+      "audit_status": "PARCIAL",
+      "notes": "The master places mercantile gaps under LEG-001; no separate canonical Mercantil engine exists in the 177-ID snapshot."
+    },
+    {
+      "domain": "FINANCIERA",
+      "canonical_engine_ids": ["TRE-001", "FINOPS-001", "FRC-001"],
+      "dedicated_engine": false,
+      "registry_seeded": false,
+      "dedicated_scaffold_present": false,
+      "live_logic_present": true,
+      "knowledge_state": "POR_AUDITAR",
+      "capability_state": "LAB_LOGIC_ONLY",
+      "audit_status": "PARCIAL",
+      "notes": "Financial advisory is distributed across treasury, FinOps and forecast capabilities rather than one dedicated canonical engine."
+    },
+    {
+      "domain": "INMOBILIARIA",
+      "canonical_engine_ids": ["PROP-001", "REGP-001", "CAT-001", "NOT-001"],
+      "dedicated_engine": false,
+      "registry_seeded": false,
+      "dedicated_scaffold_present": false,
+      "live_logic_present": true,
+      "knowledge_state": "POR_AUDITAR",
+      "capability_state": "LAB_LOGIC_ONLY",
+      "audit_status": "PARCIAL",
+      "notes": "Inmobiliaria is represented by property risk, registry, cadastre and notarial engines; no single advisory wrapper evidenced."
+    },
+    {
+      "domain": "HIPOTECARIA",
+      "canonical_engine_ids": ["VIA-001", "BNK-001", "BNK-002", "BNK-003", "BNK-004", "BNK-005", "BNK-006", "OFR-001", "REC-001"],
+      "dedicated_engine": false,
+      "registry_seeded": false,
+      "dedicated_scaffold_present": false,
+      "live_logic_present": true,
+      "knowledge_state": "POR_AUDITAR",
+      "capability_state": "LAB_LOGIC_ONLY",
+      "audit_status": "PARCIAL",
+      "notes": "Mortgage advisory is a family of L4 engines; no single dedicated Hipotecaria advisory engine is canonical."
+    },
+    {
+      "domain": "SUBVENCIONES_AYUDAS",
+      "canonical_engine_ids": [],
+      "dedicated_engine": false,
+      "registry_seeded": false,
+      "dedicated_scaffold_present": false,
+      "live_logic_present": false,
+      "knowledge_state": "POR_AUDITAR",
+      "capability_state": "MAPPING_REQUIRED",
+      "audit_status": "FALTA_MAPEO_CANONICO",
+      "notes": "No explicit subsidies/grants engine ID exists in the canonical 177 snapshot; do not invent one before an architecture decision."
+    },
+    {
+      "domain": "COMPLIANCE_DPO",
+      "canonical_engine_ids": ["CMP-002", "DPO-001", "CONS-001", "AML-001", "KYC-001"],
+      "dedicated_engine": false,
+      "registry_seeded": false,
+      "dedicated_scaffold_present": false,
+      "live_logic_present": true,
+      "knowledge_state": "POR_AUDITAR",
+      "capability_state": "LAB_LOGIC_ONLY",
+      "audit_status": "PARCIAL",
+      "notes": "Compliance/DPO is distributed across compliance, privacy, consent, AML and KYC capabilities."
+    },
+    {
+      "domain": "EMPRESARIAL_ESTRATEGICA",
+      "canonical_engine_ids": ["STR-001", "FRC-001", "CAPA-001", "OPP-001", "INN-001", "EXP-001"],
+      "dedicated_engine": false,
+      "registry_seeded": false,
+      "dedicated_scaffold_present": false,
+      "live_logic_present": true,
+      "knowledge_state": "POR_AUDITAR",
+      "capability_state": "LAB_LOGIC_ONLY",
+      "audit_status": "PARCIAL",
+      "notes": "Strategy LAB logic exists across canonical strategy/forecast/capacity/opportunity/innovation/experiment engines."
+    },
+    {
+      "domain": "PATRIMONIAL",
+      "canonical_engine_ids": [],
+      "dedicated_engine": false,
+      "registry_seeded": false,
+      "dedicated_scaffold_present": false,
+      "live_logic_present": false,
+      "knowledge_state": "POR_AUDITAR",
+      "capability_state": "MAPPING_REQUIRED",
+      "audit_status": "FALTA_MAPEO_CANONICO",
+      "notes": "No explicit Patrimonial engine ID exists in the canonical 177 snapshot; scope overlaps fiscal/legal/property but needs explicit architecture mapping."
+    }
+  ],
+  "summary": {
+    "domain_count": 12,
+    "dedicated_canonical_domain_engines": 2,
+    "seeded_dedicated_advisory_engines": 1,
+    "domains_with_live_lab_logic": 10,
+    "domains_without_explicit_canonical_mapping": 2,
+    "fully_structured_and_integrated_12_of_12": false
+  }
+}
