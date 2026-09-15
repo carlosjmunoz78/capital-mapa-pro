@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.4.0",
+  "schema_version": "1.5.0",
   "component_id": "PROFESSIONAL_ADVISORY",
   "component_type": "CAPABILITY_ORCHESTRATOR",
   "environment": "LAB",
@@ -65,7 +65,9 @@
     "tracks_checked_at": true,
     "tracks_confidence": true,
     "current_live_source_can_be_required": true,
-    "insufficient_current_evidence": "LOW_CONFIDENCE"
+    "insufficient_current_evidence": "LOW_CONFIDENCE",
+    "bound_domains": 12,
+    "missing_artifact_domains": 0
   },
   "professional_output": {
     "normalized": true,
@@ -115,6 +117,27 @@
     "rebuild_case_store": true,
     "rollback_ref": true
   },
+  "e2e_validation": {
+    "representative_cases": 3,
+    "representative_domain_coverage": 12,
+    "multidomain": true,
+    "multi_company_isolation": true,
+    "existing_case_recovery": true,
+    "low_confidence": true,
+    "outdated_source": true,
+    "high_risk": true,
+    "signature_required": true,
+    "legal_required": true,
+    "idempotency": true,
+    "old_vs_new_comparison": true
+  },
+  "advisory_autonomy_tribunal": {
+    "scope": "ISOLATED_PREPROD_ADVISORY_CANDIDATE",
+    "can_pass_without_global_promotion": true,
+    "global_capability_promotion_separate": true,
+    "global_autonomy_promotion_separate": true,
+    "prod_promotion_separate": true
+  },
   "policy": {
     "fail_closed": true,
     "additional_cost_target_eur": 0,
@@ -142,6 +165,7 @@
     "PROFESSIONAL_ADVISORY is a component_id, not a canonical engine_id.",
     "Block B adds a deterministic V0 case-store abstraction and source policy without moving heavy workloads into Supabase.",
     "Block C adds decoupled idempotent integration events, deterministic observability and recoverable backup/rebuild primitives without enabling external writes by default.",
-    "JURIDICA_GENERAL remains MISSING_ARTIFACT until its master repository is supplied or otherwise evidenced."
+    "Block D validates OLD vs NEW behavior and isolated PREPROD advisory autonomy gates without flipping global autonomy or PROD flags.",
+    "The physical source lock currently records 12 of 12 domains BOUND, including JURIDICA_GENERAL."
   ]
 }
