@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "scope": "PROFESSIONAL_ADVISORY",
   "environment": "LAB",
   "knowledge": {
@@ -15,12 +15,18 @@
     "fail_closed_missing_handler": true,
     "canonical_human_exception_gate": true,
     "cross_domain_execution_contract": true,
-    "external_domain_handlers_bound": false,
-    "e2e_real_case_validation": false,
-    "capability_green": false
+    "lab_primitives_fully_bindable": 12,
+    "lab_domain_handlers_bound": 12,
+    "e2e_representative_case_validation": true,
+    "representative_cases": 3,
+    "representative_domain_coverage": 12,
+    "e2e_real_customer_case_validation": false,
+    "capability_green_lab": true,
+    "capability_green_global": false
   },
   "autonomy_green": false,
+  "preprod_enabled": false,
   "prod_enabled": false,
   "app_crm_prod_touched": false,
-  "next_gate": "Bind LAB handlers to existing engine implementations and execute evidence-backed multi-domain E2E cases."
+  "next_gate": "Run controlled shadow/replay validation with non-production evidence before any PREPROD promotion. App/CRM remain excluded."
 }
