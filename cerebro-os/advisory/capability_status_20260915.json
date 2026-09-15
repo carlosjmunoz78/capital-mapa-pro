@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.5.0",
+  "schema_version": "1.6.0",
   "scope": "PROFESSIONAL_ADVISORY",
   "environment": "LAB",
   "knowledge": {
@@ -44,6 +44,8 @@
     "isolated_preprod_prod_credentials_disabled": true,
     "isolated_preprod_customer_data_disabled": true,
     "ready_for_preprod_activation_review": true,
+    "preprod_activation_tribunal": "PASS_READY_ONLY",
+    "ready_for_preprod_activation": true,
     "e2e_real_customer_case_validation": false,
     "capability_green_lab": true,
     "capability_green_global": false
@@ -52,5 +54,5 @@
   "preprod_enabled": false,
   "prod_enabled": false,
   "app_crm_prod_touched": false,
-  "next_gate": "Run PREPROD activation tribunal using only isolated non-production resources. Do not connect App/CRM, customer data or PROD credentials."
+  "next_gate": "Create a physically isolated PREPROD environment and deploy the candidate there. This tribunal authorizes readiness only; it does not enable PREPROD, autonomy or PROD and does not authorize App/CRM access."
 }
