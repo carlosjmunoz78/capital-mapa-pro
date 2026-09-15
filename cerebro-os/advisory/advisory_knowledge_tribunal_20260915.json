@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "environment": "LAB",
+  "tribunal": "KNOWLEDGE_TRIBUNAL_V1",
+  "checks": {
+    "exactly_12_domains": true,
+    "all_12_knowledge_green": true,
+    "validation_pending_zero": true,
+    "all_12_sources_bound_with_sha256": true,
+    "domain_evidence_registered": true,
+    "live_verification_required_for_dynamic_or_high_risk_facts": true,
+    "regulated_actions_not_promoted": true,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false,
+    "app_crm_prod_touched": false
+  },
+  "domains": [
+    {"domain":"FISCAL","source_sha256":"ad2cd2783894b73f5c9c1b6694a3f7055e5ed5c0bfd6c25a889738f43d10382e","evidence":"engines/TAX-001/manifest.json"},
+    {"domain":"CONTABLE","source_sha256":"547b7c0c29d7c13223340acd77548a6ff351a031fc0c1408e25b152d4183d0be","evidence":"advisory/knowledge_validation_contable_20260915.json"},
+    {"domain":"LABORAL","source_sha256":"a3d27920a7d7f914cca6b82d05a37fa787a6cd7c9699cdbe5bc129a51b6810bc","evidence":"advisory/knowledge_validation_laboral_20260915.json"},
+    {"domain":"MERCANTIL","source_sha256":"f31f733e64f7bb96369416c4bfe0758a9aa860882e0066cd08302749b26e5caf","evidence":"advisory/knowledge_validation_mercantil_20260915.json"},
+    {"domain":"FINANCIERA","source_sha256":"d5493adfbbdfc62b10183dabde07192625b17046901eb40cbf8b7c5bdeeab1d7","evidence":"advisory/knowledge_validation_financiera_20260915.json"},
+    {"domain":"INMOBILIARIA","source_sha256":"27ed1d1e5336a31d1e3a675f741f9dd7842bb0623a504d06dcb5d7f7b413a68a","evidence":"advisory/knowledge_validation_inmobiliaria_20260915.json"},
+    {"domain":"HIPOTECARIA","source_sha256":"8a9aa63738e2b5d8bc6109e0760c2472ed757f3ccb6fbe3494ace2a38c4fd3ab","evidence":"advisory/knowledge_validation_hipotecaria_20260915.json"},
+    {"domain":"SUBVENCIONES_AYUDAS","source_sha256":"f8e007f13e85436f8f2d3f97fe07a50546c2c9aa74885c8ceb7199760542e62f","evidence":"advisory/knowledge_validation_subvenciones_20260915.json"},
+    {"domain":"PROTECCION_DATOS_COMPLIANCE","source_sha256":"984a3acefae3c1a8858bea059c8e1f8c12d245c45b54f867370577e9da660b14","evidence":"advisory/knowledge_validation_compliance_20260915.json"},
+    {"domain":"EMPRESARIAL_ESTRATEGICA","source_sha256":"2747560dfca0d2bfdd3ceb2d354e758be2ccfe4fa13af86b6b72aa25d2f0dd2f","evidence":"advisory/knowledge_validation_estrategica_20260915.json"},
+    {"domain":"PATRIMONIAL","source_sha256":"8dd142ebfb4858cb45955fab2537eda5e6bc31d64cbff9f333194b23cc80e134","evidence":"advisory/knowledge_validation_patrimonial_20260915.json"},
+    {"domain":"JURIDICA_GENERAL","source_sha256":"8179f07736929056603445f856482c59a5da6f09dd2f981793ea7a5825a86b36","evidence":"advisory/knowledge_validation_juridica_20260915.json"}
+  ],
+  "result": {
+    "knowledge_tribunal": "PASS",
+    "knowledge_green_12_of_12": true,
+    "next_stage": "CAPABILITY_INTEGRATION_AND_E2E_VALIDATION"
+  },
+  "limitations": [
+    "KNOWLEDGE_GREEN means a bound, maintained decision-support corpus with representative official-source validation and live verification gates; it is not exhaustive sentence-by-sentence certification.",
+    "Capability, autonomy and production promotion remain blocked until their separate contracts, tests, tribunal, backup, rollback, rebuild and policy gates pass.",
+    "App, CRM and PROD remain outside this knowledge-validation change set."
+  ]
+}
