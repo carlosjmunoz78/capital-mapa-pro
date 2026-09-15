@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "domain": "FINANCIERA",
+  "environment": "LAB",
+  "source_file": "REPOSITORIO_PRO_ASESORIA_FINANCIERA_ENTERPRISE_FINAL_2026-09-14.md",
+  "source_sha256": "d5493adfbbdfc62b10183dabde07192625b17046901eb40cbf8b7c5bdeeab1d7",
+  "validation_mode": "REPRESENTATIVE_HIGH_RISK_OFFICIAL_SOURCE_CHECKS",
+  "decision_support_only": true,
+  "live_verification_required_per_case": true,
+  "checks": [
+    {"id":"FIN-001","claim":"TAE is the appropriate annualized cost metric used to compare credit offers and includes the components required by transparency rules","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2011-17015"},
+    {"id":"FIN-002","claim":"Banking contracts must state nominal interest and TAE or equivalent effective annual cost information clearly","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2011-17015"},
+    {"id":"FIN-003","claim":"CIRBE records loans, credits, guarantees and other risks reported by financial institutions","status":"PASS","official_source":"https://clientebancario.bde.es/pcb/es/menu-horizontal/podemosayudarte/cirbe/"},
+    {"id":"FIN-004","claim":"CIRBE is not a default/morosity register and the data are confidential although the data subject may access their own report","status":"PASS","official_source":"https://clientebancario.bde.es/pcb/es/menu-horizontal/podemosayudarte/cirbe/"},
+    {"id":"FIN-005","claim":"Financial institutions use CIR information to assess indebtedness when studying credit operations","status":"PASS","official_source":"https://www.bde.es/wbe/es/punto-informacion/contenidos/normativa-guias-recomendaciones/cir-transparencia-proteccion-a-clientela/"},
+    {"id":"FIN-006","claim":"Credit-offer comparison must not rely only on nominal interest; linked products, fees, costs and total cost must be considered","status":"PASS","official_source":"https://www.boe.es/buscar/doc.php?id=BOE-A-2011-17015"}
+  ],
+  "domain_specific_gates": [
+    "bank-specific criteria require dated source and confidence state",
+    "verbal experience must not be promoted to universal banking rule",
+    "TIN, TAE, fees, linked products, insurance and total cost must be normalized before comparing offers",
+    "CIRBE findings require client clarification and recalculation, not inference of fraud",
+    "legal, fiscal, AML and notarial implications route to the corresponding advisory domains"
+  ],
+  "summary": {
+    "checks": 6,
+    "passed": 6,
+    "failed": 0,
+    "critical_gap": false,
+    "knowledge_green": true,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "limitations": [
+    "This validates the repository as a maintained decision-support knowledge source, not every bank's current underwriting policy.",
+    "Bank criteria, pricing, campaigns, LTV limits, linked products and approval appetite are dynamic and must be checked live.",
+    "No recommendation may be promoted from historical or verbal bank criteria without dated evidence and confidence metadata."
+  ]
+}
