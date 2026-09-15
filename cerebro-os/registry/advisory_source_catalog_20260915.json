@@ -14,7 +14,7 @@
     {"domain":"PROTECCION_DATOS_COMPLIANCE","canonical_source":"REPO_PRO_Asesoria_Proteccion_Datos_Compliance_FINAL_v1_0.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":["CMP-002","DPO-001","CONS-001","KYC-001","AML-001"]},
     {"domain":"EMPRESARIAL_ESTRATEGICA","canonical_source":"Repositorio_PRO_Asesoria_Empresarial_Estrategica_Espana_v6.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":["STR-001","FRC-001","CAPA-001","OPP-001","INN-001","EXP-001"]},
     {"domain":"PATRIMONIAL","canonical_source":"Repositorio_PRO_Asesoria_Patrimonial_Integral_FINAL_v1.0.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":[]},
-    {"domain":"JURIDICA_GENERAL","canonical_source":null,"source_status":"MISSING_ARTIFACT","advisory_role":"SPECIALTY","engine_refs":["LEG-001"]}
+    {"domain":"JURIDICA_GENERAL","canonical_source":"REPOSITORIO_PRO_ASESORIA_JURIDICA_ESPANA_FINAL_v3_2026-09-15.md","source_status":"AVAILABLE","advisory_role":"SPECIALTY","engine_refs":["LEG-001"]}
   ],
   "invariants": {
     "domain_count": 12,

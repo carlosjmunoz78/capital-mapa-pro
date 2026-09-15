@@ -15,15 +15,15 @@
     {"domain":"PROTECCION_DATOS_COMPLIANCE","file":"REPO_PRO_Asesoria_Proteccion_Datos_Compliance_FINAL_v1_0.md","sha256":"984a3acefae3c1a8858bea059c8e1f8c12d245c45b54f867370577e9da660b14","bytes":72320,"line_count":3347,"section_count":213,"verification":"VERIFIED"},
     {"domain":"EMPRESARIAL_ESTRATEGICA","file":"Repositorio_PRO_Asesoria_Empresarial_Estrategica_Espana_v6.md","sha256":"2747560dfca0d2bfdd3ceb2d354e758be2ccfe4fa13af86b6b72aa25d2f0dd2f","bytes":190368,"line_count":9764,"section_count":1278,"verification":"VERIFIED"},
     {"domain":"PATRIMONIAL","file":"Repositorio_PRO_Asesoria_Patrimonial_Integral_FINAL_v1.0.md","sha256":"8dd142ebfb4858cb45955fab2537eda5e6bc31d64cbff9f333194b23cc80e134","bytes":129890,"line_count":5587,"section_count":568,"verification":"VERIFIED"},
-    {"domain":"JURIDICA_GENERAL","file":null,"sha256":null,"bytes":null,"line_count":null,"section_count":null,"verification":"MISSING_ARTIFACT"}
+    {"domain":"JURIDICA_GENERAL","file":"REPOSITORIO_PRO_ASESORIA_JURIDICA_ESPANA_FINAL_v3_2026-09-15.md","sha256":"8179f07736929056603445f856482c59a5da6f09dd2f981793ea7a5825a86b36","bytes":155506,"line_count":8474,"section_count":915,"verification":"VERIFIED"}
   ],
   "summary": {
     "domain_count": 12,
-    "physically_verified": 11,
-    "missing_artifact": 1,
-    "verified_bytes": 1716815,
-    "verified_lines": 69614,
-    "verified_sections": 6495
+    "physically_verified": 12,
+    "missing_artifact": 0,
+    "verified_bytes": 1872321,
+    "verified_lines": 78088,
+    "verified_sections": 7410
   },
   "promotion": {
     "source_integrity_green": true,

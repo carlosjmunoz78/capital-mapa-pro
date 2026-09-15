@@ -10,20 +10,21 @@ from advisory.source_integrity import all_bound_sources_verified, verify_source_
 LOCK = ROOT / "advisory" / "source_lock_20260915.json"
 
 
-def test_source_lock_has_11_bound_and_one_missing():
+def test_source_lock_has_12_bound_and_none_missing():
     data = json.loads(LOCK.read_text())
-    assert data["summary"] == {"domains": 12, "bound": 11, "missing_artifact": 1, "historical_preserved": 1}
-    assert sum(x["status"] == "BOUND" for x in data["sources"]) == 11
+    assert data["summary"] == {"domains": 12, "bound": 12, "missing_artifact": 0, "historical_preserved": 1}
+    assert sum(x["status"] == "BOUND" for x in data["sources"]) == 12
     legal = next(x for x in data["sources"] if x["domain"] == "JURIDICA_GENERAL")
-    assert legal["status"] == "MISSING_ARTIFACT"
-    assert legal["sha256"] is None
+    assert legal["status"] == "BOUND"
+    assert legal["sha256"] == "8179f07736929056603445f856482c59a5da6f09dd2f981793ea7a5825a86b36"
+    assert legal["bytes"] == 155506
+    assert legal["heading_count"] == 915
 
 
 def test_every_bound_source_has_real_sha_and_size():
     data = json.loads(LOCK.read_text())
     for item in data["sources"]:
-        if item["status"] != "BOUND":
-            continue
+        assert item["status"] == "BOUND"
         assert isinstance(item["bytes"], int) and item["bytes"] > 0
         assert isinstance(item["heading_count"], int) and item["heading_count"] > 0
         assert len(item["sha256"]) == 64
@@ -41,6 +42,5 @@ def test_historical_laboral_v01_is_preserved_not_canonical():
 
 def test_verifier_fails_closed_when_physical_sources_absent(tmp_path):
     results = verify_source_directory(tmp_path, LOCK)
-    assert results["JURIDICA_GENERAL"] == "MISSING_ARTIFACT"
     assert sum(v == "VERIFIED" for v in results.values()) == 0
     assert all_bound_sources_verified(results) is False
