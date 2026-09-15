@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "component_id": "PROFESSIONAL_ADVISORY",
+  "component_type": "CAPABILITY_ORCHESTRATOR",
+  "environment": "LAB",
+  "version": "0.1.0",
+  "company_scope": "GLOBAL_OR_SCOPED",
+  "engine_id": null,
+  "create_new_engine_id": false,
+  "purpose": "Orchestrate professional advisory specialties over existing logical engines and preserved source repositories.",
+  "domains": [
+    "FISCAL",
+    "CONTABLE",
+    "LABORAL",
+    "MERCANTIL",
+    "FINANCIERA",
+    "INMOBILIARIA",
+    "HIPOTECARIA",
+    "SUBVENCIONES_AYUDAS",
+    "PROTECCION_DATOS_COMPLIANCE",
+    "EMPRESARIAL_ESTRATEGICA",
+    "PATRIMONIAL",
+    "JURIDICA_GENERAL"
+  ],
+  "shared_case_contract": {
+    "required": ["company_id", "case_id", "environment", "version", "requested_service", "territory", "facts"],
+    "supports_multiple_domains": true,
+    "preserve_source_provenance": true,
+    "single_case_cross_domain": true
+  },
+  "policy": {
+    "fail_closed": true,
+    "additional_cost_target_eur": 0,
+    "human_exceptions": [
+      "LEGAL_REQUIRED",
+      "SIGNATURE_REQUIRED",
+      "LOW_CONFIDENCE",
+      "HIGH_RISK",
+      "POLICY_CONFLICT",
+      "SECURITY_INCIDENT",
+      "MONEY_LIMIT",
+      "CUSTOMER_HUMAN_REQUEST"
+    ]
+  },
+  "promotion": {
+    "knowledge_green": false,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "notes": [
+    "TAX-001 is the Fiscal capability under this orchestrator, not the root of Advisory.",
+    "Original repository documents remain source artifacts and must not be flattened destructively.",
+    "JURIDICA_GENERAL remains MISSING_ARTIFACT until its master repository is supplied or otherwise evidenced."
+  ]
+}
