@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.4.0",
+  "schema_version": "1.5.0",
   "scope": "PROFESSIONAL_ADVISORY",
   "environment": "LAB",
   "knowledge": {
@@ -36,6 +36,14 @@
       "tribunal": true
     },
     "ready_for_preprod_candidate": true,
+    "isolated_preprod_rehearsal": true,
+    "isolated_preprod_rehearsal_cases": 3,
+    "isolated_preprod_domain_coverage": 12,
+    "isolated_preprod_external_writes_disabled": true,
+    "isolated_preprod_app_crm_access_disabled": true,
+    "isolated_preprod_prod_credentials_disabled": true,
+    "isolated_preprod_customer_data_disabled": true,
+    "ready_for_preprod_activation_review": true,
     "e2e_real_customer_case_validation": false,
     "capability_green_lab": true,
     "capability_green_global": false
@@ -44,5 +52,5 @@
   "preprod_enabled": false,
   "prod_enabled": false,
   "app_crm_prod_touched": false,
-  "next_gate": "Prepare isolated PREPROD candidate deployment/rehearsal. This status does not authorize PREPROD activation, autonomy or PROD, and App/CRM remain excluded."
+  "next_gate": "Run PREPROD activation tribunal using only isolated non-production resources. Do not connect App/CRM, customer data or PROD credentials."
 }
