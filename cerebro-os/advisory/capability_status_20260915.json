@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "2.0.1",
   "scope": "PROFESSIONAL_ADVISORY",
   "environment": "PREPROD",
   "knowledge": {
@@ -42,6 +42,9 @@
     "signature_required_gate": true,
     "legal_required_gate": true,
     "idempotency_gate": true,
+    "ready_for_preprod_activation_review": true,
+    "preprod_activation_tribunal": "PASS_READY_ONLY",
+    "ready_for_preprod_activation": true,
     "persistent_preprod_environment": true,
     "persistent_preprod_runtime": "gcp_cloud_run",
     "persistent_preprod_project": "cerebro-forge",
