@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "PROFESSIONAL_ADVISORY",
+  "domain": "PROTECCION_DATOS_COMPLIANCE",
+  "environment": "LAB",
+  "source_file": "REPO_PRO_Asesoria_Proteccion_Datos_Compliance_FINAL_v1_0.md",
+  "source_sha256": "984a3acefae3c1a8858bea059c8e1f8c12d245c45b54f867370577e9da660b14",
+  "validation_mode": "REPRESENTATIVE_HIGH_RISK_OFFICIAL_SOURCE_CHECKS",
+  "decision_support_only": true,
+  "live_verification_required_per_case": true,
+  "regulated_actions_require_human_when_applicable": true,
+  "checks": [
+    {"id":"CMP-001","claim":"GDPR remains the core EU framework for personal-data processing and must be read together with Spain's Organic Law 3/2018","status":"PASS","official_source":"https://eur-lex.europa.eu/legal-content/ES/ALL/?uri=CELEX:32016R0679"},
+    {"id":"CMP-002","claim":"A personal-data breach must be notified to the competent supervisory authority without undue delay and, where feasible, within 72 hours unless it is unlikely to result in risk to individuals","status":"PASS","official_source":"https://eur-lex.europa.eu/legal-content/ES/ALL/?uri=CELEX:32016R0679"},
+    {"id":"CMP-003","claim":"Security measures must be appropriate to processing risk and include confidentiality, integrity, availability, resilience and recovery capabilities where applicable","status":"PASS","official_source":"https://eur-lex.europa.eu/legal-content/ES-EN/TXT/?uri=CELEX:32016R0679"},
+    {"id":"CMP-004","claim":"A DPIA is required where processing is likely to result in high risk, and the controller is responsible for performing it while seeking the DPO's advice where applicable","status":"PASS","official_source":"https://www.aepd.es/derechos-y-deberes/cumple-tus-deberes/medidas-de-cumplimiento/realizacion-de-evaluaciones-de"},
+    {"id":"CMP-005","claim":"Spain's whistleblower law requires covered internal information systems to protect confidentiality and data protection and allows anonymous communications","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2023-4513"},
+    {"id":"CMP-006","claim":"Spain's Organic Law 3/2018 remains the national framework complementing the GDPR and includes digital-rights provisions","status":"PASS","official_source":"https://www.boe.es/buscar/act.php?id=BOE-A-2018-16673"}
+  ],
+  "dynamic_gates": [
+    "controller_processor_role",
+    "lawful_basis",
+    "special_category_data",
+    "data_subject_rights",
+    "international_transfer",
+    "dpia_requirement",
+    "dpo_requirement",
+    "retention_period",
+    "security_incident",
+    "whistleblower_scope",
+    "sector_specific_compliance",
+    "effective_date"
+  ],
+  "summary": {
+    "checks": 6,
+    "passed": 6,
+    "failed": 0,
+    "critical_gap": false,
+    "knowledge_green": true,
+    "capability_green": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "limitations": [
+    "This validates suitability as a maintained privacy/compliance decision-support source, not every sentence or sector obligation exhaustively.",
+    "Lawful basis, DPIA/DPO requirements, breach severity, retention, transfers, whistleblower obligations and sector rules must be rechecked per processing activity and date.",
+    "Formal DPO decisions, breach notifications, regulator filings, legal opinions and privileged investigations remain subject to legal/human gates where applicable."
+  ]
+}
