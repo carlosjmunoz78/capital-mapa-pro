@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "CEREBRO_OS_OBSERVABILITY_PREPROD",
+  "environment": "PREPROD",
+  "repository": "carlosjmunoz78/capital-mapa-pro",
+  "base_branch": "cerebro-engine-factory-v0",
+  "merge_commit": "6b89d417fa5dd0bc3254945c91bc476b92bb2734",
+  "workflow": {
+    "name": "CEREBRO FORGE PREPROD",
+    "run_number": 25,
+    "run_id": 35143362166,
+    "conclusion": "success"
+  },
+  "artifact": {
+    "id": 10466262341,
+    "name": "cerebro-forge-preprod-6b89d417fa5dd0bc3254945c91bc476b92bb2734",
+    "digest": "sha256:0140d478632dea724437ccfc320e02e8153b8e82f4dc2dd5eab98be25b59110a",
+    "expired": false
+  },
+  "verified": {
+    "isolated_container_rehearsal": true,
+    "private_cloud_run_deploy": true,
+    "revision_isolation_contract": true,
+    "persistent_preprod_observability_coverage": true,
+    "evidence_uploaded": true
+  },
+  "observability_contract": {
+    "required_scope": ["company_id", "engine_id", "environment", "version"],
+    "kinds": ["log", "metric", "incident"],
+    "synthetic": true,
+    "customer_data": false,
+    "prod_credentials": false,
+    "external_writes": false,
+    "app_crm_access": false
+  },
+  "claims_not_granted": {
+    "global_observability_green": false,
+    "capability_green_global": false,
+    "autonomy_green": false,
+    "prod_enabled": false
+  },
+  "remaining_global_observability_gates": [
+    "prod_live_persistent_observability_wiring_without_legacy_breakage",
+    "per_engine_prod_live_log_coverage",
+    "per_engine_prod_live_metric_coverage",
+    "per_engine_prod_live_incident_coverage",
+    "seo_prod_incident_capture_evidence_after_safe_wiring",
+    "youtube_retained_metric_execution_or_explicit_approved_absence_policy"
+  ]
+}
