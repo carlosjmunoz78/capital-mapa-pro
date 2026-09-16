@@ -9,7 +9,7 @@ OBJECTIVE_GROUPS = {
         "target": "supabase_security_review_green",
         "status": "PARTIAL_ANON_SECDEF_INCIDENT_CLOSED_WRITE_E2E_PRIVILEGE_RETIREMENT_AND_REMAINING_ADVISORS_OPEN",
         "green": False,
-        "human_required": ("HIGH_RISK",),
+        "human_required": ("HIGH_RISK", "SECURITY_INCIDENT"),
         "completed": (
             "15_authenticated_security_definer_rpcs_inventory",
             "15_live_acl_and_definition_fingerprints_captured",
