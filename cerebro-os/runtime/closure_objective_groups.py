@@ -7,7 +7,7 @@ from __future__ import annotations
 OBJECTIVE_GROUPS = {
     "SECURITY": {
         "target": "supabase_security_review_green",
-        "status": "PARTIAL_AUTH_READ_E2E_GREEN_WRITE_E2E_PRIVILEGE_RETIREMENT_AND_CLOUDFLARE_INCIDENT_OPEN",
+        "status": "PARTIAL_ANON_SECDEF_INCIDENT_CLOSED_WRITE_E2E_PRIVILEGE_RETIREMENT_AND_REMAINING_ADVISORS_OPEN",
         "green": False,
         "human_required": ("HIGH_RISK", "SECURITY_INCIDENT"),
         "completed": (
@@ -69,6 +69,12 @@ OBJECTIVE_GROUPS = {
             "leaked_password_protection_disabled_warning_captured",
             "leaked_password_protection_supported_remediation_path_documented",
             "blind_bulk_security_changes_rejected",
+            "anon_secdef_three_rpc_prechange_snapshot_and_rollback_2026_09_16",
+            "anon_secdef_three_rpc_supported_edge_callers_verified_service_role_2026_09_16",
+            "anon_secdef_three_rpc_prod_acl_remediation_applied_2026_09_16",
+            "anon_secdef_three_rpc_post_acl_anon_false_authenticated_false_service_role_true",
+            "supabase_advisor_anon_security_definer_findings_zero_2026_09_16",
+            "authenticated_security_definer_findings_reduced_19_to_16_2026_09_16",
         ),
         "remaining": (
             "authenticated_http_gateway_write_e2e_for_target_routes_after_safe_cleanup_strategy",
@@ -76,9 +82,11 @@ OBJECTIVE_GROUPS = {
             "selective_retirement_of_only_migrated_legacy_authenticated_execute_after_http_gate",
             "post_retirement_gateway_e2e_and_advisor_recheck",
             "caller_and_contract_disposition_of_7_read_session_and_9_mutating_security_definer_surfaces",
+            "caller_and_contract_disposition_of_16_remaining_authenticated_security_definer_surfaces",
             "cloudflare_secret_consumer_inventory_rotation_and_post_rotation_verification",
             "pg_net_extension_namespace_dependency_backup_and_rebuild_review_before_any_move",
             "leaked_password_protection_enablement_when_auth_config_write_channel_is_available",
+            "two_mutable_search_path_function_warnings_disposition",
         ),
     },
     "RECOVERY": {
@@ -156,6 +164,10 @@ OBJECTIVE_GROUPS = {
             "youtube_health_activation_attempt_20260914_failed_closed_connection_verify_400_zero_operations_zero_credits",
             "youtube_oauth_reauthorized_supported_user_flow",
             "youtube_health_manual_execution_bcdc124704c147daafc12363cee431a5_success_three_operations",
+            "advisory_preprod_structured_stdout_sink_green_2026_09_16",
+            "advisory_preprod_cloud_logging_persistent_coverage_green_run_35143362166",
+            "advisory_preprod_observability_artifact_10466262341_digest_sha256_0140d478632dea724437ccfc320e02e8153b8e82f4dc2dd5eab98be25b59110a",
+            "advisory_preprod_observability_repeat_green_run_35143638040",
         ),
         "remaining": (
             "parallel_prod_mirroring_wiring_without_legacy_table_breakage",
