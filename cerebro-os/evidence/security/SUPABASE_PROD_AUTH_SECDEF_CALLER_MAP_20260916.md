@@ -39,17 +39,34 @@ A live direct caller still exists for one legacy authenticated SECDEF surface:
 
 - `fenix_prod_session_context()` is called through an authenticated Supabase client in `fenix-ana-knowledge`.
 
-Therefore `fenix_prod_session_context()` MUST NOT have `authenticated EXECUTE` revoked yet. The correct retirement sequence is:
+### `fenix-b2b-actions` v9
+
+A second live direct caller exists for the same legacy surface:
+
+- `fenix_prod_session_context()` is called through an authenticated Supabase client before B2B authorization/scope checks.
+
+Therefore `fenix_prod_session_context()` MUST NOT have `authenticated EXECUTE` revoked yet. The retirement gate now explicitly covers both proven live callers:
 
 1. migrate `fenix-ana-knowledge` to a server-wrapper/identity-equivalent path;
-2. prove behavior parity;
-3. prove authenticated HTTP E2E;
-4. retain rollback;
-5. only then revoke the legacy authenticated EXECUTE and rerun the Supabase advisor.
+2. migrate `fenix-b2b-actions` to a server-wrapper/identity-equivalent path;
+3. prove behavior parity for both;
+4. prove authenticated HTTP E2E for both;
+5. retain rollback;
+6. only then revoke the legacy authenticated EXECUTE and rerun the Supabase advisor.
+
+### Additional inspected Edge Functions
+
+The following live authenticated Edge Functions were inspected and already use the server-side identity pattern rather than legacy `fenix_prod_session_context()`:
+
+- `fenix-directory-actions` v8 -> bearer validation + `fenix_prod_actor_context_by_auth_server` + service-role `fenix_prod_directory_sync_server`;
+- `fenix-task-actions` v1 -> bearer validation + `fenix_prod_actor_context_by_auth_server` + service-role `fenix_prod_task_bulk_action_server`;
+- `fenix-expediente-actions` v1 -> bearer validation + `fenix_prod_actor_context_by_auth_server` + service-role `fenix_prod_exp_bulk_action_server`.
+
+These inspections reduce caller uncertainty but do not prove that every deployed Edge Function or external client has been enumerated.
 
 ## Current selective disposition
 
-- `fenix_prod_session_context`: `KEEP_UNTIL_LIVE_CALLER_MIGRATED`.
+- `fenix_prod_session_context`: `KEEP_UNTIL_TWO_LIVE_CALLERS_MIGRATED`.
 - profile legacy functions: `CANDIDATE_FOR_SELECTIVE_RETIREMENT`, but only after confirming no additional live callers outside the inspected Edge surfaces and after HTTP E2E of the replacement path.
 - chat/contact/inmo legacy functions: `CANDIDATE_OR_KEEP_BY_CONTRACT`; gateway replacement evidence exists for parts of these domains, but exact per-function source caller coverage is not yet complete.
 - all remaining surfaces: no bulk revoke and no mass conversion to `SECURITY INVOKER`.
