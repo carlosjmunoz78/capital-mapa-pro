@@ -81,6 +81,7 @@ OBJECTIVE_GROUPS = {
             "rollback_or_non_durable_cleanup_evidence_for_full_http_write_path",
             "selective_retirement_of_only_migrated_legacy_authenticated_execute_after_http_gate",
             "post_retirement_gateway_e2e_and_advisor_recheck",
+            "caller_and_contract_disposition_of_7_read_session_and_9_mutating_security_definer_surfaces",
             "caller_and_contract_disposition_of_16_remaining_authenticated_security_definer_surfaces",
             "cloudflare_secret_consumer_inventory_rotation_and_post_rotation_verification",
             "pg_net_extension_namespace_dependency_backup_and_rebuild_review_before_any_move",
