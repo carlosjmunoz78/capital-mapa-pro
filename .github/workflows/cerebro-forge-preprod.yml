@@ -164,6 +164,68 @@ jobs:
           echo "IMAGE_DIGEST=$EXPECTED_DIGEST" >> "$GITHUB_ENV"
           echo "Persistent PREPROD revision: $REVISION"
 
+      - name: Verify persistent PREPROD observability coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p forge-evidence
+          FILTER="resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${SERVICE_NAME}\" AND resource.labels.revision_name=\"${REVISION}\" AND jsonPayload.marker=\"PERSISTENT_OBSERVABILITY_PROBE\""
+          for attempt in $(seq 1 12); do
+            gcloud logging read "$FILTER" --limit=500 --format=json > /tmp/preprod-observability.json
+            if python - <<'PY'
+          import json
+          import os
+          import sys
+          from pathlib import Path
+
+          sys.path.insert(0, 'cerebro-os')
+          from advisory.capabilities import CAPABILITY_REGISTRY
+
+          rows = json.loads(Path('/tmp/preprod-observability.json').read_text(encoding='utf-8') or '[]')
+          expected_engines = sorted({engine for capability in CAPABILITY_REGISTRY.values() for engine in capability.engine_ids})
+          expected_kinds = {'log', 'metric', 'incident'}
+          seen = {
+              (
+                  (row.get('jsonPayload') or {}).get('engine_id'),
+                  (row.get('jsonPayload') or {}).get('kind'),
+              )
+              for row in rows
+          }
+          missing = [
+              (engine, kind)
+              for engine in expected_engines
+              for kind in expected_kinds
+              if (engine, kind) not in seen
+          ]
+          if missing:
+              print(f'Waiting for Cloud Logging ingestion; missing={len(missing)}')
+              raise SystemExit(1)
+          evidence = {
+              'marker': 'PERSISTENT_OBSERVABILITY_PROBE',
+              'environment': 'PREPROD',
+              'revision': os.environ['REVISION'],
+              'engine_count': len(expected_engines),
+              'kinds': sorted(expected_kinds),
+              'expected_event_count': len(expected_engines) * len(expected_kinds),
+              'observed_pairs': len(seen),
+              'prod_claimed': False,
+          }
+          Path('forge-evidence/preprod-observability.json').write_text(
+              json.dumps(evidence, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(evidence, sort_keys=True))
+          PY
+            then
+              break
+            fi
+            if [ "$attempt" -eq 12 ]; then
+              echo "Persistent PREPROD observability evidence did not become complete"
+              exit 1
+            fi
+            sleep 5
+          done
+
       - name: Capture evidence
         shell: bash
         run: |
@@ -189,5 +251,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cerebro-forge-preprod-${{ github.sha }}
-          path: forge-evidence/preprod-deployment.txt
+          path: forge-evidence/
           if-no-files-found: error

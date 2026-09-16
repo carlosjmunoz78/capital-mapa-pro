@@ -7,12 +7,21 @@ import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from advisory.capabilities import CAPABILITY_REGISTRY  # noqa: E402
+from runtime.zero_cost_observability_sink import StructuredStdoutObservabilitySink  # noqa: E402
+
 REQUIRED_DISABLED = {
     "CEREBRO_EXTERNAL_WRITES": "disabled",
     "CEREBRO_APP_CRM_ACCESS": "disabled",
     "CEREBRO_PROD_CREDENTIALS": "disabled",
     "CEREBRO_CUSTOMER_DATA": "disabled",
 }
+
+OBSERVABILITY_MARKER = "PERSISTENT_OBSERVABILITY_PROBE"
 
 
 def fail(message: str) -> None:
@@ -109,8 +118,42 @@ def run_persistent_representative_validation() -> None:
     )
 
 
+def emit_persistent_observability_probe() -> None:
+    """Emit synthetic PREPROD log/metric/incident coverage for Advisory dependencies.
+
+    These envelopes are deliberately marked synthetic and PREPROD. They provide a
+    platform-log persistence proof without App/CRM/Supabase writes and without
+    pretending that PROD per-engine coverage is already green.
+    """
+
+    engine_ids = sorted(
+        {
+            engine_id
+            for capability in CAPABILITY_REGISTRY.values()
+            for engine_id in capability.engine_ids
+        }
+    )
+    sink = StructuredStdoutObservabilitySink()
+    for engine_id in engine_ids:
+        for kind in ("log", "metric", "incident"):
+            sink.emit(
+                {
+                    "company_id": "fenix-capital",
+                    "engine_id": engine_id,
+                    "environment": "PREPROD",
+                    "version": "advisory-preprod-v1",
+                    "kind": kind,
+                    "marker": OBSERVABILITY_MARKER,
+                    "synthetic": True,
+                    "severity": "INFO",
+                    "message": f"synthetic PREPROD observability {kind} coverage probe",
+                }
+            )
+
+
 def run_persistent_candidate() -> int:
     run_persistent_representative_validation()
+    emit_persistent_observability_probe()
     port = int(os.getenv("PORT", "8080"))
 
     class Handler(BaseHTTPRequestHandler):
