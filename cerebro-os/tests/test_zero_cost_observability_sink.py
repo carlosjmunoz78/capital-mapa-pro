@@ -1,4 +1,6 @@
 import importlib.util
+import io
+import json
 import pathlib
 import tempfile
 import unittest
@@ -34,6 +36,33 @@ class ZeroCostObservabilitySinkTests(unittest.TestCase):
             self.assertEqual(len(scoped), 3)
             self.assertEqual(module.coverage(scoped), {"incident": True, "log": True, "metric": True})
             self.assertTrue(path.exists())
+
+    def test_structured_stdout_emits_canonical_scoped_json(self):
+        stream = io.StringIO()
+        sink = module.StructuredStdoutObservabilitySink(stream)
+        event = self.event("metric")
+        line = sink.emit(event)
+        self.assertEqual(json.loads(line), event)
+        self.assertEqual(json.loads(stream.getvalue()), event)
+
+    def test_structured_stdout_rejects_secret_like_fields(self):
+        stream = io.StringIO()
+        sink = module.StructuredStdoutObservabilitySink(stream)
+        event = self.event("incident")
+        event["payload"] = {"api_key": "forbidden"}
+        with self.assertRaises(ValueError):
+            sink.emit(event)
+        self.assertEqual(stream.getvalue(), "")
+
+    def test_structured_stdout_preserves_multiempresa_scope(self):
+        stream = io.StringIO()
+        sink = module.StructuredStdoutObservabilitySink(stream)
+        event = self.event("log", engine="SEO-001")
+        event.update({"company_id": "venture-2", "environment": "PREPROD", "version": "v1"})
+        sink.emit(event)
+        written = json.loads(stream.getvalue())
+        for field in module.REQUIRED_SCOPE:
+            self.assertEqual(written[field], event[field])
 
     def test_missing_multiempresa_scope_fails_closed(self):
         event = self.event("log")
