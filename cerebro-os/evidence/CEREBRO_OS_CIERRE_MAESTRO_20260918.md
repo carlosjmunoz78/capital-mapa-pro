@@ -1,0 +1,75 @@
+# CEREBRO OS · cierre maestro y bloqueos finales · 2026-09-18
+
+Estado: PARCIAL / HUMAN_REQUIRED en gates finales. Todo el trabajo seguro y autónomo posible desde este canal queda ejecutado y documentado; no se declara PROD autónomo global.
+
+HEAD canónico de partida: `bdafdbf0bc7b5df143d65af4923eb901a1bbe1eb`.
+
+## HECHO
+
+### Security · Supabase PROD
+- Incidente anon SECURITY DEFINER: cerrado; anon execute = 0 en la categoría corregida.
+- Mutable search_path: dos warnings cerrados.
+- `pg_net`: disposición segura `PRESERVE_AND_AUDIT`; no se mueve sin rebuild/rollback.
+- Inventario ACTIVE de Edge Functions para `fenix_prod_session_context()`: 42 superficies inspeccionadas.
+- 13 callers directos descubiertos durante el loop.
+- 12 de 13 migrados al patrón `Bearer -> auth.getUser() -> service_role -> fenix_prod_actor_context_by_auth_server`.
+- Único caller directo ACTIVE conocido pendiente: `fenix-document-existing-backfill` v7, SHA-256 `049c41052556d38a4860369143aa04e455344067a0b584d46cb728bb75a9ec39`.
+- `authenticated EXECUTE` del RPC legacy NO se revoca mientras exista ese caller y falte E2E HTTP autenticado.
+
+Evidencia principal:
+- `cerebro-os/evidence/security/SUPABASE_PROD_AUTH_SECDEF_CALLER_MAP_20260916.md`
+- `cerebro-os/evidence/security/SUPABASE_PROD_SESSION_CONTEXT_FINAL_CALLER_CLOSURE_20260918.md`
+
+### PREPROD / Engine Factory
+Post-merge del cierre de callers:
+- Engine Factory #1092: SUCCESS.
+- FORGE PREPROD #39: SUCCESS.
+- deploy privado: SUCCESS.
+- contrato de aislamiento: SUCCESS.
+- observabilidad persistente PREPROD: SUCCESS.
+- artifact: `10569043087`.
+- artifact digest: `sha256:d4d5d9d1c232f7998671979962b9e6e55d184e9ae689782dbeccfa079d623609`.
+- artifact expired: false.
+
+### Advisory
+Professional Advisory PREPROD permanece GREEN como capacidad aislada PREPROD/advisory; esto no equivale a autonomía PROD global.
+
+## PARCIAL / BLOQUEOS FINALES
+
+### SECURITY
+1. `fenix-document-existing-backfill` v7 sigue usando `fenix_prod_session_context()`.
+2. El canal actual bloqueó el redeploy de esa superficie bajo controles de seguridad; no se ejecutó ningún backfill ni se modificaron datos.
+3. Falta E2E HTTP autenticado con un token real reutilizable antes del retiro del ACL legacy.
+4. Leaked-password protection sigue pendiente de un canal soportado de escritura de Auth config.
+5. El incidente separado de secreto Cloudflare sigue requiriendo inventario de consumidores + rotación + verificación post-rotación.
+6. `pg_net` queda preservado hasta prueba de rebuild/rollback.
+
+### RECOVERY
+- El restore real de proveedor sigue bloqueado por `MONEY_LIMIT`: no se ha autorizado un recurso Supabase adicional de pago ni existe objetivo aislado gratuito demostrado.
+- Rollback de fuente y rehearsals locales/CI: verdes.
+
+### OBSERVABILITY
+- PREPROD persistente: verde.
+- PROD global por motor: aún falta mirroring/wiring y evidencia de logs/métricas/incidentes por motor sin romper tablas legacy.
+
+### FINOPS
+- El pago GCP fue reportado por el usuario como resuelto.
+- Sigue faltando evidencia autoritativa del total mensual exacto de GCP y atribución real por familia/engine.
+- No se inventa importe ni se declara 0 € sin evidencia.
+
+### PROMOTION
+- Global PROD/autonomy permanece `false`.
+- La promoción automática sigue bloqueada hasta cerrar SECURITY, RECOVERY, OBSERVABILITY y FINOPS y existir autorización explícita.
+
+## HUMAN_REQUIRED exacto
+
+Para seguir desde aquí solo existen gates humanos/reales:
+
+- `HIGH_RISK`: redeploy/retirement final de `fenix-document-existing-backfill` y posterior ACL retire cuando exista E2E.
+- `SECURITY_INCIDENT`: rotación del secreto Cloudflare tras inventario de consumidores.
+- `MONEY_LIMIT`: restore real aislado de proveedor si requiere coste.
+- `LOW_CONFIDENCE` / credencial operacional: E2E HTTP autenticado si no se dispone de bearer de prueba soportado.
+
+## Regla de cierre
+
+No considerar CEREBRO OS globalmente terminado/autónomo en PROD hasta que los gates anteriores tengan evidencia física. El trabajo ordinario seguro puede seguir en PREPROD y en los motores ya validados sin levantar estos bloqueos.
