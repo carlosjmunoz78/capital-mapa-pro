@@ -74,3 +74,18 @@ If any required path fails, rollback immediately using the preserved inverse gra
 ## Promotion statement
 
 This closure does NOT declare global SECURITY green, global autonomy, or PROD promotion. It closes only the known Supabase Edge direct-caller dependency on `fenix_prod_session_context()`.
+
+
+## Live ACL / definition snapshot before any retirement
+
+Read-only PostgreSQL verification captured immediately after the v8 caller closure:
+
+- schema: `public`;
+- function: `fenix_prod_session_context()`;
+- `SECURITY DEFINER`: `true`;
+- `authenticated EXECUTE`: `true`;
+- `anon EXECUTE`: `false`;
+- `service_role EXECUTE`: `true`;
+- function definition MD5: `42fc119c18a2c7d8e500bd9bee1bb90c`.
+
+This is the pre-retirement fingerprint. No privilege was changed by this verification.
