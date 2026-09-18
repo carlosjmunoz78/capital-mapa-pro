@@ -7,7 +7,7 @@ from __future__ import annotations
 OBJECTIVE_GROUPS = {
     "SECURITY": {
         "target": "supabase_security_review_green",
-        "status": "PARTIAL_ANON_SECDEF_INCIDENT_CLOSED_WRITE_E2E_PRIVILEGE_RETIREMENT_AND_REMAINING_ADVISORS_OPEN",
+        "status": "PARTIAL_ZERO_KNOWN_EDGE_SESSION_CONTEXT_CALLERS_HTTP_E2E_EXTERNAL_CALLER_ABSENCE_AND_REMAINING_ADVISORS_OPEN",
         "green": False,
         "human_required": ("HIGH_RISK", "SECURITY_INCIDENT"),
         "completed": (
@@ -75,6 +75,8 @@ OBJECTIVE_GROUPS = {
             "anon_secdef_three_rpc_post_acl_anon_false_authenticated_false_service_role_true",
             "supabase_advisor_anon_security_definer_findings_zero_2026_09_16",
             "authenticated_security_definer_findings_reduced_19_to_16_2026_09_16",
+            "two_mutable_search_path_warnings_closed_2026_09_16",
+            "pg_net_preserve_and_audit_nonrelocatable_2026_09_16",
             "session_context_active_edge_inventory_42_source_inspected_2026_09_18",
             "session_context_12_of_13_discovered_direct_callers_migrated_server_identity_2026_09_18",
             "session_context_memory_api_v10_and_evidence_api_v14_migrated_2026_09_18",
@@ -95,7 +97,6 @@ OBJECTIVE_GROUPS = {
             "cloudflare_secret_consumer_inventory_rotation_and_post_rotation_verification",
             "pg_net_extension_namespace_dependency_backup_and_rebuild_review_before_any_move",
             "leaked_password_protection_enablement_when_auth_config_write_channel_is_available",
-            "two_mutable_search_path_function_warnings_disposition",
         ),
     },
     "RECOVERY": {
@@ -177,6 +178,9 @@ OBJECTIVE_GROUPS = {
             "advisory_preprod_cloud_logging_persistent_coverage_green_run_35143362166",
             "advisory_preprod_observability_artifact_10466262341_digest_sha256_0140d478632dea724437ccfc320e02e8153b8e82f4dc2dd5eab98be25b59110a",
             "advisory_preprod_observability_repeat_green_run_35143638040",
+            "engine_factory_1101_postmerge_success_2026_09_19",
+            "forge_preprod_43_persistent_observability_success_2026_09_19",
+            "forge_preprod_43_artifact_10571531192_digest_sha256_8432411f36be5937ffb773de3a5e0f4548aecae1b7d9bb008c19da3578384c91",
         ),
         "remaining": (
             "parallel_prod_mirroring_wiring_without_legacy_table_breakage",
