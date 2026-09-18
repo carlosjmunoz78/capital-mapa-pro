@@ -27,6 +27,17 @@ Evidencia principal:
 - `auth.getUser()` y `fenix_prod_actor_context_by_auth_server` presentes.
 - ACL pre-retiro capturado: authenticated=true, anon=false, service_role=true, definition MD5 `42fc119c18a2c7d8e500bd9bee1bb90c`.
 
+### App source-sync post cierre · PR #414
+- PR App `#414` mergeado en `main` con merge SHA `c17064ca90adc6c29b63f2810f6e7dfb848ad407`.
+- HEAD final de la rama antes de merge: `a879edb2da9aa821a016ce6dff57a74f48d0fd7f`.
+- CEREBRO Session Context Regression Guard #9: SUCCESS en el HEAD final del PR.
+- App Restoration Build Gate #289: SUCCESS; contratos, runtime visual aislado, regresión real de cinco flujos y build TypeScript/Vite en verde.
+- Post-merge CEREBRO Session Context Regression Guard #10: SUCCESS sobre `main`; su grep fail-closed demuestra 0 callers directos exactos `fenix_prod_session_context` bajo `src` + `supabase/functions`.
+- Post-merge PROD Runtime Smoke #258: SUCCESS sobre el merge SHA.
+- Los cinco hashes LIVE PROD auditados permanecieron sin cambios después del merge; no hubo deploy Edge por el source-sync.
+- La sincronización quedó reconciliada con contratos existentes del repo: `fenix-document-intelligence` conserva route test/prod, normalización de confianza y proyección laboral usando server identity; `fenix-document-existing-backfill` evita el fall-through de sesiones no-expediente.
+- Snapshots de rollback históricos permanecen diferenciados del source actual: rollback v12 `c8ccc623be364dcfc67b8be8f6b5320476909f4c1af77bf2e3339723b8a0b1c9`; source actual extractor `2f1bf1e8a0d1272135948e46b07e438ec89b10abf9804af1fde035e93446c063`.
+
 ### PREPROD / Engine Factory
 Post-merge del cierre de callers:
 - Engine Factory #1092: SUCCESS.
