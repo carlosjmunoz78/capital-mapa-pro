@@ -84,6 +84,13 @@ OBJECTIVE_GROUPS = {
             "session_context_final_backfill_v8_active_sha_cfe78207_2026_09_19",
             "session_context_zero_known_active_edge_direct_callers_2026_09_19",
             "session_context_live_acl_fingerprint_captured_before_retirement_2026_09_19",
+            "session_context_app_pr_414_merged_main_c17064ca_2026_09_19",
+            "session_context_app_restoration_gate_289_success_2026_09_19",
+            "session_context_regression_guard_9_premerge_success_2026_09_19",
+            "session_context_regression_guard_10_postmerge_zero_direct_repo_callers_2026_09_19",
+            "session_context_prod_runtime_smoke_258_postmerge_success_2026_09_19",
+            "session_context_live_hashes_unchanged_after_repo_source_sync_2026_09_19",
+            "session_context_repo_reconciliation_preserved_behavior_and_rollback_contracts_2026_09_19",
         ),
         "remaining": (
             "authenticated_http_gateway_write_e2e_for_target_routes_after_safe_cleanup_strategy",
