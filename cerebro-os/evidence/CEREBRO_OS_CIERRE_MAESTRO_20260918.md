@@ -2,7 +2,7 @@
 
 Estado: PARCIAL / HUMAN_REQUIRED en gates finales. Todo el trabajo seguro y autónomo posible desde este canal queda ejecutado y documentado; no se declara PROD autónomo global.
 
-HEAD canónico de partida: `cb97aad0dec9a31b3953978e900cd3e385ae84e4`.
+HEAD canónico de partida: `cf83d4088969b2f0d16ebd55a774f30bd9b931d0`.
 
 ## HECHO
 
@@ -37,6 +37,13 @@ Post-merge del cierre de callers:
 - artifact: `10569043087`.
 - artifact digest: `sha256:d4d5d9d1c232f7998671979962b9e6e55d184e9ae689782dbeccfa079d623609`.
 - artifact expired: false.
+
+### Evidencia post-merge más reciente
+- Engine Factory #1101: SUCCESS.
+- FORGE PREPROD #43: SUCCESS.
+- artifact: `10571531192`.
+- artifact digest: `sha256:8432411f36be5937ffb773de3a5e0f4548aecae1b7d9bb008c19da3578384c91`.
+- aislamiento y observabilidad persistente PREPROD verificados en el run.
 
 ### Advisory
 Professional Advisory PREPROD permanece GREEN como capacidad aislada PREPROD/advisory; esto no equivale a autonomía PROD global.
