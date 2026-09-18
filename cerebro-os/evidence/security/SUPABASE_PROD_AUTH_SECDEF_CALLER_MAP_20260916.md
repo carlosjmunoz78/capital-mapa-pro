@@ -101,3 +101,26 @@ The earlier anon-SECDEF and mutable-search-path issues have not reappeared in th
 ## Promotion / safety statement
 
 These caller migrations and audits do not grant SECURITY green, global autonomy, PROD promotion or permission to revoke legacy ACLs automatically. App/CRM data, tables, RLS policies and business records were not rewritten by this caller-audit step.
+
+
+## Addendum 2026-09-18 · final ACTIVE Edge caller sweep
+
+The closure sweep expanded source inspection to 42 ACTIVE Edge Functions and found seven additional direct `fenix_prod_session_context()` callers beyond the earlier inventory.
+
+Live migrations completed in this sweep:
+- `fenix-memory-api` v10;
+- `fenix-evidence-api` v14;
+- `fenix-document-intelligence-test` v9;
+- `fenix-document-intelligence` v13;
+- `fenix-document-extract` v13;
+- `fenix-communications-gateway` v9;
+- `fenix-document-reread` v3;
+- `fenix-document-auto-ingest` v3.
+
+Current exact direct legacy caller remaining in the ACTIVE inventory:
+- `fenix-document-existing-backfill` v7.
+
+The full evidence, versions, hashes, rollback anchors and fail-closed disposition are recorded in:
+`cerebro-os/evidence/security/SUPABASE_PROD_SESSION_CONTEXT_FINAL_CALLER_CLOSURE_20260918.md`.
+
+ACL retirement remains blocked until the backfill caller is migrated and authenticated HTTP E2E is proven.
