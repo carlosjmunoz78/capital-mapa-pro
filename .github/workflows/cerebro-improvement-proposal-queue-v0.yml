@@ -1,0 +1,22 @@
+name: CEREBRO Improvement Proposal Queue V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/learning/improvement_proposal_queue.py"
+      - "cerebro-os/jobs/ingest_improvement_proposals.py"
+      - "tests/test_improvement_proposal_queue.py"
+      - ".github/workflows/cerebro-improvement-proposal-queue-v0.yml"
+  push:
+    branches: [cerebro-improvement-proposal-queue-v0]
+permissions:
+  contents: read
+jobs:
+  proposal-queue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_improvement_proposal_queue.py tests/test_improvement_proposal_lab.py
