@@ -202,6 +202,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/build_knowledge_revalidation_queue.py
 
+      - name: Refresh known public knowledge sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/refresh_knowledge_revalidation_evidence.py
+
       - name: Verify knowledge revalidation provenance
         shell: bash
         run: |
