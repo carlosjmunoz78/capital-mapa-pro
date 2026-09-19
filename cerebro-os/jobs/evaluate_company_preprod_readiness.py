@@ -2,7 +2,7 @@ from __future__ import annotations
 import hashlib,json,os
 from pathlib import Path
 ENGINE_ID="COMP-DEP-001"
-REQUIRED_EVIDENCE=("COMP-HLT-001","COMP-BKP-001","QA-001","QAB-001","REG-001","TENANT-001","EVA-001","JDG-001")
+REQUIRED_EVIDENCE=("COMP-HLT-001","COMP-BKP-001","QA-001","QAB-001","REG-001","TENANT-001","EVA-001","JDG-001","TWIN-001","RED-001","BCP-001","OBSERV-001","DR-001","RBLD-001")
 
 def evaluate_preprod_readiness(payload:dict)->dict:
     company_id=str(payload.get("company_id","")).strip()
