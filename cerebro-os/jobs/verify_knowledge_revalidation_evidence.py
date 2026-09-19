@@ -7,9 +7,13 @@ from pathlib import Path
 
 PROTECTED_KINDS={"POLICY","LEGAL_RULE","PERMISSION","SECURITY_CONTROL"}
 
-def _canonical_hash(source_uri:str, observed_at:str, validated_by:str, content_hash:str, confidence:float)->str:
-    raw="|".join([source_uri,observed_at,validated_by,content_hash,f"{confidence:.6f}"])
+def _canonical_hash(source_type:str, source_uri:str, observed_at:str, validated_by:str, content_hash:str, confidence:float)->str:
+    raw="|".join([source_type,source_uri,observed_at,validated_by,content_hash,f"{confidence:.6f}"])
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+def _provenance_id(company_id:str, knowledge_id:str, source_type:str, source_uri:str, observed_at:str, content_hash:str)->str:
+    raw="|".join([company_id,knowledge_id,source_type,source_uri,observed_at,content_hash])
+    return "prv-"+hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
 
 def run()->list[Path]:
     queue_root=Path(os.environ.get("CEREBRO_REVALIDATION_ROOT",".cerebro-runtime/revalidation"))
@@ -35,13 +39,14 @@ def run()->list[Path]:
                 if not isinstance(payload,dict): raise ValueError("revalidation evidence must be object")
                 if str(payload.get("company_id",""))!=company_id: raise ValueError("cross-company evidence denied")
                 if str(payload.get("knowledge_id",""))!=knowledge_id: raise ValueError("knowledge identity mismatch")
+                source_type=str(payload.get("source_type","")).strip().upper()
                 source_uri=str(payload.get("source_uri","")).strip()
                 observed_at=str(payload.get("observed_at","")).strip()
                 validated_by=str(payload.get("validated_by","")).strip()
                 content_hash=str(payload.get("content_hash","")).strip()
                 confidence=float(payload.get("confidence",0.0))
                 evidence_hash=str(payload.get("evidence_hash","")).strip()
-                expected=_canonical_hash(source_uri,observed_at,validated_by,content_hash,confidence) if all((source_uri,observed_at,validated_by,content_hash)) else ""
+                expected=_canonical_hash(source_type,source_uri,observed_at,validated_by,content_hash,confidence) if all((source_type,source_uri,observed_at,validated_by,content_hash)) else ""
                 valid=bool(expected) and evidence_hash==expected and 0<=confidence<=1
                 if not valid:
                     status="BLOCKED"; reasons=["PROVENANCE_INVALID"]
@@ -60,6 +65,8 @@ def run()->list[Path]:
                 "status":status,
                 "reasons":reasons,
                 "evidence_ref":evidence_ref,
+                "provenance_id":_provenance_id(company_id,knowledge_id,str(payload.get("source_type","")).strip().upper(),str(payload.get("source_uri","")),str(payload.get("observed_at","")),str(payload.get("content_hash",""))) if payload and str(payload.get("source_type","")).strip() else "",
+                "source_type":str(payload.get("source_type","")).strip().upper(),
                 "source_uri":str(payload.get("source_uri","")),
                 "observed_at":str(payload.get("observed_at","")),
                 "validated_by":str(payload.get("validated_by","")),
