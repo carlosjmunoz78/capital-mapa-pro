@@ -1,0 +1,11 @@
+[
+  {
+    "company_id": "fenix",
+    "official_web_url": "https://fenixcapital.es/",
+    "enabled": true
+  },
+  {
+    "company_id": "aion",
+    "enabled": false
+  }
+]
