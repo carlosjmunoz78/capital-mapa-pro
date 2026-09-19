@@ -1,0 +1,21 @@
+name: CEREBRO Improvement Audit V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/observability/improvement_audit_store.py"
+      - "tests/test_improvement_audit_store.py"
+      - ".github/workflows/cerebro-improvement-audit-v0.yml"
+  push:
+    branches: [cerebro-improvement-audit-evidence-v0]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_improvement_audit_store.py tests/test_improvement_resume.py tests/test_continuous_improvement_runtime.py
