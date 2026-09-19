@@ -1,0 +1,21 @@
+name: CEREBRO Crisis Engine V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/plan_crisis_response.py"
+      - "tests/test_crisis_engine.py"
+      - ".github/workflows/cerebro-crisis-engine-v0.yml"
+  push:
+    branches: [cerebro-crisis-engine-v0]
+permissions:
+  contents: read
+jobs:
+  crisis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_crisis_engine.py
