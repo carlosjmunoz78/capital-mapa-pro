@@ -1,0 +1,21 @@
+name: CEREBRO Factory Supervisor Self Improvement V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/generate_factory_supervisor_self_improvement.py"
+      - "tests/test_factory_supervisor_self_improvement.py"
+      - ".github/workflows/cerebro-factory-supervisor-self-improvement-v0.yml"
+  push:
+    branches: [cerebro-factory-supervisor-self-improvement-v0]
+permissions:
+  contents: read
+jobs:
+  self-improvement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_factory_supervisor_self_improvement.py tests/test_meta_experiment.py
