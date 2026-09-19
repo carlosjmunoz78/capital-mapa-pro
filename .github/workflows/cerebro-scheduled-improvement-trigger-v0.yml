@@ -27,6 +27,7 @@ jobs:
       CEREBRO_IMPROVEMENT_BUSINESS_SOURCES: cerebro-os/config/improvement_business_sources.lab.json
       CEREBRO_IMPROVEMENT_COMPETITOR_SOURCES: cerebro-os/config/improvement_competitor_sources.lab.json
       CEREBRO_IMPROVEMENT_OBSERVATION_STATE_ROOT: .cerebro-runtime/observations
+      CEREBRO_IMPROVEMENT_SOURCE_POLICY: cerebro-os/config/improvement_source_policy.lab.json
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout canonical CEREBRO runtime
