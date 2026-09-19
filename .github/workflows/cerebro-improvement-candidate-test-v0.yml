@@ -1,0 +1,22 @@
+name: CEREBRO Improvement Candidate Test V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/generate_improvement_candidate_tests.py"
+      - "cerebro-os/jobs/continuous_improvement_entrypoint.py"
+      - "tests/test_improvement_candidate_tests.py"
+      - ".github/workflows/cerebro-improvement-candidate-test-v0.yml"
+  push:
+    branches: [cerebro-improvement-candidate-test-v0]
+permissions:
+  contents: read
+jobs:
+  candidate-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_improvement_candidate_tests.py tests/test_improvement_proposal_queue.py tests/test_improvement_proposal_lab.py tests/test_continuous_improvement_entrypoint.py

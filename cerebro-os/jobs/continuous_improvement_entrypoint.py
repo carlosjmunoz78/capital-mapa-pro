@@ -30,6 +30,7 @@ def _evidence_executor_factory(evidence_root: Path):
         data = {}
         planned: dict[str, StageResult] = {}
         lab_evidence: dict = {}
+        test_evidence: dict = {}
         if company_file.exists():
             raw = json.loads(company_file.read_text(encoding="utf-8"))
             if not isinstance(raw, dict):
@@ -54,6 +55,18 @@ def _evidence_executor_factory(evidence_root: Path):
             if bool(raw_lab.get("external_mutation_allowed", True)):
                 raise ValueError("LAB diagnostic cannot allow external mutation")
             lab_evidence = raw_lab
+        test_file = evidence_root / f"{company_id}.test.json"
+        if test_file.exists():
+            raw_test = json.loads(test_file.read_text(encoding="utf-8"))
+            if not isinstance(raw_test, dict):
+                raise ValueError("TEST evidence file must be object")
+            if str(raw_test.get("company_id", "")) != company_id:
+                raise ValueError("cross-company TEST evidence denied")
+            if str(raw_test.get("stage", "")) != "TEST":
+                raise ValueError("TEST evidence stage mismatch")
+            if bool(raw_test.get("external_mutation_allowed", True)):
+                raise ValueError("TEST evidence cannot allow external mutation")
+            test_evidence = raw_test
 
         def execute(stage: str, attempt: int) -> StageResult:
             if stage == "LAB" and lab_evidence:
@@ -61,6 +74,12 @@ def _evidence_executor_factory(evidence_root: Path):
                     stage,
                     str(lab_evidence.get("status", "WAITING")),
                     str(lab_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/LAB")),
+                )
+            if stage == "TEST" and test_evidence:
+                return StageResult(
+                    stage,
+                    str(test_evidence.get("status", "WAITING")),
+                    str(test_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/TEST")),
                 )
             if stage in planned:
                 return planned[stage]
