@@ -24,6 +24,8 @@ jobs:
       CEREBRO_IMPROVEMENT_STATE_ROOT: .cerebro-runtime/improvement
       CEREBRO_IMPROVEMENT_EVIDENCE_ROOT: .cerebro-runtime/evidence
       CEREBRO_IMPROVEMENT_COMPANIES: cerebro-os/config/improvement_companies.lab.json
+      CEREBRO_IMPROVEMENT_BUSINESS_SOURCES: cerebro-os/config/improvement_business_sources.lab.json
+      CEREBRO_IMPROVEMENT_OBSERVATION_STATE_ROOT: .cerebro-runtime/observations
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout canonical CEREBRO runtime
@@ -49,6 +51,18 @@ jobs:
         run: |
           set -euo pipefail
           python cerebro-os/jobs/collect_improvement_observations.py
+
+      - name: Collect real public business observations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/collect_business_observations.py
+
+      - name: Aggregate technical and business observations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/aggregate_improvement_observations.py
 
       - name: Run scheduled LAB improvement worker
         id: run
