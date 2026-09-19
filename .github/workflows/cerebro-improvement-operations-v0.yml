@@ -1,0 +1,24 @@
+name: CEREBRO Improvement Operations V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/improvement_operations_registry.py"
+      - "cerebro-os/jobs/improvement_shared_worker.py"
+      - "cerebro-os/console/improvement_status.py"
+      - "cerebro-os/resilience/improvement_state_bundle.py"
+      - "tests/test_improvement_operations.py"
+      - ".github/workflows/cerebro-improvement-operations-v0.yml"
+  push:
+    branches: [cerebro-improvement-operations-v0]
+permissions:
+  contents: read
+jobs:
+  operations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_improvement_operations.py tests/test_improvement_governed_executor.py tests/test_improvement_fleet_durable.py
