@@ -214,6 +214,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/build_knowledge_update_candidates.py
 
+      - name: Append safe updates to LAB knowledge ledger
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/apply_knowledge_update_candidates_lab.py
+
       - name: Persist runtime state
         if: always()
         uses: actions/upload-artifact@v4
