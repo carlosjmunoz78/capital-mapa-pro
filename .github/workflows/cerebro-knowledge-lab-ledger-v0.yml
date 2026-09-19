@@ -1,0 +1,21 @@
+name: CEREBRO Knowledge LAB Ledger V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/apply_knowledge_update_candidates_lab.py"
+      - "tests/test_knowledge_lab_ledger.py"
+      - ".github/workflows/cerebro-knowledge-lab-ledger-v0.yml"
+  push:
+    branches: [cerebro-upd-lab-ledger-v0]
+permissions:
+  contents: read
+jobs:
+  knowledge-lab-ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_knowledge_lab_ledger.py tests/test_provenance_updater_revalidation.py
