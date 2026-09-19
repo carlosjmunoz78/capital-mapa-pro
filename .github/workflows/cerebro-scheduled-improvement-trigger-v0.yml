@@ -139,6 +139,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/simulate_improvement_candidate_canary.py
 
+      - name: Plan fail-closed promotion or rollback
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/plan_improvement_candidate_promotion.py
+
       - name: Export CEREBRO Console source snapshot
         shell: bash
         run: |
