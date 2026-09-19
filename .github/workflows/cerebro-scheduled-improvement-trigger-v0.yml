@@ -268,6 +268,36 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/verify_red_team_daily_results.py
 
+      - name: Run QA-001 software quality contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/evaluate_qa_software_contract.py
+
+      - name: Run QAB-001 business process QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/evaluate_business_process_qa.py
+
+      - name: Run REG-001 golden regression suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/run_regression_golden_suite.py
+
+      - name: Detect INC-001 incidents
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/detect_runtime_incidents.py
+
+      - name: Execute SELF-001 preapproved local repairs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/execute_preapproved_self_heal.py
+
       - name: Persist runtime state
         if: always()
         uses: actions/upload-artifact@v4
