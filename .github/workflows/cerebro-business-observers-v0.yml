@@ -1,0 +1,23 @@
+name: CEREBRO Business Observers V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/collect_business_observations.py"
+      - "cerebro-os/jobs/aggregate_improvement_observations.py"
+      - "cerebro-os/config/improvement_business_sources.lab.json"
+      - "tests/test_business_observers.py"
+      - ".github/workflows/cerebro-business-observers-v0.yml"
+  push:
+    branches: [cerebro-business-observers-v0]
+permissions:
+  contents: read
+jobs:
+  business-observers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_business_observers.py tests/test_improvement_observation_plan.py tests/test_continuous_improvement_entrypoint.py
