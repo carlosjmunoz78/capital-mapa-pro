@@ -1,0 +1,15 @@
+[
+  {
+    "company_id": "fenix",
+    "competitors": [
+      {"competitor_id":"twipo-cordoba","url":"https://twipo.io/asesor-hipotecario/asesor-cordoba/"},
+      {"competitor_id":"bimaik-cordoba","url":"https://bimaik.com/broker-hipotecario-cordoba-bimaik/"}
+    ],
+    "enabled": true
+  },
+  {
+    "company_id": "aion",
+    "competitors": [],
+    "enabled": false
+  }
+]
