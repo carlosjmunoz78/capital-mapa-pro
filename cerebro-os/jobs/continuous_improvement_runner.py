@@ -53,4 +53,6 @@ class ImprovementRunner:
             return JobOutcome(schedule.company_id, "WAITING", running, snapshot)
 
         finished = finish(running, now)
+        if checkpoint_store and snapshot.status == "GREEN":
+            checkpoint_store.delete(company_id=schedule.company_id, environment=schedule.environment, version=schedule.version)
         return JobOutcome(schedule.company_id, snapshot.status, finished, snapshot)
