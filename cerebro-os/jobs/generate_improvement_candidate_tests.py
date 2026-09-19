@@ -101,7 +101,7 @@ def generate() -> list[Path]:
     written: list[Path] = []
     try:
         by_company: dict[str, list[CandidatePlan]] = {}
-        for item in queue.list_open():
+        for item in queue.next_by_company():
             by_company.setdefault(item.company_id, []).append(_classify(item))
 
         for company_id, candidates in sorted(by_company.items()):
