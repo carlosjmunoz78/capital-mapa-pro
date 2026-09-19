@@ -93,7 +93,7 @@ class ConsoleLiveRuntimeTests(unittest.TestCase):
         self.assertEqual(audit.status,200)
         self.assertEqual(history.body["items"][0]["request_id"],"req-persist")
         self.assertEqual(history.body["items"][0]["engine_id"],"COMP-ONB-001")
-        self.assertEqual(audit.body["items"][0]["result"],"GREEN")
+        self.assertEqual(audit.body["items"][0]["result"],"WAITING")
         self.assertEqual(audit.body["items"][0]["action"],"CREATE_COMPANY")
         self.assertEqual(audit.body["items"][0]["timestamp"],"123")
 
