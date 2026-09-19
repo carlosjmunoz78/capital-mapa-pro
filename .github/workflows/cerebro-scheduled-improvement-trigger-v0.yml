@@ -44,6 +44,12 @@ jobs:
             echo "No prior runtime state artifact; starting from clean LAB state."
           fi
 
+      - name: Collect real improvement observations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/collect_improvement_observations.py
+
       - name: Run scheduled LAB improvement worker
         id: run
         shell: bash
