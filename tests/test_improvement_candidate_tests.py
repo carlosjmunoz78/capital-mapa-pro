@@ -77,6 +77,32 @@ class CandidateTestGenerationTests(unittest.TestCase):
             self.assertEqual(out["status"],"WAITING")
             self.assertEqual(out["waiting"],1)
 
+    def test_only_highest_priority_proposal_per_company_is_generated(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)
+            queue_path=root/"queue.db"
+            q=ProposalQueue(queue_path)
+            q.upsert(ProposalRecord(
+                "fenix","low","content","CONTENT","LAB","1.0.0",
+                "content issue","e://content","LAB_DIAGNOSTIC_ONLY",False,0.0,"P2","WAITING_TEST"
+            ))
+            q.upsert(ProposalRecord(
+                "fenix","high","availability","SERVICE_HEALTH","LAB","1.0.0",
+                "app unavailable","e://app","LAB_DIAGNOSTIC_ONLY",False,0.0,"P0","WAITING_TEST"
+            ))
+            q.close()
+            old=os.environ.copy()
+            os.environ["CEREBRO_IMPROVEMENT_PROPOSAL_QUEUE"]=str(queue_path)
+            os.environ["CEREBRO_IMPROVEMENT_CANDIDATES_ROOT"]=str(root/"candidates")
+            os.environ["CEREBRO_IMPROVEMENT_EVIDENCE_ROOT"]=str(root/"evidence")
+            try:
+                generate()
+            finally:
+                os.environ.clear(); os.environ.update(old)
+            payload=json.loads((root/"candidates/fenix.json").read_text())
+            self.assertEqual(len(payload["candidates"]),1)
+            self.assertEqual(payload["candidates"][0]["proposal_id"],"high")
+
 
 if __name__=="__main__":
     unittest.main()
