@@ -39,7 +39,7 @@ class KnowledgeRevalidationE2ETests(unittest.TestCase):
                 "provenance_id":"prv-old",
                 "source_type":"LIVE_SOURCE",
                 "source_uri":"https://example.com/knowledge",
-                "verified_at":"2026-01-01T00:00:00+00:00",
+                "verified_at":"2026-09-10T00:00:00+00:00",
                 "ttl_days":7,
                 "confidence":0.95,
                 "source_available":True,
@@ -94,6 +94,61 @@ class KnowledgeRevalidationE2ETests(unittest.TestCase):
             self.assertFalse(record["external_mutation_allowed"])
             self.assertFalse(record["delete_allowed"])
             self.assertTrue(record["provenance_id"].startswith("prv-"))
+
+    def test_deeply_stale_source_stays_human_required(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)
+            inv=root/"inventory"; obs=root/"obs"; q=root/"queue"; ev=root/"evidence"
+            rr=root/"research"; prov=root/"prov"; upd=root/"upd"; ledger=root/"ledger"
+            inv.mkdir()
+            (inv/"fenix.json").write_text(json.dumps([{
+                "company_id":"fenix",
+                "knowledge_id":"official-web:very-old",
+                "environment":"LAB",
+                "version":"1.0.0",
+                "kind":"PUBLIC_SOURCE_POINTER",
+                "state":"ACTIVE",
+                "provenance_id":"prv-old",
+                "source_type":"LIVE_SOURCE",
+                "source_uri":"https://example.com/very-old",
+                "verified_at":"2026-01-01T00:00:00+00:00",
+                "ttl_days":7,
+                "confidence":0.95,
+                "source_available":True,
+                "contradictory_evidence":False,
+                "superseded_by":"",
+                "content_hash":"old",
+                "external_mutation_allowed":False,
+                "delete_allowed":False
+            }]),encoding="utf-8")
+            old=os.environ.copy()
+            os.environ.update({
+                "CEREBRO_KNOWLEDGE_INVENTORY_ROOT":str(inv),
+                "CEREBRO_OBSOLESCENCE_ROOT":str(obs),
+                "CEREBRO_REVALIDATION_ROOT":str(q),
+                "CEREBRO_REVALIDATION_EVIDENCE_ROOT":str(ev),
+                "CEREBRO_RESEARCH_REFRESH_ROOT":str(rr),
+                "CEREBRO_PROVENANCE_VALIDATION_ROOT":str(prov),
+                "CEREBRO_KNOWLEDGE_UPDATE_CANDIDATE_ROOT":str(upd),
+                "CEREBRO_KNOWLEDGE_LAB_LEDGER_ROOT":str(ledger),
+                "CEREBRO_OBSOLESCENCE_NOW":"2026-09-19T00:00:00+00:00",
+                "CEREBRO_REVALIDATION_NOW":"2026-09-19T00:00:00+00:00",
+            })
+            try:
+                obs_run()
+                queue_run()
+                with patch("urllib.request.urlopen",return_value=FakeResponse(b"new verified public content")):
+                    research_run()
+                provenance_run()
+                updater_run()
+            finally:
+                os.environ.clear(); os.environ.update(old)
+
+            pv=json.loads((prov/"fenix.json").read_text())
+            self.assertEqual(pv["results"][0]["status"],"HUMAN_REQUIRED")
+            self.assertEqual(pv["results"][0]["reasons"],["LOW_CONFIDENCE"])
+            updates=json.loads((upd/"fenix.json").read_text())
+            self.assertEqual(updates["candidates"],[])
 
 if __name__=="__main__":
     unittest.main()
