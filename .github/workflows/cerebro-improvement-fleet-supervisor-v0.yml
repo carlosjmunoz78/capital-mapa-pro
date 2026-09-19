@@ -1,0 +1,21 @@
+name: CEREBRO Improvement Fleet Supervisor V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/improvement_fleet.py"
+      - "tests/test_improvement_fleet.py"
+      - ".github/workflows/cerebro-improvement-fleet-supervisor-v0.yml"
+  push:
+    branches: [cerebro-improvement-fleet-supervisor-v0]
+permissions:
+  contents: read
+jobs:
+  fleet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_improvement_fleet.py tests/test_improvement_observability_supervisor.py tests/test_improvement_runner_audit.py tests/test_improvement_resume.py
