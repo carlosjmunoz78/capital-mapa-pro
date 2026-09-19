@@ -71,6 +71,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/collect_finops_observations.py
 
+      - name: Collect public WordPress content observations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/collect_wordpress_content_observations.py
+
       - name: Aggregate technical and business observations
         shell: bash
         run: |
