@@ -40,6 +40,31 @@ PREPROD_ONLY={
     "BOOTSTRAP_CRM","BOOTSTRAP_APP","BOOTSTRAP_AUTOMATIONS","BOOTSTRAP_TRAINING",
     "CREATE_SUPERVISOR_SCOPE","CREATE_BACKUP_REBUILD_PACK","PREPROD_TESTS"
 }
+PHASE_ENGINE_MAP={
+    "REGISTER_COMPANY":"COMP-REG-001",
+    "MINIMUM_ACCESSES":"ACCESSBOOT-001",
+    "SCAN_DIGITAL_FOOTPRINT":"SCAN-001",
+    "DISCOVER_BUSINESS_MODEL":"BMD-001",
+    "DISCOVER_PROCESSES":"PROC-001",
+    "AUDIT_WEBSITE":"WAUD-001",
+    "DISCOVER_KEYWORDS":"KW-001",
+    "AUDIT_SOCIAL_MEDIA":"SOCAUD-001",
+    "AUDIT_LOCAL_PRESENCE":"LOCALP-001",
+    "MAP_COMPETITORS":"COMPET-001",
+    "BOOTSTRAP_COMPANY_KNOWLEDGE":"KBOOT-001",
+    "BUILD_SEO_PLAN":"SEOBOOT-001",
+    "BUILD_SOCIAL_PLAN":"SOCBOOT-001",
+    "BUILD_MARKETING_PLAN":"MKTBOOT-001",
+    "DETERMINE_REQUIRED_ENGINES":"ENGACT-001",
+    "BOOTSTRAP_CRM":"CRMBOOT-001",
+    "BOOTSTRAP_APP":"APPBOOT-001",
+    "BOOTSTRAP_AUTOMATIONS":"AUTBOOT-001",
+    "BOOTSTRAP_TRAINING":"TRNBOOT-001",
+    "CREATE_SUPERVISOR_SCOPE":"COMP-HLT-001",
+    "CREATE_BACKUP_REBUILD_PACK":"COMP-BKP-001",
+    "PREPROD_TESTS":"COMP-DEP-001",
+    "PRODUCTION_ACTIVATION":"COMP-ONB-001",
+}
 
 @dataclass(frozen=True)
 class PhaseState:
@@ -115,9 +140,21 @@ def advance(state:dict, phase_result:dict)->dict:
 def default_phase_plan(state:dict)->dict:
     phase=str(state["current_phase"])
     company_id=str(state["company_id"])
+    target_engine_id=PHASE_ENGINE_MAP.get(phase)
+    if not target_engine_id:
+        raise ValueError("phase engine binding missing")
+    if phase=="MINIMUM_ACCESSES":
+        return {
+            "company_id":company_id,"engine_id":"COMP-ONB-001","phase":phase,
+            "target_engine_id":target_engine_id,
+            "execution_mode":"LOCAL_DETERMINISTIC","environment":"LAB",
+            "allowed_external_mutation":False,"required_cost_eur":0.0,
+            "required_gates":["TENANT-001","IAM-001","POL-001"],
+        }
     if phase in READ_ONLY_DISCOVERY:
         return {
             "company_id":company_id,"engine_id":"COMP-ONB-001","phase":phase,
+            "target_engine_id":target_engine_id,
             "execution_mode":"READ_ONLY","environment":"LAB",
             "allowed_external_mutation":False,"required_cost_eur":0.0,
             "required_gates":["TENANT-001","PRV-001","OBSERV-001"],
@@ -125,6 +162,7 @@ def default_phase_plan(state:dict)->dict:
     if phase in PREPROD_ONLY:
         return {
             "company_id":company_id,"engine_id":"COMP-ONB-001","phase":phase,
+            "target_engine_id":target_engine_id,
             "execution_mode":"PREPROD_ONLY","environment":"PREPROD",
             "allowed_external_mutation":False,"required_cost_eur":0.0,
             "required_gates":["TENANT-001","QA-001","REG-001","DR-001","RBLD-001"],
@@ -132,6 +170,7 @@ def default_phase_plan(state:dict)->dict:
     if phase=="PRODUCTION_ACTIVATION":
         return {
             "company_id":company_id,"engine_id":"COMP-ONB-001","phase":phase,
+            "target_engine_id":target_engine_id,
             "execution_mode":"GATE_ONLY","environment":"PREPROD",
             "allowed_external_mutation":False,"required_cost_eur":0.0,
             "required_gates":["QA-001","QAB-001","REG-001","EVA-001","JDG-001","OBSERV-001","DR-001","RBLD-001","TENANT-001"],
@@ -139,6 +178,7 @@ def default_phase_plan(state:dict)->dict:
         }
     return {
         "company_id":company_id,"engine_id":"COMP-ONB-001","phase":phase,
+        "target_engine_id":target_engine_id,
         "execution_mode":"LOCAL_DETERMINISTIC","environment":"LAB",
         "allowed_external_mutation":False,"required_cost_eur":0.0,
         "required_gates":["TENANT-001","OBSERV-001"],
