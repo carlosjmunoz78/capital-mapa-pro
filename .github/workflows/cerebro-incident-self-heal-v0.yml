@@ -1,0 +1,22 @@
+name: CEREBRO Incident Self-Heal V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/detect_runtime_incidents.py"
+      - "cerebro-os/jobs/execute_preapproved_self_heal.py"
+      - "tests/test_incident_self_heal.py"
+      - ".github/workflows/cerebro-incident-self-heal-v0.yml"
+  push:
+    branches: [cerebro-incident-self-heal-v0]
+permissions:
+  contents: read
+jobs:
+  incident-self-heal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_incident_self_heal.py tests/test_permissioned_rag_cache.py tests/test_digital_twin_snapshot.py
