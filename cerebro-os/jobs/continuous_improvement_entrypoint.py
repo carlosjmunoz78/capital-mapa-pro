@@ -35,6 +35,7 @@ def _evidence_executor_factory(evidence_root: Path):
         tribunal_evidence: dict = {}
         old_vs_new_evidence: dict = {}
         canary_evidence: dict = {}
+        promotion_evidence: dict = {}
         if company_file.exists():
             raw = json.loads(company_file.read_text(encoding="utf-8"))
             if not isinstance(raw, dict):
@@ -133,6 +134,26 @@ def _evidence_executor_factory(evidence_root: Path):
             if bool(raw_canary.get("external_mutation_allowed", True)):
                 raise ValueError("CANARY evidence cannot allow external mutation")
             canary_evidence = raw_canary
+        promotion_file = evidence_root / f"{company_id}.promote_or_rollback.json"
+        if promotion_file.exists():
+            raw_promotion = json.loads(promotion_file.read_text(encoding="utf-8"))
+            if not isinstance(raw_promotion, dict):
+                raise ValueError("PROMOTE_OR_ROLLBACK evidence file must be object")
+            if str(raw_promotion.get("company_id", "")) != company_id:
+                raise ValueError("cross-company PROMOTE_OR_ROLLBACK evidence denied")
+            if str(raw_promotion.get("stage", "")) != "PROMOTE_OR_ROLLBACK":
+                raise ValueError("PROMOTE_OR_ROLLBACK evidence stage mismatch")
+            if bool(raw_promotion.get("promotion_allowed", True)):
+                raise ValueError("promotion planner cannot authorize production")
+            if bool(raw_promotion.get("progressive_delivery_allowed", True)):
+                raise ValueError("promotion planner cannot authorize progressive delivery")
+            if bool(raw_promotion.get("live_effect_verified", True)):
+                raise ValueError("promotion planner cannot claim live effect")
+            if bool(raw_promotion.get("production_ready", True)):
+                raise ValueError("promotion planner cannot claim production readiness")
+            if bool(raw_promotion.get("external_mutation_allowed", True)):
+                raise ValueError("PROMOTE_OR_ROLLBACK evidence cannot allow external mutation")
+            promotion_evidence = raw_promotion
 
         def execute(stage: str, attempt: int) -> StageResult:
             if stage == "LAB" and lab_evidence:
@@ -170,6 +191,12 @@ def _evidence_executor_factory(evidence_root: Path):
                     stage,
                     str(canary_evidence.get("status", "WAITING")),
                     str(canary_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/CANARY")),
+                )
+            if stage == "PROMOTE_OR_ROLLBACK" and promotion_evidence:
+                return StageResult(
+                    stage,
+                    str(promotion_evidence.get("status", "WAITING")),
+                    str(promotion_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/PROMOTE_OR_ROLLBACK")),
                 )
             if stage in planned:
                 return planned[stage]

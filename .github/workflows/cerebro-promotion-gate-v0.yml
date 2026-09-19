@@ -1,0 +1,22 @@
+name: CEREBRO Promotion Gate V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/plan_improvement_candidate_promotion.py"
+      - "cerebro-os/jobs/continuous_improvement_entrypoint.py"
+      - "tests/test_improvement_candidate_promotion.py"
+      - ".github/workflows/cerebro-promotion-gate-v0.yml"
+  push:
+    branches: [cerebro-promotion-gate-v0]
+permissions:
+  contents: read
+jobs:
+  promotion-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_improvement_candidate_promotion.py tests/test_improvement_candidate_canary.py tests/test_continuous_improvement_entrypoint.py
