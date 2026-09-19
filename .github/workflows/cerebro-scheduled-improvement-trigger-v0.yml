@@ -322,6 +322,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/assess_business_continuity.py
 
+      - name: Plan CRS-001 crisis responses
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/plan_crisis_response.py
+
       - name: Persist runtime state
         if: always()
         uses: actions/upload-artifact@v4
