@@ -4,7 +4,7 @@ from pathlib import Path
 from multicompany.health import company_health
 
 ENGINE_ID="COMP-HLT-001"
-DEFAULT_REQUIRED=("COMP-REG-001","COMP-ONB-001","TENANT-001","CRMBOOT-001","APPBOOT-001","AUTBOOT-001","TRNBOOT-001")
+DEFAULT_REQUIRED=("COMP-REG-001","COMP-ONB-001","TENANT-001","CRMBOOT-001","APPBOOT-001","AUTBOOT-001","TRNBOOT-001","ACCESS-HLT-001")
 
 def create_supervisor_scope(payload:dict)->dict:
     company_id=str(payload.get("company_id","")).strip()
