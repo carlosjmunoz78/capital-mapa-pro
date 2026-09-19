@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "cerebro-os"))
+sys.path.insert(0, str(ROOT / "cerebro-os/discovery"))
 
 from jobs.aggregate_improvement_observations import aggregate
 from discovery.public_web_collector import parse_public_html
