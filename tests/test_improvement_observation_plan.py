@@ -60,6 +60,13 @@ class ObservationPlanTests(unittest.TestCase):
             self.assertEqual(out["status"],"GREEN")
             self.assertEqual(out["green"],1)
 
+    def test_envelope_accepts_aggregated_facts(self):
+        plan = plan_stage_results(ObservationEnvelope(
+            "aion", True, "MULTI_SOURCE", "e://multi", "NO_CHANGE", 1.0, "healthy",
+            {"required_sources": ["technical"], "failed_optional_sources": []},
+        ))
+        self.assertEqual(plan["OBSERVE"].status, "GREEN")
+
 
 if __name__=="__main__":
     unittest.main()
