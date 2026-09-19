@@ -250,6 +250,25 @@ class OnboardingQueue:
           "stale_leases":int(stale["n"]) if stale else 0,
         }
 
+    def next_due_epoch(self,*,now_epoch:int)->int|None:
+        if now_epoch<0:
+            raise ValueError("invalid due timestamp")
+        with self._connect() as conn:
+            queued=conn.execute(
+              "SELECT MIN(next_attempt_epoch) AS due FROM onboarding_requests WHERE status='QUEUED'"
+            ).fetchone()
+            leased=conn.execute(
+              "SELECT MIN(lease_until_epoch) AS due FROM onboarding_requests WHERE status='IN_PROGRESS'"
+            ).fetchone()
+        values=[]
+        for row in (queued,leased):
+            if row is not None and row["due"] is not None:
+                values.append(int(row["due"]))
+        if not values:
+            return None
+        due=min(values)
+        return now_epoch if due<=now_epoch else due
+
     def by_company(self,company_id:str)->tuple[QueueItem,...]:
         if not company_id.strip():
             raise ValueError("company_id required")
