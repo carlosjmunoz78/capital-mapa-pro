@@ -10,6 +10,7 @@ from computer_use_policy import ComputerUseRequest, evaluate_computer_use
 from account_registry import IdentityRecord, AccountRecord, IdentityAccountRegistry
 from credential_scope import ScopedCredentialRef, authorize_credential_ref
 from account_lifecycle import AccountLifecycleRequest, plan_account_lifecycle
+from access_orchestrator import AccessExecutionRequest, plan_access_execution
 
 
 class IdentityConnectorAndComputerUsePolicyTests(unittest.TestCase):
@@ -156,6 +157,64 @@ class IdentityConnectorAndComputerUsePolicyTests(unittest.TestCase):
                 credential_ref_id="cred-x",account_id="acct",identity_id="id",company_id="fenix",
                 vault_provider="VAULT_REF",secret_ref="token=plaintext",environment="LAB"
             ).validate()
+
+    def _access_fixture(self):
+        registry=IdentityAccountRegistry()
+        registry.register_identity(IdentityRecord("id-fenix","COMPANY","fenix","fenix","Fenix","default","LAB","1.0.0"))
+        registry.register_account(AccountRecord("acct-1","id-fenix","fenix","linkedin","ops@fenix.example","OAUTH","marketing","LAB","1.0.0"))
+        credential=ScopedCredentialRef(
+            credential_ref_id="cred-1",account_id="acct-1",identity_id="id-fenix",company_id="fenix",
+            vault_provider="GITHUB_SECRETS",secret_ref="FENIX_LINKEDIN_OAUTH",environment="LAB",version="1.0.0"
+        )
+        return registry,credential
+
+    def test_access_orchestrator_prefers_higher_priority_connector(self):
+        registry,credential=self._access_fixture()
+        connectors=ConnectorRegistry()
+        connectors.register(ConnectorCapability("api","fenix","publish","OFFICIAL_API","LAB"))
+        connectors.register(ConnectorCapability("browser","fenix","publish","COMPUTER_USE","LAB"))
+        out=plan_access_execution(
+            AccessExecutionRequest("fenix","id-fenix","acct-1","SOC-001","publish","PUBLISH_DRAFT","LAB","1.0.0"),
+            registry=registry,credential=credential,connectors=connectors
+        )
+        self.assertEqual(out["decision"],"USE_HIGHER_PRIORITY_CONNECTOR")
+        self.assertEqual(out["connector_id"],"api")
+        self.assertFalse(out["computer_use_allowed"])
+        self.assertFalse(out["secret_value_exposed"])
+
+    def test_access_orchestrator_allows_computer_use_only_as_scoped_fallback(self):
+        registry,credential=self._access_fixture()
+        connectors=ConnectorRegistry()
+        connectors.register(ConnectorCapability("browser","fenix","publish","COMPUTER_USE","LAB"))
+        out=plan_access_execution(
+            AccessExecutionRequest("fenix","id-fenix","acct-1","SOC-001","publish","PUBLISH_DRAFT","LAB","1.0.0",True,0.95),
+            registry=registry,credential=credential,connectors=connectors
+        )
+        self.assertEqual(out["status"],"GREEN")
+        self.assertEqual(out["decision"],"COMPUTER_USE_FALLBACK")
+        self.assertTrue(out["computer_use_allowed"])
+        self.assertFalse(out["secret_value_exposed"])
+
+    def test_access_orchestrator_blocks_browser_when_credential_reference_missing(self):
+        registry,_=self._access_fixture()
+        connectors=ConnectorRegistry()
+        connectors.register(ConnectorCapability("browser","fenix","publish","COMPUTER_USE","LAB"))
+        out=plan_access_execution(
+            AccessExecutionRequest("fenix","id-fenix","acct-1","SOC-001","publish","PUBLISH_DRAFT","LAB","1.0.0",True,0.95),
+            registry=registry,credential=None,connectors=connectors
+        )
+        self.assertEqual(out["status"],"BLOCKED")
+        self.assertIn("CREDENTIAL_REFERENCE_MISSING",out["blockers"])
+        self.assertFalse(out["computer_use_allowed"])
+
+    def test_access_orchestrator_denies_identity_account_mismatch(self):
+        registry,credential=self._access_fixture()
+        connectors=ConnectorRegistry()
+        with self.assertRaisesRegex(PermissionError,"identity/account mismatch"):
+            plan_access_execution(
+                AccessExecutionRequest("fenix","other-id","acct-1","SOC-001","publish","PUBLISH_DRAFT","LAB","1.0.0"),
+                registry=registry,credential=credential,connectors=connectors
+            )
 
 
 if __name__ == "__main__":
