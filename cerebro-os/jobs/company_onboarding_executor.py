@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
-from jobs.company_onboarding_orchestrator import PHASE_ENGINE_MAP, default_phase_plan
+from jobs.company_onboarding_orchestrator import default_phase_plan
 from jobs.company_onboarding_superloop import run_superloop
 
 SAFE_EXECUTION_MODES={"LOCAL_DETERMINISTIC","READ_ONLY","PREPROD_ONLY","GATE_ONLY"}
@@ -64,12 +64,24 @@ def execute_onboarding_superloop(
         raise ValueError("max_steps must be >= 1")
     current=dict(state)
     context=dict(context or {})
+    seeded=context.get("engine_results") or {}
+    if not isinstance(seeded,dict):
+        raise ValueError("context.engine_results must be object")
+    context["engine_results"]={str(k):dict(v) for k,v in seeded.items() if isinstance(v,dict)}
     engine_results:list[dict]=[]
     executed=[]
 
+    def decorate(body:dict)->dict:
+        persisted=tuple(
+            dict(row) for _,row in sorted(
+                context.get("engine_results",{}).items(),key=lambda kv:kv[0]
+            )
+        )
+        return {**body,"engine_results":persisted}
+
     for _ in range(max_steps):
         if current.get("current_phase") is None:
-            return run_superloop(current,engine_results,max_steps=max_steps)
+            return decorate(run_superloop(current,engine_results,max_steps=max_steps))
 
         plan=default_phase_plan(current)
         mode=str(plan["execution_mode"])
@@ -84,16 +96,16 @@ def execute_onboarding_superloop(
         handler=registry.get(engine_id)
         if handler is None:
             preview=run_superloop(current,engine_results,max_steps=max_steps)
-            return {
+            return decorate({
               **preview,
               "executor_stop_reason":"HANDLER_MISSING",
               "missing_handler_engine_id":engine_id,
               "executed_handlers":tuple(executed),
               "external_mutation_allowed":False,
               "cost_eur":0.0,
-            }
+            })
         if mode not in handler.execution_modes:
-            return {
+            return decorate({
               "company_id":current["company_id"],
               "status":"BLOCKED",
               "state":current,
@@ -104,10 +116,16 @@ def execute_onboarding_superloop(
               "executed_handlers":tuple(executed),
               "external_mutation_allowed":False,
               "cost_eur":0.0,
-            }
+            })
 
-        payload=_handler_payload(state=current,plan=plan,context=context)
-        result=handler.handler(payload)
+        cached=context["engine_results"].get(engine_id)
+        reused=bool(cached and str(cached.get("status","")).upper()=="GREEN")
+        if reused:
+            result=dict(cached)
+        else:
+            payload=_handler_payload(state=current,plan=plan,context=context)
+            result=handler.handler(payload)
+
         if not isinstance(result,dict):
             raise ValueError("engine handler must return object")
         if str(result.get("company_id",""))!=str(current["company_id"]):
@@ -120,44 +138,45 @@ def execute_onboarding_superloop(
             raise ValueError("handler reported non-zero cost")
 
         engine_results.append(result)
-        context.setdefault("engine_results", {})[engine_id]=dict(result)
+        context["engine_results"][engine_id]=dict(result)
         executed.append({
           "phase":plan["phase"],"engine_id":engine_id,"execution_mode":mode,
           "status":str(result.get("status","UNKNOWN")).upper(),
           "evidence_ref":str(result.get("evidence_hash") or result.get("evidence_ref") or ""),
+          "result_source":"PERSISTED_GREEN" if reused else "EXECUTED",
         })
 
         loop=run_superloop(current,[result],max_steps=2)
         current=dict(loop["state"])
         if loop["status"]=="BLOCKED":
-            return {
+            return decorate({
               **loop,
               "executor_stop_reason":loop["stop_reason"],
               "executed_handlers":tuple(executed),
               "external_mutation_allowed":False,
               "cost_eur":0.0,
-            }
+            })
         if loop["status"]=="HUMAN_REQUIRED":
-            return {
+            return decorate({
               **loop,
               "executor_stop_reason":loop["stop_reason"],
               "executed_handlers":tuple(executed),
               "external_mutation_allowed":False,
               "cost_eur":0.0,
-            }
+            })
         if loop["status"]=="WAITING" and loop.get("stop_reason")=="ENGINE_RESULT_MISSING":
             continue
         if loop["status"]=="WAITING" and loop.get("stop_reason")=="ENGINE_NOT_GREEN":
-            return {
+            return decorate({
               **loop,
               "executor_stop_reason":"ENGINE_NOT_GREEN",
               "executed_handlers":tuple(executed),
               "external_mutation_allowed":False,
               "cost_eur":0.0,
-            }
+            })
 
-    return {
+    return decorate({
       "company_id":current["company_id"],"status":"BLOCKED","state":current,
       "executor_stop_reason":"MAX_STEPS_REACHED","executed_handlers":tuple(executed),
       "external_mutation_allowed":False,"cost_eur":0.0,
-    }
+    })
