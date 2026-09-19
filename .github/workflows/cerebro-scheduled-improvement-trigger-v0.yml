@@ -127,6 +127,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/generate_improvement_candidate_tribunal.py
 
+      - name: Compare structural OLD vs NEW candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/compare_improvement_candidate_old_vs_new.py
+
       - name: Export CEREBRO Console source snapshot
         shell: bash
         run: |
