@@ -8,7 +8,9 @@
       "https://fenixcapital.es/quienes-somos/"
     ],
     "enabled": true,
-    "wordpress_rest_base": "https://fenixcapital.es/wp-json/wp/v2"
+    "wordpress_rest_base": "https://fenixcapital.es/wp-json/wp/v2",
+    "app_url": "https://app.fenixcapital.es/",
+    "gateway_url": "https://cluhljgonannaafpmblx.supabase.co/functions/v1/fenix-app-gateway"
   },
   {
     "company_id": "aion",
