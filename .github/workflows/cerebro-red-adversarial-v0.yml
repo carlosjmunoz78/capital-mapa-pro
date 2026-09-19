@@ -1,0 +1,21 @@
+name: CEREBRO RED Adversarial V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/run_adversarial_evaluation.py"
+      - "tests/test_adversarial_evaluation.py"
+      - ".github/workflows/cerebro-red-adversarial-v0.yml"
+  push:
+    branches: [cerebro-red-adversarial-v0]
+permissions:
+  contents: read
+jobs:
+  red-team:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_adversarial_evaluation.py
