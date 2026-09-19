@@ -41,6 +41,7 @@ def aggregate() -> list[Path]:
             _load(evidence_root / f"{company_id}.business.json"),
             _load(evidence_root / f"{company_id}.competitors.json"),
             _load(evidence_root / f"{company_id}.finops.json"),
+            _load(evidence_root / f"{company_id}.content.json"),
         ]
         sources = [s for s in sources if s is not None]
         if not sources:
