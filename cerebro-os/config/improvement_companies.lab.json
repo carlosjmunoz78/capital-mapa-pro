@@ -1,0 +1,20 @@
+[
+  {
+    "company_id": "aion",
+    "legal_name": "AION",
+    "autonomy_profile": "AUTONOMOUS_VENTURE",
+    "environment": "LAB",
+    "version": "1.0.0",
+    "interval_hours": 24,
+    "enabled": true
+  },
+  {
+    "company_id": "fenix",
+    "legal_name": "Fenix Capital",
+    "autonomy_profile": "FENIX_SENSITIVE",
+    "environment": "LAB",
+    "version": "1.0.0",
+    "interval_hours": 24,
+    "enabled": true
+  }
+]
