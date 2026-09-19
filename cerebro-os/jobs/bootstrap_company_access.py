@@ -26,6 +26,7 @@ def bootstrap_company_access(payload:dict)->dict:
         raise ValueError("ACCESSBOOT-001 supports LAB/PREPROD only")
 
     requirements=payload.get("requirements") or []
+    requirements_inventory_complete=bool(requirements) or bool(payload.get("requirements_inventory_complete",False))
     accounts=payload.get("existing_accounts") or []
     connectors=payload.get("existing_connectors") or []
     sessions=payload.get("session_observations") or []
@@ -74,18 +75,20 @@ def bootstrap_company_access(payload:dict)->dict:
         })
 
     missing=[x for x in rows if x["required"] and x["status"]=="DISCOVERY_REQUIRED"]
-    ready=not missing
+    ready=requirements_inventory_complete and not missing
+    reason=None if ready else ("ACCESS_REQUIREMENTS_INVENTORY_REQUIRED" if not requirements_inventory_complete else "REQUIRED_ACCESS_DISCOVERY_PENDING")
     canonical=json.dumps({"company_id":company_id,"environment":environment,"version":version,"requirements":rows},sort_keys=True,separators=(",",":"))
     return {
       "record_type":"company_access_bootstrap","company_id":company_id,"engine_id":ENGINE_ID,
       "environment":environment,"version":version,"requirements":rows,
+      "requirements_inventory_complete":requirements_inventory_complete,
       "minimum_accesses_ready":ready,"missing_required_count":len(missing),
-      "status":"GREEN" if ready else "PARTIAL",
+      "status":"GREEN" if ready else "PARTIAL","reason":reason,
       "strategy":"REUSE_DISCOVER_BEFORE_CREATE",
       "account_creation_allowed":False,"secret_collection_allowed":False,
       "external_mutation_allowed":False,"prod_activation_allowed":False,"cost_eur":0.0,
       "required_gates":["TENANT-001","IAM-001","POL-001","ACCESS-HLT-001"],
-      "next_stage":"ACCESS_HEALTH" if ready else "ACCOUNT_CONNECTOR_SESSION_DISCOVERY",
+      "next_stage":"ACCESS_HEALTH" if ready else ("ACCESS_REQUIREMENTS_INVENTORY" if not requirements_inventory_complete else "ACCOUNT_CONNECTOR_SESSION_DISCOVERY"),
       "evidence_hash":"sha256:"+hashlib.sha256(canonical.encode()).hexdigest(),
     }
 
