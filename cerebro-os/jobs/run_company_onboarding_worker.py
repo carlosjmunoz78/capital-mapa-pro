@@ -50,11 +50,40 @@ def process_one(*,queue:OnboardingQueue,now_epoch:int,lease_seconds:int=300)->di
       "cost_eur":0.0,
     }
 
+def process_batch(*,queue:OnboardingQueue,now_epoch:int,max_items:int=25,lease_seconds:int=300)->dict:
+    if max_items<1:
+        raise ValueError("max_items must be >= 1")
+    processed=[]
+    for offset in range(max_items):
+        out=process_one(queue=queue,now_epoch=now_epoch+offset,lease_seconds=lease_seconds)
+        if not out["processed"]:
+            break
+        processed.append(out)
+    stats=queue.stats(now_epoch=now_epoch+len(processed))
+    human=sum(1 for x in processed if x["status"]=="HUMAN_REQUIRED")
+    blocked=sum(1 for x in processed if x["status"]=="BLOCKED")
+    return {
+      "status":"HUMAN_REQUIRED" if human else "DEGRADED" if blocked else "GREEN",
+      "processed_count":len(processed),
+      "items":tuple(processed),
+      "queue_stats":stats,
+      "human_required_count":human,
+      "blocked_count":blocked,
+      "external_mutation_allowed":False,
+      "production_activation_allowed":False,
+      "cost_eur":0.0,
+    }
+
 def run()->dict:
     db=Path(os.environ.get("CEREBRO_ONBOARD_QUEUE_DB",".cerebro-runtime/onboarding-worker/queue.sqlite3"))
     db.parent.mkdir(parents=True,exist_ok=True)
     queue=OnboardingQueue(db)
-    return process_one(queue=queue,now_epoch=int(time.time()),lease_seconds=int(os.environ.get("CEREBRO_ONBOARD_LEASE_SECONDS","300")))
+    return process_batch(
+        queue=queue,
+        now_epoch=int(time.time()),
+        max_items=int(os.environ.get("CEREBRO_ONBOARD_BATCH_SIZE","25")),
+        lease_seconds=int(os.environ.get("CEREBRO_ONBOARD_LEASE_SECONDS","300")),
+    )
 
 if __name__=="__main__":
     print(run())

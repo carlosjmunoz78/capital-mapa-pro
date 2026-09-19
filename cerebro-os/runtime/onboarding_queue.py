@@ -149,6 +149,29 @@ class OnboardingQueue:
               (encoded,now_epoch,request_id),
             )
 
+    def stats(self,*,now_epoch:int)->dict:
+        if now_epoch<0:
+            raise ValueError("invalid stats timestamp")
+        with self._connect() as conn:
+            rows=conn.execute(
+              "SELECT status,COUNT(*) AS n FROM onboarding_requests GROUP BY status"
+            ).fetchall()
+            stale=conn.execute(
+              "SELECT COUNT(*) AS n FROM onboarding_requests WHERE status='IN_PROGRESS' AND lease_until_epoch<=?",
+              (now_epoch,),
+            ).fetchone()
+        counts={str(row["status"]):int(row["n"]) for row in rows}
+        return {
+          "total":sum(counts.values()),
+          "queued":counts.get("QUEUED",0),
+          "in_progress":counts.get("IN_PROGRESS",0),
+          "waiting":counts.get("WAITING",0),
+          "blocked":counts.get("BLOCKED",0),
+          "human_required":counts.get("HUMAN_REQUIRED",0),
+          "completed":counts.get("COMPLETED",0),
+          "stale_leases":int(stale["n"]) if stale else 0,
+        }
+
     def get(self,request_id:str)->QueueItem|None:
         with self._connect() as conn:
             row=conn.execute("SELECT * FROM onboarding_requests WHERE request_id=?",(request_id,)).fetchone()
