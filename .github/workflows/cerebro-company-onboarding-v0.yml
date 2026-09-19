@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - "cerebro-os/jobs/company_onboarding_orchestrator.py"
+      - "cerebro-os/jobs/company_onboarding_superloop.py"
       - "cerebro-os/jobs/bootstrap_company_access.py"
       - "cerebro-os/jobs/scan_company_digital_footprint.py"
       - "cerebro-os/jobs/discover_business_model.py"
@@ -26,6 +27,7 @@ on:
       - "cerebro-os/jobs/evaluate_company_preprod_readiness.py"
       - "cerebro-os/jobs/evaluate_company_production_activation.py"
       - "tests/test_company_onboarding_v0.py"
+      - "tests/test_company_onboarding_superloop_v0.py"
       - ".github/workflows/cerebro-company-onboarding-v0.yml"
   push:
     branches:
@@ -45,4 +47,4 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m unittest -v tests/test_company_onboarding_v0.py
+      - run: python -m unittest -v tests/test_company_onboarding_v0.py tests/test_company_onboarding_superloop_v0.py
