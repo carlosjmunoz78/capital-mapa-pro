@@ -17,6 +17,18 @@ class CompanyImprovementJob:
 
 
 @dataclass(frozen=True)
+class ImprovementEvidenceContext:
+    old_ref: str | None = None
+    new_ref: str | None = None
+    rollback_ref: str | None = None
+    cost_eur: float = 0.0
+
+    def validate(self) -> None:
+        if self.cost_eur < 0:
+            raise ValueError("cost_eur cannot be negative")
+
+
+@dataclass(frozen=True)
 class JobOutcome:
     company_id: str
     status: str
@@ -34,8 +46,11 @@ class ImprovementRunner:
         audit_store: ImprovementAuditStore | None = None,
         cycle_id: str | None = None,
         engine_id: str = "SUP-IMPROVEMENT",
+        evidence_context: ImprovementEvidenceContext | None = None,
     ) -> JobOutcome:
         schedule = job.schedule
+        context = evidence_context or ImprovementEvidenceContext()
+        context.validate()
         if not due(schedule, job.state, now):
             return JobOutcome(schedule.company_id, "NOT_DUE", job.state, None)
 
@@ -57,7 +72,8 @@ class ImprovementRunner:
                 audit_store.append(ImprovementAuditRecord(
                     company_id=schedule.company_id, engine_id=engine_id, environment=schedule.environment,
                     version=schedule.version, cycle_id=cid, stage=result.stage, status=result.status,
-                    evidence_ref=result.evidence_ref or "evidence://missing", cost_eur=0.0,
+                    evidence_ref=result.evidence_ref or "evidence://missing", old_ref=context.old_ref,
+                    new_ref=context.new_ref, rollback_ref=context.rollback_ref, cost_eur=context.cost_eur,
                 ))
         if checkpoint_store:
             checkpoint_store.save(snapshot)

@@ -1,0 +1,22 @@
+name: CEREBRO Improvement Observability Supervisor V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/continuous_improvement_runner.py"
+      - "cerebro-os/observability/improvement_cycle_summary.py"
+      - "tests/test_improvement_observability_supervisor.py"
+      - ".github/workflows/cerebro-improvement-observability-supervisor-v0.yml"
+  push:
+    branches: [cerebro-improvement-observability-supervisor-v0]
+permissions:
+  contents: read
+jobs:
+  grouped:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_improvement_observability_supervisor.py tests/test_improvement_runner_audit.py tests/test_improvement_audit_store.py tests/test_improvement_resume.py tests/test_continuous_improvement_runner.py
