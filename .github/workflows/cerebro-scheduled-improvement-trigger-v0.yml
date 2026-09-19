@@ -328,6 +328,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/plan_crisis_response.py
 
+      - name: Build OBSERV/FINOPS/SEC control-plane snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/build_control_plane_snapshot.py
+
       - name: Persist runtime state
         if: always()
         uses: actions/upload-artifact@v4
