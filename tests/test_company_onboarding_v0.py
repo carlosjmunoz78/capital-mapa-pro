@@ -16,6 +16,10 @@ from jobs.bootstrap_company_seo import bootstrap_seo
 from jobs.bootstrap_company_social import bootstrap_social
 from jobs.bootstrap_company_marketing import bootstrap_marketing
 from jobs.activate_company_engine_matrix import activate_matrix
+from jobs.bootstrap_company_crm import bootstrap_crm
+from jobs.bootstrap_company_app import bootstrap_app
+from jobs.bootstrap_company_automations import bootstrap_automations
+from jobs.bootstrap_company_training import bootstrap_training
 
 class FakeHeaders:
     def get(self,key,default=None): return "text/html"
@@ -215,5 +219,42 @@ class CompanyOnboardingTests(unittest.TestCase):
     def test_engact_denies_cross_company_evidence(self):
         with self.assertRaisesRegex(ValueError,"cross-company"):
             activate_matrix({"company_id":"aion","engine_evidence":[{"company_id":"fenix","engine_id":"KW-001","status":"GREEN"}]})
+
+    def test_crmboot_requires_existing_contract_inventory_before_any_migration(self):
+        out=bootstrap_crm({"company_id":"fenix","existing_contract_refs":[],"entities":["lead"],"pipeline":["new"]})
+        self.assertEqual(out["status"],"BLOCKED")
+        self.assertEqual(out["reason"],"EXISTING_CONTRACT_INVENTORY_REQUIRED")
+        self.assertFalse(out["migration_allowed"])
+        self.assertFalse(out["prod_write_allowed"])
+
+    def test_crmboot_wraps_existing_first_when_inventory_exists(self):
+        out=bootstrap_crm({"company_id":"fenix","existing_contract_refs":["contract://crm-v1"],"entities":["lead","customer"],"pipeline":["new","won"]})
+        self.assertEqual(out["status"],"GREEN")
+        self.assertEqual(out["strategy"],"WRAP_EXISTING_FIRST")
+        self.assertFalse(out["migration_allowed"])
+
+    def test_appboot_is_preprod_only_and_preserves_existing_contracts(self):
+        out=bootstrap_app({"company_id":"aion","existing_contract_refs":["contract://app-v1"],"roles":["admin"],"modules":["home"]})
+        self.assertEqual(out["environment"],"PREPROD")
+        self.assertEqual(out["status"],"GREEN")
+        self.assertFalse(out["prod_deploy_allowed"])
+        self.assertFalse(out["external_mutation_allowed"])
+
+    def test_appboot_blocks_without_contract_inventory(self):
+        out=bootstrap_app({"company_id":"aion","existing_contract_refs":[],"roles":[],"modules":[]})
+        self.assertEqual(out["status"],"BLOCKED")
+        self.assertEqual(out["reason"],"EXISTING_APP_CONTRACT_INVENTORY_REQUIRED")
+
+    def test_autboot_creates_preprod_candidates_only(self):
+        out=bootstrap_automations({"company_id":"fenix","existing_automation_refs":["make://existing"],"workflow_candidates":[{"trigger":"lead.created","action":"prepare_followup","external_side_effect":False}]})
+        self.assertEqual(out["status"],"GREEN")
+        self.assertFalse(out["prod_execution_allowed"])
+        self.assertEqual(out["workflow_candidates"][0]["promotion_status"],"PREPROD_CANDIDATE")
+
+    def test_training_bootstrap_cannot_train_on_prod_or_promote_directly(self):
+        out=bootstrap_training({"company_id":"fenix","knowledge_sources":["kb://1"],"evaluation_cases":[{"input":"x","expected":"y"}]})
+        self.assertEqual(out["status"],"GREEN")
+        self.assertFalse(out["train_on_prod_data_allowed"])
+        self.assertFalse(out["direct_prod_promotion_allowed"])
 
 if __name__=="__main__": unittest.main()
