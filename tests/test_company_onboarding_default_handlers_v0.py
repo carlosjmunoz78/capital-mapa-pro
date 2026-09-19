@@ -45,6 +45,7 @@ class CompanyOnboardingDefaultHandlersTests(unittest.TestCase):
         context={
           "company_profile":{"legal_name":"Fenix Test","evidence_ref":"doc://company"},
           "access_requirements":[],
+          "access_requirements_inventory_complete":True,
           "existing_accounts":[],
           "existing_connectors":[],
           "session_observations":[],
