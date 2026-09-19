@@ -10,12 +10,14 @@ try:
     from .engine_dispatch import EngineDispatcher
     from .onboarding_engine import OnboardingQueueEngine
     from .ui_engines import classify_command
+    from .persistent_store import ConsoleStore
 except ImportError:
     from pipeline import ConsolePipeline
     from http_surface import ConsoleHttpSurface
     from engine_dispatch import EngineDispatcher
     from onboarding_engine import OnboardingQueueEngine
     from ui_engines import classify_command
+    from persistent_store import ConsoleStore
 
 from runtime.onboarding_queue import OnboardingQueue
 from jobs.build_onboarding_worker_health import evaluate_worker_health
@@ -26,6 +28,7 @@ class ConsoleRuntime:
     queue:OnboardingQueue
     audits:list[dict]
     dispatcher:EngineDispatcher
+    store:ConsoleStore
 
 def build_console_runtime(
     *,
@@ -36,10 +39,13 @@ def build_console_runtime(
     engine_reader=None,
     history_reader=None,
     access_reader=None,
+    store_path:str|Path|None=None,
 )->ConsoleRuntime:
     if not callable(now_epoch_provider):
         raise ValueError("now_epoch_provider must be callable")
+    queue_path=Path(queue_path)
     queue=OnboardingQueue(queue_path)
+    store=ConsoleStore(store_path or queue_path.with_name("console.sqlite3"))
     audits:list[dict]=[]
     dispatcher=EngineDispatcher()
     onboarding=OnboardingQueueEngine(queue,now_epoch_provider)
@@ -64,7 +70,11 @@ def build_console_runtime(
           "intent":intent,
         }
 
-    pipeline=ConsolePipeline(gateway,audits.append,dispatcher.execute)
+    def audit_sink(row:dict)->None:
+        audits.append(dict(row))
+        store.record(dict(row),now_epoch=int(now_epoch_provider()))
+
+    pipeline=ConsolePipeline(gateway,audit_sink,dispatcher.execute)
 
     def onboarding_reader()->dict:
         return evaluate_worker_health(queue=queue,now_epoch=int(now_epoch_provider()))
@@ -74,9 +84,9 @@ def build_console_runtime(
         company_reader or (lambda: ()),
         context_reader=context_reader,
         engine_reader=engine_reader,
-        history_reader=history_reader,
-        audit_reader=lambda company_id: tuple(x for x in audits if x.get("company_id")==company_id),
+        history_reader=history_reader or store.history_by_company,
+        audit_reader=store.audit_by_company,
         access_reader=access_reader,
         onboarding_reader=onboarding_reader,
     )
-    return ConsoleRuntime(surface=surface,queue=queue,audits=audits,dispatcher=dispatcher)
+    return ConsoleRuntime(surface=surface,queue=queue,audits=audits,dispatcher=dispatcher,store=store)

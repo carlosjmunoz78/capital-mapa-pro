@@ -50,6 +50,9 @@ class ConsolePipeline:
                 raise ValueError("engine result engine scope mismatch")
 
         final_status=engine_result["status"] if engine_result is not None else routed["status"]
+        evidence_ref = ""
+        if engine_result is not None:
+            evidence_ref = str(engine_result.get("evidence_hash") or engine_result.get("evidence_ref") or "")
         audit = {
             "request_id": command["request_id"],
             "user_id": command["user_id"],
@@ -60,6 +63,9 @@ class ConsolePipeline:
             "gateway_status": routed["status"],
             "engine_id": routed.get("engine_id"),
             "engine_status": engine_result.get("status") if engine_result else None,
+            "action": str(routed.get("intent") or "COMMAND"),
+            "result": final_status,
+            "evidence_ref": evidence_ref,
         }
         self.audit_sink(audit)
         return {
