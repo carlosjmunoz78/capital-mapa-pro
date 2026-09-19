@@ -7,6 +7,7 @@ from typing import Callable
 from jobs.continuous_improvement_schedule import ImprovementSchedule, ScheduleState, due, finish, start
 from learning.continuous_improvement_runtime import ContinuousImprovementRuntime, RuntimeSnapshot, StageResult
 from learning.improvement_checkpoint_store import ImprovementCheckpointStore
+from observability.improvement_audit_store import ImprovementAuditRecord, ImprovementAuditStore
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,9 @@ class ImprovementRunner:
         now: datetime,
         execute_stage: Callable[[str, int], StageResult],
         checkpoint_store: ImprovementCheckpointStore | None = None,
+        audit_store: ImprovementAuditStore | None = None,
+        cycle_id: str | None = None,
+        engine_id: str = "SUP-IMPROVEMENT",
     ) -> JobOutcome:
         schedule = job.schedule
         if not due(schedule, job.state, now):
@@ -43,7 +47,18 @@ class ImprovementRunner:
             environment=schedule.environment,
             version=schedule.version,
         )
+        before = {r.stage: r for r in (saved.stage_results if saved else ())}
         snapshot = runtime.run_until_pause(execute_stage)
+        if audit_store:
+            cid = cycle_id or f"{schedule.company_id}:{schedule.environment}:{schedule.version}"
+            for result in snapshot.stage_results:
+                if before.get(result.stage) == result:
+                    continue
+                audit_store.append(ImprovementAuditRecord(
+                    company_id=schedule.company_id, engine_id=engine_id, environment=schedule.environment,
+                    version=schedule.version, cycle_id=cid, stage=result.stage, status=result.status,
+                    evidence_ref=result.evidence_ref or "evidence://missing", cost_eur=0.0,
+                ))
         if checkpoint_store:
             checkpoint_store.save(snapshot)
 
