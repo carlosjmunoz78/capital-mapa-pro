@@ -51,11 +51,19 @@ class ImprovementRunner:
         schedule = job.schedule
         context = evidence_context or ImprovementEvidenceContext()
         context.validate()
-        if not due(schedule, job.state, now):
+        saved = checkpoint_store.load(company_id=schedule.company_id, environment=schedule.environment, version=schedule.version) if checkpoint_store else None
+        resuming = saved is not None and saved.status == "WAITING"
+        if not resuming and not due(schedule, job.state, now):
             return JobOutcome(schedule.company_id, "NOT_DUE", job.state, None)
 
-        running = start(schedule, job.state, now)
-        saved = checkpoint_store.load(company_id=schedule.company_id, environment=schedule.environment, version=schedule.version) if checkpoint_store else None
+        if resuming:
+            running = job.state if job.state.running else ScheduleState(
+                last_started_at=job.state.last_started_at or now,
+                last_finished_at=job.state.last_finished_at,
+                running=True,
+            )
+        else:
+            running = start(schedule, job.state, now)
         runtime = ContinuousImprovementRuntime.from_snapshot(saved) if saved else ContinuousImprovementRuntime(
             schedule.company_id,
             schedule.autonomy_profile,
