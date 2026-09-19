@@ -1,0 +1,22 @@
+name: CEREBRO Provenance Updater Revalidation V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/verify_knowledge_revalidation_evidence.py"
+      - "cerebro-os/jobs/build_knowledge_update_candidates.py"
+      - "tests/test_provenance_updater_revalidation.py"
+      - ".github/workflows/cerebro-provenance-updater-revalidation-v0.yml"
+  push:
+    branches: [cerebro-prv-upd-revalidation-v0]
+permissions:
+  contents: read
+jobs:
+  prv-upd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_provenance_updater_revalidation.py tests/test_knowledge_revalidation_queue.py tests/test_knowledge_obsolescence.py
