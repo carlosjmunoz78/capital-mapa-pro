@@ -34,6 +34,7 @@ def _evidence_executor_factory(evidence_root: Path):
         evaluate_evidence: dict = {}
         tribunal_evidence: dict = {}
         old_vs_new_evidence: dict = {}
+        canary_evidence: dict = {}
         if company_file.exists():
             raw = json.loads(company_file.read_text(encoding="utf-8"))
             if not isinstance(raw, dict):
@@ -112,6 +113,26 @@ def _evidence_executor_factory(evidence_root: Path):
             if bool(raw_old_vs_new.get("external_mutation_allowed", True)):
                 raise ValueError("OLD_VS_NEW evidence cannot allow external mutation")
             old_vs_new_evidence = raw_old_vs_new
+        canary_file = evidence_root / f"{company_id}.canary.json"
+        if canary_file.exists():
+            raw_canary = json.loads(canary_file.read_text(encoding="utf-8"))
+            if not isinstance(raw_canary, dict):
+                raise ValueError("CANARY evidence file must be object")
+            if str(raw_canary.get("company_id", "")) != company_id:
+                raise ValueError("cross-company CANARY evidence denied")
+            if str(raw_canary.get("stage", "")) != "CANARY":
+                raise ValueError("CANARY evidence stage mismatch")
+            if str(raw_canary.get("canary_scope", "")) != "LOCAL_SIMULATION_ONLY":
+                raise ValueError("unsupported CANARY scope")
+            if bool(raw_canary.get("live_traffic_exposed", True)):
+                raise ValueError("local CANARY cannot expose live traffic")
+            if bool(raw_canary.get("live_effect_verified", True)):
+                raise ValueError("local CANARY cannot claim live effect")
+            if bool(raw_canary.get("production_ready", True)):
+                raise ValueError("local CANARY cannot claim production readiness")
+            if bool(raw_canary.get("external_mutation_allowed", True)):
+                raise ValueError("CANARY evidence cannot allow external mutation")
+            canary_evidence = raw_canary
 
         def execute(stage: str, attempt: int) -> StageResult:
             if stage == "LAB" and lab_evidence:
@@ -143,6 +164,12 @@ def _evidence_executor_factory(evidence_root: Path):
                     stage,
                     str(old_vs_new_evidence.get("status", "WAITING")),
                     str(old_vs_new_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/OLD_VS_NEW")),
+                )
+            if stage == "CANARY" and canary_evidence:
+                return StageResult(
+                    stage,
+                    str(canary_evidence.get("status", "WAITING")),
+                    str(canary_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/CANARY")),
                 )
             if stage in planned:
                 return planned[stage]
