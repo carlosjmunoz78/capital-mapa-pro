@@ -77,6 +77,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/collect_wordpress_content_observations.py
 
+      - name: Collect SEO local social public footprint
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/collect_public_footprint_observations.py
+
       - name: Aggregate technical and business observations
         shell: bash
         run: |
