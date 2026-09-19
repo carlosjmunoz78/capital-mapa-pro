@@ -18,6 +18,7 @@ _SOURCE_FILES = {
     "finops": "{company_id}.finops.json",
     "content": "{company_id}.content.json",
     "footprint": "{company_id}.footprint.json",
+    "availability": "{company_id}.availability.json",
 }
 
 
