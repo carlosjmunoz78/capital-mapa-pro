@@ -298,6 +298,30 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/execute_preapproved_self_heal.py
 
+      - name: Run DR-001 backup and isolated restore rehearsal
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/run_company_backup_restore_rehearsal.py
+
+      - name: Run RBLD-001 derived-state rebuild rehearsal
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/rebuild_company_derived_state.py
+
+      - name: Build BCP-001 continuity cases from runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/build_continuity_cases_from_runtime.py
+
+      - name: Assess BCP-001 continuity readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/assess_business_continuity.py
+
       - name: Persist runtime state
         if: always()
         uses: actions/upload-artifact@v4
