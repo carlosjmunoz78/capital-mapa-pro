@@ -29,13 +29,15 @@ class ImprovementRunner:
         job: CompanyImprovementJob,
         now: datetime,
         execute_stage: Callable[[str, int], StageResult],
+        checkpoint_store: ImprovementCheckpointStore | None = None,
     ) -> JobOutcome:
         schedule = job.schedule
         if not due(schedule, job.state, now):
             return JobOutcome(schedule.company_id, "NOT_DUE", job.state, None)
 
         running = start(schedule, job.state, now)
-        runtime = ContinuousImprovementRuntime(
+        saved = checkpoint_store.load(company_id=schedule.company_id, environment=schedule.environment, version=schedule.version) if checkpoint_store else None
+        runtime = ContinuousImprovementRuntime.from_snapshot(saved) if saved else ContinuousImprovementRuntime(
             schedule.company_id,
             schedule.autonomy_profile,
             environment=schedule.environment,
