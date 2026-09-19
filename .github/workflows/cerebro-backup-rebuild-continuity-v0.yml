@@ -1,0 +1,23 @@
+name: CEREBRO Backup Rebuild Continuity V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/run_company_backup_restore_rehearsal.py"
+      - "cerebro-os/jobs/rebuild_company_derived_state.py"
+      - "cerebro-os/jobs/assess_business_continuity.py"
+      - "tests/test_backup_rebuild_continuity.py"
+      - ".github/workflows/cerebro-backup-rebuild-continuity-v0.yml"
+  push:
+    branches: [cerebro-backup-rebuild-continuity-v0]
+permissions:
+  contents: read
+jobs:
+  resilience:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_backup_rebuild_continuity.py
