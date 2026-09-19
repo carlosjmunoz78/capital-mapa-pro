@@ -1,7 +1,12 @@
 [
   {
     "company_id": "fenix",
-    "official_web_url": "https://fenixcapital.es/",
+    "official_web_urls": [
+      "https://fenixcapital.es/",
+      "https://fenixcapital.es/inmobiliarias/",
+      "https://fenixcapital.es/asesor-hipotecario-cordoba/",
+      "https://fenixcapital.es/quienes-somos/"
+    ],
     "enabled": true
   },
   {
