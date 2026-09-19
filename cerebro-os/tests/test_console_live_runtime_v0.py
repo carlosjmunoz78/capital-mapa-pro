@@ -65,6 +65,39 @@ class ConsoleLiveRuntimeTests(unittest.TestCase):
         self.assertEqual(response.body["onboarding"]["queue_stats"]["queued"],1)
         self.assertTrue(response.body["onboarding"]["worker_autonomous"])
 
+    def test_console_audit_and_history_persist_across_runtime_restart(self):
+        queue_path=Path(self.tmp.name)/"persistent-queue.sqlite3"
+        first=build_console_runtime(
+            queue_path=queue_path,
+            now_epoch_provider=lambda:123,
+            company_reader=lambda:({"company_id":"fenix","name":"Fenix","status":"ACTIVE"},),
+        )
+        response=first.surface.handle(
+            method="POST",path="/commands",user_id="CARLOS",
+            payload={
+              "request_id":"req-persist","company_id":"fenix","context_type":"company",
+              "message":"crear empresa","environment":"LAB","version":"1.0.0",
+            },
+        )
+        self.assertEqual(response.status,200)
+        self.assertEqual(first.store.counts(),{"audit":1,"history":1})
+
+        second=build_console_runtime(
+            queue_path=queue_path,
+            now_epoch_provider=lambda:200,
+            company_reader=lambda:({"company_id":"fenix","name":"Fenix","status":"ACTIVE"},),
+        )
+        history=second.surface.handle(method="GET",path="/history/fenix",user_id="CARLOS")
+        audit=second.surface.handle(method="GET",path="/audit/fenix",user_id="CARLOS")
+        self.assertEqual(history.status,200)
+        self.assertEqual(audit.status,200)
+        self.assertEqual(history.body["items"][0]["request_id"],"req-persist")
+        self.assertEqual(history.body["items"][0]["engine_id"],"COMP-ONB-001")
+        self.assertEqual(audit.body["items"][0]["result"],"GREEN")
+        self.assertEqual(audit.body["items"][0]["action"],"CREATE_COMPANY")
+        self.assertEqual(audit.body["items"][0]["timestamp"],"123")
+
+
     def test_wsgi_requires_trusted_identity_and_can_queue_when_remote_user_exists(self):
         app=wsgi_app(self.runtime.surface)
         calls=[]
