@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from observability.improvement_audit_store import ImprovementAuditStore
+from observability.improvement_source_health import fleet_source_health
 
 
 def company_improvement_status(root: Path, *, company_id: str, environment: str, version: str) -> dict:
@@ -28,3 +29,15 @@ def export_console_status(root: Path, configs: tuple[dict, ...]) -> dict:
         version=str(c.get("version","1.0.0")),
     ) for c in configs)
     return {"service": "continuous-improvement", "companies": items, "count": len(items)}
+
+
+def export_console_source_status(evidence_root: Path, configs: tuple[dict, ...]) -> dict:
+    company_ids = tuple(str(c["company_id"]) for c in configs)
+    source = fleet_source_health(evidence_root, company_ids)
+    return {
+        "service": "continuous-improvement-sources",
+        "status": source["status"],
+        "companies": source["companies"],
+        "attention_company_ids": source["attention_company_ids"],
+        "count": len(company_ids),
+    }
