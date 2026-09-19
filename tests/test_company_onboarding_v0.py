@@ -16,6 +16,10 @@ from jobs.bootstrap_company_seo import bootstrap_seo
 from jobs.bootstrap_company_social import bootstrap_social
 from jobs.bootstrap_company_marketing import bootstrap_marketing
 from jobs.activate_company_engine_matrix import activate_matrix
+from jobs.bootstrap_company_crm import bootstrap_crm
+from jobs.bootstrap_company_app import bootstrap_app
+from jobs.bootstrap_company_automations import bootstrap_automations
+from jobs.bootstrap_company_training import bootstrap_training
 
 class FakeHeaders:
     def get(self,key,default=None): return "text/html"
@@ -215,5 +219,53 @@ class CompanyOnboardingTests(unittest.TestCase):
     def test_engact_denies_cross_company_evidence(self):
         with self.assertRaisesRegex(ValueError,"cross-company"):
             activate_matrix({"company_id":"aion","engine_evidence":[{"company_id":"fenix","engine_id":"KW-001","status":"GREEN"}]})
+
+    def test_crmboot_is_preprod_candidate_and_preserves_existing_crm(self):
+        bmd={"company_id":"fenix","engine_id":"BMD-001","status":"GREEN","facts":{"target_customers":["compradores"]}}
+        proc={"company_id":"fenix","engine_id":"PROC-001","status":"GREEN","processes":[{"process_id":"p1","name":"Lead a expediente"}]}
+        mkt={"company_id":"fenix","engine_id":"MKTBOOT-001","status":"GREEN","personas":[{"segment":"compradores"}]}
+        out=bootstrap_crm({"company_id":"fenix","inputs":[bmd,proc,mkt]})
+        self.assertEqual(out["engine_id"],"CRMBOOT-001")
+        self.assertEqual(out["environment"],"PREPROD")
+        self.assertEqual(out["status"],"GREEN")
+        self.assertTrue(out["existing_crm_preserved"])
+        self.assertFalse(out["schema_mutation_allowed"])
+        self.assertFalse(out["prod_write_allowed"])
+
+    def test_appboot_requires_crm_candidate_and_never_deploys_prod(self):
+        bmd={"company_id":"fenix","engine_id":"BMD-001","status":"GREEN","facts":{"target_customers":["compradores"]}}
+        proc={"company_id":"fenix","engine_id":"PROC-001","status":"GREEN","processes":[{"process_id":"p1","name":"Gestion expediente"}]}
+        crm={"company_id":"fenix","engine_id":"CRMBOOT-001","status":"GREEN","evidence_hash":"sha256:x"}
+        out=bootstrap_app({"company_id":"fenix","inputs":[bmd,proc,crm]})
+        self.assertEqual(out["engine_id"],"APPBOOT-001")
+        self.assertTrue(out["existing_app_preserved"])
+        self.assertTrue(out["feature_flag_required"])
+        self.assertFalse(out["prod_deploy_allowed"])
+
+    def test_autboot_has_no_live_side_effects(self):
+        proc={"company_id":"aion","engine_id":"PROC-001","status":"GREEN","processes":[{"process_id":"p1","name":"Qualify lead"}]}
+        crm={"company_id":"aion","engine_id":"CRMBOOT-001","status":"GREEN"}
+        app={"company_id":"aion","engine_id":"APPBOOT-001","status":"GREEN"}
+        out=bootstrap_automations({"company_id":"aion","inputs":[proc,crm,app]})
+        self.assertEqual(out["engine_id"],"AUTBOOT-001")
+        self.assertEqual(out["environment"],"PREPROD")
+        self.assertFalse(out["live_execution_allowed"])
+        self.assertTrue(all(not x["external_side_effect"] for x in out["automation_candidates"]))
+
+    def test_trnboot_is_lab_only_and_cannot_mutate_policy_permissions(self):
+        k={"company_id":"fenix","engine_id":"KBOOT-001","status":"GREEN","knowledge_candidates":[{"knowledge_id":"kb1"}]}
+        bmd={"company_id":"fenix","engine_id":"BMD-001","status":"GREEN"}
+        proc={"company_id":"fenix","engine_id":"PROC-001","status":"GREEN","processes":[{"process_id":"p1","name":"Lead"}]}
+        out=bootstrap_training({"company_id":"fenix","inputs":[k,bmd,proc]})
+        self.assertEqual(out["engine_id"],"TRNBOOT-001")
+        self.assertEqual(out["environment"],"LAB")
+        self.assertFalse(out["direct_prod_promotion_allowed"])
+        self.assertFalse(out["policy_mutation_allowed"])
+        self.assertFalse(out["permission_mutation_allowed"])
+
+    def test_platform_bootstraps_deny_cross_company_inputs(self):
+        bmd={"company_id":"fenix","engine_id":"BMD-001","status":"GREEN"}
+        with self.assertRaisesRegex(ValueError,"cross-company"):
+            bootstrap_crm({"company_id":"aion","inputs":[bmd]})
 
 if __name__=="__main__": unittest.main()
