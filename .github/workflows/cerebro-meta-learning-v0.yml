@@ -1,0 +1,22 @@
+name: CEREBRO Meta Learning V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/learning/meta_learning.py"
+      - "cerebro-os/jobs/analyze_meta_learning.py"
+      - "tests/test_meta_learning.py"
+      - ".github/workflows/cerebro-meta-learning-v0.yml"
+  push:
+    branches: [cerebro-meta-learning-v0]
+permissions:
+  contents: read
+jobs:
+  meta-learning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_meta_learning.py
