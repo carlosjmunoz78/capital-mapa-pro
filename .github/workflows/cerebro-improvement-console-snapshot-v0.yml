@@ -1,0 +1,21 @@
+name: CEREBRO Improvement Console Snapshot V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/export_improvement_console_snapshot.py"
+      - "tests/test_improvement_console_snapshot.py"
+      - ".github/workflows/cerebro-improvement-console-snapshot-v0.yml"
+  push:
+    branches: [cerebro-console-snapshot-v0]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_improvement_console_snapshot.py tests/test_improvement_source_health.py
