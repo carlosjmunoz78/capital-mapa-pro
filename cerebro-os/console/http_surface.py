@@ -117,6 +117,7 @@ class ConsoleHttpSurface:
                 "user_id": user_id,
                 "company_id": payload.get("company_id"),
                 "context_type": payload.get("context_type"),
+                "context_id": payload.get("context_id"),
                 "message": payload.get("message"),
                 "environment": payload.get("environment", "LAB"),
                 "version": payload.get("version", "1.0.0"),
