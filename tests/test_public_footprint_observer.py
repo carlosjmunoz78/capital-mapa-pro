@@ -86,9 +86,12 @@ class PublicFootprintTests(unittest.TestCase):
                 "company_id":"fenix","checked":True,"source":"FOOTPRINT","evidence_ref":"e://foot",
                 "status":"PROPOSAL_READY","confidence":0.9,"summary":"issue"
             }))
+            policy=root/"policy.json"
+            policy.write_text(json.dumps({"fenix":{"required":["technical"],"optional":["footprint"]}}))
             old=os.environ.copy()
             os.environ["CEREBRO_IMPROVEMENT_EVIDENCE_ROOT"]=str(root)
             os.environ["CEREBRO_IMPROVEMENT_COMPANIES"]=str(cfg)
+            os.environ["CEREBRO_IMPROVEMENT_SOURCE_POLICY"]=str(policy)
             try: aggregate()
             finally: os.environ.clear(); os.environ.update(old)
             out=json.loads((root/"fenix.observations.json").read_text())
