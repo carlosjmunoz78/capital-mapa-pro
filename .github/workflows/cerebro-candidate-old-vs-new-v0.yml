@@ -1,0 +1,22 @@
+name: CEREBRO Candidate OLD vs NEW V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/compare_improvement_candidate_old_vs_new.py"
+      - "cerebro-os/jobs/continuous_improvement_entrypoint.py"
+      - "tests/test_improvement_candidate_old_vs_new.py"
+      - ".github/workflows/cerebro-candidate-old-vs-new-v0.yml"
+  push:
+    branches: [cerebro-candidate-old-vs-new-v0]
+permissions:
+  contents: read
+jobs:
+  old-vs-new:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_improvement_candidate_old_vs_new.py tests/test_improvement_candidate_tribunal.py tests/test_improvement_candidate_evaluation.py tests/test_continuous_improvement_entrypoint.py
