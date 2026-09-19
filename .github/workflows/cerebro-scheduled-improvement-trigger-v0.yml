@@ -85,6 +85,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/collect_public_footprint_observations.py
 
+      - name: Collect public service availability
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/collect_public_service_availability.py
+
       - name: Aggregate technical and business observations
         shell: bash
         run: |
