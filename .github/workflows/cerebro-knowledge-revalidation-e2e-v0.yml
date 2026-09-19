@@ -1,0 +1,26 @@
+name: CEREBRO Knowledge Revalidation E2E V0
+on:
+  pull_request:
+    paths:
+      - "tests/test_knowledge_revalidation_e2e.py"
+      - ".github/workflows/cerebro-knowledge-revalidation-e2e-v0.yml"
+      - "cerebro-os/jobs/analyze_knowledge_obsolescence.py"
+      - "cerebro-os/jobs/build_knowledge_revalidation_queue.py"
+      - "cerebro-os/jobs/refresh_knowledge_revalidation_evidence.py"
+      - "cerebro-os/jobs/verify_knowledge_revalidation_evidence.py"
+      - "cerebro-os/jobs/build_knowledge_update_candidates.py"
+      - "cerebro-os/jobs/apply_knowledge_update_candidates_lab.py"
+  push:
+    branches: [cerebro-knowledge-revalidation-e2e-v0]
+permissions:
+  contents: read
+jobs:
+  knowledge-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_knowledge_revalidation_e2e.py
