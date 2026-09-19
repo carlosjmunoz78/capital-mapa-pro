@@ -33,6 +33,7 @@ def _evidence_executor_factory(evidence_root: Path):
         test_evidence: dict = {}
         evaluate_evidence: dict = {}
         tribunal_evidence: dict = {}
+        old_vs_new_evidence: dict = {}
         if company_file.exists():
             raw = json.loads(company_file.read_text(encoding="utf-8"))
             if not isinstance(raw, dict):
@@ -95,6 +96,22 @@ def _evidence_executor_factory(evidence_root: Path):
             if bool(raw_tribunal.get("external_mutation_allowed", True)):
                 raise ValueError("TRIBUNAL evidence cannot allow external mutation")
             tribunal_evidence = raw_tribunal
+        old_vs_new_file = evidence_root / f"{company_id}.old_vs_new.json"
+        if old_vs_new_file.exists():
+            raw_old_vs_new = json.loads(old_vs_new_file.read_text(encoding="utf-8"))
+            if not isinstance(raw_old_vs_new, dict):
+                raise ValueError("OLD_VS_NEW evidence file must be object")
+            if str(raw_old_vs_new.get("company_id", "")) != company_id:
+                raise ValueError("cross-company OLD_VS_NEW evidence denied")
+            if str(raw_old_vs_new.get("stage", "")) != "OLD_VS_NEW":
+                raise ValueError("OLD_VS_NEW evidence stage mismatch")
+            if bool(raw_old_vs_new.get("live_effect_verified", True)):
+                raise ValueError("structural OLD_VS_NEW cannot claim live effect")
+            if bool(raw_old_vs_new.get("production_ready", True)):
+                raise ValueError("structural OLD_VS_NEW cannot claim production readiness")
+            if bool(raw_old_vs_new.get("external_mutation_allowed", True)):
+                raise ValueError("OLD_VS_NEW evidence cannot allow external mutation")
+            old_vs_new_evidence = raw_old_vs_new
 
         def execute(stage: str, attempt: int) -> StageResult:
             if stage == "LAB" and lab_evidence:
@@ -120,6 +137,12 @@ def _evidence_executor_factory(evidence_root: Path):
                     stage,
                     str(tribunal_evidence.get("status", "WAITING")),
                     str(tribunal_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/TRIBUNAL")),
+                )
+            if stage == "OLD_VS_NEW" and old_vs_new_evidence:
+                return StageResult(
+                    stage,
+                    str(old_vs_new_evidence.get("status", "WAITING")),
+                    str(old_vs_new_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/OLD_VS_NEW")),
                 )
             if stage in planned:
                 return planned[stage]
