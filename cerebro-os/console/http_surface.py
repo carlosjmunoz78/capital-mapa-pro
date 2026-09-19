@@ -36,13 +36,28 @@ class ConsoleHttpSurface:
     CONSOLE -> GATEWAY -> POLICY -> ENGINE -> AUDIT.
     """
 
-    def __init__(self, pipeline: ConsolePipeline, company_reader: Callable[[], tuple[dict, ...]]):
+    def __init__(
+        self,
+        pipeline: ConsolePipeline,
+        company_reader: Callable[[], tuple[dict, ...]],
+        context_reader: Callable[[str], tuple[dict, ...]] | None = None,
+        engine_reader: Callable[[str], tuple[dict, ...]] | None = None,
+        history_reader: Callable[[str], tuple[dict, ...]] | None = None,
+        audit_reader: Callable[[str], tuple[dict, ...]] | None = None,
+    ):
         if not isinstance(pipeline, ConsolePipeline):
             raise ValueError("ConsoleHttpSurface requires ConsolePipeline")
         if not callable(company_reader):
             raise ValueError("company_reader must be callable")
+        readers = (context_reader, engine_reader, history_reader, audit_reader)
+        if any(reader is not None and not callable(reader) for reader in readers):
+            raise ValueError("optional console readers must be callable")
         self.pipeline = pipeline
         self.company_reader = company_reader
+        self.context_reader = context_reader or (lambda _company_id: ())
+        self.engine_reader = engine_reader or (lambda _company_id: ())
+        self.history_reader = history_reader or (lambda _company_id: ())
+        self.audit_reader = audit_reader or (lambda _company_id: ())
 
     def handle(self, *, method: str, path: str, user_id: str, payload: dict | None = None) -> HttpResponse:
         method = method.upper().strip()
@@ -57,6 +72,26 @@ class ConsoleHttpSurface:
             rows = tuple(self.company_reader())
             safe = tuple({k: row.get(k) for k in ("company_id", "name", "status") if k in row} for row in rows)
             return _json_response(200, {"ok": True, "items": safe})
+
+        scoped_routes = {
+            "/contexts/": (self.context_reader, ("context_type", "context_id", "label", "status")),
+            "/engines/": (self.engine_reader, ("engine_id", "name", "status", "environment", "version")),
+            "/history/": (self.history_reader, ("request_id", "engine_id", "status", "evidence_ref", "environment", "version")),
+            "/audit/": (self.audit_reader, ("request_id", "engine_id", "action", "result", "evidence_ref", "timestamp")),
+        }
+        if method == "GET":
+            for prefix, (reader, allowed_fields) in scoped_routes.items():
+                if path.startswith(prefix):
+                    company_id = path[len(prefix):].strip("/")
+                    if not company_id:
+                        return _json_response(400, {"ok": False, "error": "company_id_required"})
+                    rows = tuple(reader(company_id))
+                    safe = tuple(
+                        {key: row.get(key) for key in allowed_fields if key in row}
+                        for row in rows
+                        if isinstance(row, dict) and row.get("company_id", company_id) == company_id
+                    )
+                    return _json_response(200, {"ok": True, "company_id": company_id, "items": safe})
 
         if method == "POST" and path == "/commands":
             command = {
