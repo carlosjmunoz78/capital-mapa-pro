@@ -29,6 +29,7 @@ def _evidence_executor_factory(evidence_root: Path):
         observation_file = evidence_root / f"{company_id}.observations.json"
         data = {}
         planned: dict[str, StageResult] = {}
+        lab_evidence: dict = {}
         if company_file.exists():
             raw = json.loads(company_file.read_text(encoding="utf-8"))
             if not isinstance(raw, dict):
@@ -41,8 +42,26 @@ def _evidence_executor_factory(evidence_root: Path):
             if str(raw.get("company_id", "")) != company_id:
                 raise ValueError("cross-company observation denied")
             planned = plan_stage_results(ObservationEnvelope(**raw))
+        lab_file = evidence_root / f"{company_id}.lab.json"
+        if lab_file.exists():
+            raw_lab = json.loads(lab_file.read_text(encoding="utf-8"))
+            if not isinstance(raw_lab, dict):
+                raise ValueError("LAB evidence file must be object")
+            if str(raw_lab.get("company_id", "")) != company_id:
+                raise ValueError("cross-company LAB evidence denied")
+            if str(raw_lab.get("stage", "")) != "LAB":
+                raise ValueError("LAB evidence stage mismatch")
+            if bool(raw_lab.get("external_mutation_allowed", True)):
+                raise ValueError("LAB diagnostic cannot allow external mutation")
+            lab_evidence = raw_lab
 
         def execute(stage: str, attempt: int) -> StageResult:
+            if stage == "LAB" and lab_evidence:
+                return StageResult(
+                    stage,
+                    str(lab_evidence.get("status", "WAITING")),
+                    str(lab_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/LAB")),
+                )
             if stage in planned:
                 return planned[stage]
             item = data.get(stage)
