@@ -1,0 +1,20 @@
+name: CEREBRO Continuity Case Builder V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/build_continuity_cases_from_runtime.py"
+      - "tests/test_continuity_case_builder.py"
+      - ".github/workflows/cerebro-continuity-case-builder-v0.yml"
+  push:
+    branches: [cerebro-continuity-case-builder-v0]
+permissions:
+  contents: read
+jobs:
+  continuity-case:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_continuity_case_builder.py tests/test_backup_rebuild_continuity.py
