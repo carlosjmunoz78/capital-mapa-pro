@@ -103,6 +103,12 @@ class ProposalQueue:
         items.sort(key=lambda x: (_PRIORITY_ORDER[x.priority], x.company_id, x.proposal_id))
         return tuple(items)
 
+    def next_by_company(self) -> tuple[ProposalRecord, ...]:
+        selected: dict[str, ProposalRecord] = {}
+        for item in self.list_open():
+            selected.setdefault(item.company_id, item)
+        return tuple(selected[key] for key in sorted(selected))
+
     def set_status(self, fingerprint: str, status: str) -> None:
         if status not in VALID_STATUSES:
             raise ValueError("invalid proposal status")
