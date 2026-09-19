@@ -1,0 +1,22 @@
+name: CEREBRO RED Daily Synthetic Cases V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/generate_red_team_synthetic_cases.py"
+      - "cerebro-os/jobs/verify_red_team_daily_results.py"
+      - "tests/test_red_team_daily_cases.py"
+      - ".github/workflows/cerebro-red-daily-cases-v0.yml"
+  push:
+    branches: [cerebro-red-daily-cases-v0]
+permissions:
+  contents: read
+jobs:
+  red-daily:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_red_team_daily_cases.py tests/test_adversarial_evaluation.py
