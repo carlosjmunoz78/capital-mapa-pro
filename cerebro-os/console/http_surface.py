@@ -45,6 +45,7 @@ class ConsoleHttpSurface:
         history_reader: Callable[[str], tuple[dict, ...]] | None = None,
         audit_reader: Callable[[str], tuple[dict, ...]] | None = None,
         access_reader: Callable[[str], tuple[dict, ...]] | None = None,
+        onboarding_reader: Callable[[], dict] | None = None,
     ):
         if not isinstance(pipeline, ConsolePipeline):
             raise ValueError("ConsoleHttpSurface requires ConsolePipeline")
@@ -53,6 +54,8 @@ class ConsoleHttpSurface:
         readers = (context_reader, engine_reader, history_reader, audit_reader, access_reader)
         if any(reader is not None and not callable(reader) for reader in readers):
             raise ValueError("optional console readers must be callable")
+        if onboarding_reader is not None and not callable(onboarding_reader):
+            raise ValueError("onboarding_reader must be callable")
         self.pipeline = pipeline
         self.company_reader = company_reader
         self.context_reader = context_reader or (lambda _company_id: ())
@@ -60,6 +63,7 @@ class ConsoleHttpSurface:
         self.history_reader = history_reader or (lambda _company_id: ())
         self.audit_reader = audit_reader or (lambda _company_id: ())
         self.access_reader = access_reader or (lambda _company_id: ())
+        self.onboarding_reader = onboarding_reader or (lambda: {})
 
     def handle(self, *, method: str, path: str, user_id: str, payload: dict | None = None) -> HttpResponse:
         method = method.upper().strip()
@@ -69,6 +73,17 @@ class ConsoleHttpSurface:
 
         if method == "GET" and path == "/health":
             return _json_response(200, {"ok": True, "service": "cerebro-console-gateway", "direct_model": False})
+
+        if method == "GET" and path == "/onboarding/queue":
+            row = self.onboarding_reader()
+            if not isinstance(row, dict):
+                return _json_response(500, {"ok": False, "error": "invalid_onboarding_reader"})
+            allowed = (
+                "engine_id","status","human_reason","environment","version",
+                "worker_autonomous","stale_lease_reclaim_supported","queue_stats","cost_eur",
+            )
+            safe = {key: row.get(key) for key in allowed if key in row}
+            return _json_response(200, {"ok": True, "onboarding": safe})
 
         if method == "GET" and path == "/companies":
             rows = tuple(self.company_reader())
@@ -163,7 +178,7 @@ def wsgi_app(
                 start_response("400 Bad Request", list(response.headers.items()))
                 return [json.dumps(response.body).encode("utf-8")]
         response = surface.handle(method=method, path=path, user_id=user_id, payload=payload)
-        statuses = {200: "200 OK", 400: "400 Bad Request", 401: "401 Unauthorized", 404: "404 Not Found"}
+        statuses = {200: "200 OK", 400: "400 Bad Request", 401: "401 Unauthorized", 404: "404 Not Found", 500: "500 Internal Server Error"}
         start_response(statuses.get(response.status, f"{response.status} Error"), list(response.headers.items()))
         return [json.dumps(response.body, separators=(",", ":")).encode("utf-8")]
 
