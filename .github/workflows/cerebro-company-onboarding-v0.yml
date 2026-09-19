@@ -23,6 +23,7 @@ on:
       - "cerebro-os/jobs/create_company_supervisor_scope.py"
       - "cerebro-os/jobs/create_company_backup_rebuild_pack.py"
       - "cerebro-os/jobs/evaluate_company_preprod_readiness.py"
+      - "cerebro-os/jobs/evaluate_company_production_activation.py"
       - "tests/test_company_onboarding_v0.py"
       - ".github/workflows/cerebro-company-onboarding-v0.yml"
   push:
