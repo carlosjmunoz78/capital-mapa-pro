@@ -88,7 +88,7 @@ def process_batch(
     blocked=sum(1 for x in processed if x["status"] in {"BLOCKED","DEAD_LETTER"})
     retrying=sum(1 for x in processed if x["status"]=="RETRY_SCHEDULED")
     return {
-      "status":"HUMAN_REQUIRED" if human else "DEGRADED" if blocked else "GREEN",
+      "status":"HUMAN_REQUIRED" if human else "DEGRADED" if (blocked or retrying) else "GREEN",
       "processed_count":len(processed),
       "items":tuple(processed),
       "queue_stats":stats,
