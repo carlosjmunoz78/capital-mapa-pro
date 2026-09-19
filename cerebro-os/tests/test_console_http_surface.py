@@ -32,6 +32,7 @@ class ConsoleHttpSurfaceTests(unittest.TestCase):
             engine_reader=lambda company_id: ({"company_id": company_id, "engine_id": "ENG-001", "name": "Engine", "status": "GREEN", "environment": "LAB", "version": "1.0.0", "secret": "never"},),
             history_reader=lambda company_id: ({"company_id": company_id, "request_id": "REQ-H1", "engine_id": "ENG-001", "status": "GREEN", "evidence_ref": "e://1", "environment": "LAB", "version": "1.0.0", "secret": "never"},),
             audit_reader=lambda company_id: ({"company_id": company_id, "request_id": "REQ-A1", "engine_id": "ENG-001", "action": "STATUS", "result": "GREEN", "evidence_ref": "e://a", "timestamp": "2026-09-19T22:00:00Z", "secret": "never"},),
+            access_reader=lambda company_id: ({"company_id": company_id, "engine_id": "ACCESS-HLT-001", "status": "GREEN", "human_reason": None, "environment": "LAB", "version": "1.0.0", "accounts_total": 2, "authenticated_accounts": 2, "credentialed_accounts": 2, "connector_account_count": 1, "online_bridge_profiles": 1, "secret": "never"},),
         )
 
     def test_health_proves_no_direct_model_path(self):
@@ -71,6 +72,7 @@ class ConsoleHttpSurfaceTests(unittest.TestCase):
             "/engines/FENIX": ("engine_id", "secret"),
             "/history/FENIX": ("request_id", "secret"),
             "/audit/FENIX": ("action", "secret"),
+            "/access/FENIX": ("authenticated_accounts", "secret"),
         }
         for path, (expected, forbidden) in cases.items():
             r = self.surface.handle(method="GET", path=path, user_id="CARLOS")

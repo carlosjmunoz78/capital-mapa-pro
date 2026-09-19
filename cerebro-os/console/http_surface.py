@@ -44,12 +44,13 @@ class ConsoleHttpSurface:
         engine_reader: Callable[[str], tuple[dict, ...]] | None = None,
         history_reader: Callable[[str], tuple[dict, ...]] | None = None,
         audit_reader: Callable[[str], tuple[dict, ...]] | None = None,
+        access_reader: Callable[[str], tuple[dict, ...]] | None = None,
     ):
         if not isinstance(pipeline, ConsolePipeline):
             raise ValueError("ConsoleHttpSurface requires ConsolePipeline")
         if not callable(company_reader):
             raise ValueError("company_reader must be callable")
-        readers = (context_reader, engine_reader, history_reader, audit_reader)
+        readers = (context_reader, engine_reader, history_reader, audit_reader, access_reader)
         if any(reader is not None and not callable(reader) for reader in readers):
             raise ValueError("optional console readers must be callable")
         self.pipeline = pipeline
@@ -58,6 +59,7 @@ class ConsoleHttpSurface:
         self.engine_reader = engine_reader or (lambda _company_id: ())
         self.history_reader = history_reader or (lambda _company_id: ())
         self.audit_reader = audit_reader or (lambda _company_id: ())
+        self.access_reader = access_reader or (lambda _company_id: ())
 
     def handle(self, *, method: str, path: str, user_id: str, payload: dict | None = None) -> HttpResponse:
         method = method.upper().strip()
@@ -78,6 +80,7 @@ class ConsoleHttpSurface:
             "/engines/": (self.engine_reader, ("engine_id", "name", "status", "environment", "version")),
             "/history/": (self.history_reader, ("request_id", "engine_id", "status", "evidence_ref", "environment", "version")),
             "/audit/": (self.audit_reader, ("request_id", "engine_id", "action", "result", "evidence_ref", "timestamp")),
+            "/access/": (self.access_reader, ("engine_id", "status", "human_reason", "environment", "version", "accounts_total", "authenticated_accounts", "credentialed_accounts", "connector_account_count", "online_bridge_profiles")),
         }
         if method == "GET":
             for prefix, (reader, allowed_fields) in scoped_routes.items():
