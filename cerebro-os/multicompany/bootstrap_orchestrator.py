@@ -20,6 +20,7 @@ CANONICAL_PHASES = (
     "automation_bootstrap",
     "training_bootstrap",
     "supervisor",
+    "continuous_improvement",
     "backup_rebuild",
 )
 VALID_ENVIRONMENTS = {"LAB", "PREPROD", "PROD"}
