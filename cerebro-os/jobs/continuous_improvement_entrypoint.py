@@ -31,6 +31,7 @@ def _evidence_executor_factory(evidence_root: Path):
         planned: dict[str, StageResult] = {}
         lab_evidence: dict = {}
         test_evidence: dict = {}
+        evaluate_evidence: dict = {}
         if company_file.exists():
             raw = json.loads(company_file.read_text(encoding="utf-8"))
             if not isinstance(raw, dict):
@@ -67,6 +68,18 @@ def _evidence_executor_factory(evidence_root: Path):
             if bool(raw_test.get("external_mutation_allowed", True)):
                 raise ValueError("TEST evidence cannot allow external mutation")
             test_evidence = raw_test
+        evaluate_file = evidence_root / f"{company_id}.evaluate.json"
+        if evaluate_file.exists():
+            raw_evaluate = json.loads(evaluate_file.read_text(encoding="utf-8"))
+            if not isinstance(raw_evaluate, dict):
+                raise ValueError("EVALUATE evidence file must be object")
+            if str(raw_evaluate.get("company_id", "")) != company_id:
+                raise ValueError("cross-company EVALUATE evidence denied")
+            if str(raw_evaluate.get("stage", "")) != "EVALUATE":
+                raise ValueError("EVALUATE evidence stage mismatch")
+            if bool(raw_evaluate.get("external_mutation_allowed", True)):
+                raise ValueError("EVALUATE evidence cannot allow external mutation")
+            evaluate_evidence = raw_evaluate
 
         def execute(stage: str, attempt: int) -> StageResult:
             if stage == "LAB" and lab_evidence:
@@ -80,6 +93,12 @@ def _evidence_executor_factory(evidence_root: Path):
                     stage,
                     str(test_evidence.get("status", "WAITING")),
                     str(test_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/TEST")),
+                )
+            if stage == "EVALUATE" and evaluate_evidence:
+                return StageResult(
+                    stage,
+                    str(evaluate_evidence.get("status", "WAITING")),
+                    str(evaluate_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/EVALUATE")),
                 )
             if stage in planned:
                 return planned[stage]
