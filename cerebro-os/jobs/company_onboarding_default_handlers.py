@@ -74,6 +74,7 @@ def _access(payload:dict)->dict:
     return bootstrap_company_access({
       "company_id":payload["company_id"],"environment":"LAB","version":payload["version"],
       "requirements":_context_list(payload,"access_requirements"),
+      "requirements_inventory_complete":bool(_ctx(payload).get("access_requirements_inventory_complete",False)),
       "existing_accounts":_context_list(payload,"existing_accounts"),
       "existing_connectors":_context_list(payload,"existing_connectors"),
       "session_observations":_context_list(payload,"session_observations"),
