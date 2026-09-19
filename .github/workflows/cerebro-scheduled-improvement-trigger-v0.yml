@@ -190,6 +190,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/generate_factory_supervisor_self_improvement.py
 
+      - name: Bootstrap live runtime knowledge inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/bootstrap_runtime_knowledge_inventory.py
+
       - name: Analyze knowledge obsolescence safely
         shell: bash
         run: |
