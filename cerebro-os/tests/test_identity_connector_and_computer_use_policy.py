@@ -13,6 +13,9 @@ from account_lifecycle import AccountLifecycleRequest, plan_account_lifecycle
 from access_orchestrator import AccessExecutionRequest, plan_access_execution
 from session_discovery import SessionObservation, discover_session_metadata
 from connector_gap_planner import ConnectorGapRequest, plan_connector_gap
+from multiaccount_session_registry import SessionBinding, MultiAccountSessionRegistry
+from session_renewal import SessionRenewalRequest, plan_session_renewal
+from execution_guard import ExecutionGuardRequest, evaluate_execution_guard
 
 
 class IdentityConnectorAndComputerUsePolicyTests(unittest.TestCase):
@@ -291,6 +294,80 @@ class IdentityConnectorAndComputerUsePolicyTests(unittest.TestCase):
             connectors
         )
         self.assertEqual(risky["human_reason"],"POLICY_CONFLICT")
+
+    def test_multiaccount_session_registry_isolates_accounts_and_scopes(self):
+        registry=MultiAccountSessionRegistry()
+        registry.register(SessionBinding(
+            "sess-1","fenix","id-fenix","acct-1","linkedin","chrome-1","desktop-1","CHROME","LAB","1.0.0",True,"e://1"
+        ))
+        registry.register(SessionBinding(
+            "sess-2","fenix","id-fenix","acct-2","google","chrome-2","desktop-1","CHROME","LAB","1.0.0",True,"e://2"
+        ))
+        self.assertEqual(registry.resolve_authenticated("fenix","acct-1","LAB","1.0.0").session_id,"sess-1")
+        self.assertEqual(registry.resolve_authenticated("fenix","acct-2","LAB","1.0.0").session_id,"sess-2")
+        with self.assertRaisesRegex(PermissionError,"session scope mismatch"):
+            registry.assert_scope(
+                registry.resolve_authenticated("fenix","acct-1","LAB","1.0.0"),
+                company_id="aion",identity_id="id-fenix",account_id="acct-1",environment="LAB",version="1.0.0"
+            )
+
+    def test_session_renewal_keeps_existing_session_before_any_login(self):
+        out=plan_session_renewal(SessionRenewalRequest(
+            company_id="fenix",identity_id="id-fenix",account_id="acct-1",provider="linkedin",
+            environment="LAB",version="1.0.0",authenticated=True,
+            renewable_without_secret_exposure=True,higher_priority_connector_available=False,
+            policy_green=True,confidence=0.99
+        ))
+        self.assertEqual(out["decision"],"KEEP_EXISTING_AUTHENTICATED_SESSION")
+        self.assertFalse(out["browser_login_allowed"])
+        self.assertFalse(out["secret_value_exposure_allowed"])
+
+    def test_session_renewal_fails_closed_for_human_mfa_and_prod(self):
+        human=plan_session_renewal(SessionRenewalRequest(
+            company_id="fenix",identity_id="id-fenix",account_id="acct-1",provider="linkedin",
+            environment="PREPROD",version="1.0.0",authenticated=False,
+            renewable_without_secret_exposure=True,higher_priority_connector_available=False,
+            policy_green=True,confidence=0.99,requires_human_mfa=True
+        ))
+        self.assertEqual(human["status"],"HUMAN_REQUIRED")
+        self.assertEqual(human["human_reason"],"HIGH_RISK")
+        prod=plan_session_renewal(SessionRenewalRequest(
+            company_id="fenix",identity_id="id-fenix",account_id="acct-1",provider="linkedin",
+            environment="PROD",version="1.0.0",authenticated=False,
+            renewable_without_secret_exposure=True,higher_priority_connector_available=False,
+            policy_green=True,confidence=0.99
+        ))
+        self.assertEqual(prod["status"],"GREEN")
+        self.assertFalse(prod["renewal_allowed"])
+        self.assertFalse(prod["production_renewal_allowed"])
+
+    def test_execution_guard_requires_kill_switch_audit_policy_and_credential_ref(self):
+        blocked=evaluate_execution_guard(ExecutionGuardRequest(
+            company_id="fenix",engine_id="SOC-001",account_id="acct-1",environment="LAB",version="1.0.0",
+            action="PUBLISH_DRAFT",kill_switch_enabled=False,audit_sink_available=True,policy_green=True,
+            idempotency_key="idem-1",credential_reference_available=True
+        ))
+        self.assertEqual(blocked["status"],"BLOCKED")
+        self.assertIn("KILL_SWITCH_REQUIRED",blocked["blockers"])
+        green=evaluate_execution_guard(ExecutionGuardRequest(
+            company_id="fenix",engine_id="SOC-001",account_id="acct-1",environment="LAB",version="1.0.0",
+            action="PUBLISH_DRAFT",kill_switch_enabled=True,audit_sink_available=True,policy_green=True,
+            idempotency_key="idem-2",credential_reference_available=True
+        ))
+        self.assertEqual(green["status"],"GREEN")
+        self.assertTrue(green["execution_allowed"])
+        self.assertTrue(green["kill_switch_required"])
+        self.assertTrue(green["audit_log_required"])
+
+    def test_execution_guard_never_auto_authorizes_prod(self):
+        out=evaluate_execution_guard(ExecutionGuardRequest(
+            company_id="fenix",engine_id="SOC-001",account_id="acct-1",environment="PROD",version="1.0.0",
+            action="PUBLISH_DRAFT",kill_switch_enabled=True,audit_sink_available=True,policy_green=True,
+            idempotency_key="idem-prod",credential_reference_available=True
+        ))
+        self.assertEqual(out["status"],"BLOCKED")
+        self.assertFalse(out["production_execution_allowed"])
+        self.assertIn("PROD_EXECUTION_GATE_REQUIRED",out["blockers"])
 
 
 if __name__ == "__main__":
