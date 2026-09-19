@@ -202,6 +202,18 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/build_knowledge_revalidation_queue.py
 
+      - name: Verify knowledge revalidation provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/verify_knowledge_revalidation_evidence.py
+
+      - name: Build safe knowledge update candidates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/build_knowledge_update_candidates.py
+
       - name: Persist runtime state
         if: always()
         uses: actions/upload-artifact@v4
