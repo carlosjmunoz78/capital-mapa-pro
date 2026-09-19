@@ -1,0 +1,21 @@
+name: CEREBRO RAG Cache V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/permissioned_rag_cache.py"
+      - "tests/test_permissioned_rag_cache.py"
+      - ".github/workflows/cerebro-rag-cache-v0.yml"
+  push:
+    branches: [cerebro-rag-cache-v0]
+permissions:
+  contents: read
+jobs:
+  rag-cache:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_permissioned_rag_cache.py
