@@ -97,6 +97,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/aggregate_improvement_observations.py
 
+      - name: Generate zero-cost LAB proposals
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/generate_improvement_lab_proposals.py
+
       - name: Export CEREBRO Console source snapshot
         shell: bash
         run: |
