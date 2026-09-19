@@ -12,6 +12,10 @@ from jobs.audit_company_social import audit_social
 from jobs.audit_company_local_presence import audit_local_presence
 from jobs.map_company_competitors import map_competitors
 from jobs.bootstrap_company_knowledge import bootstrap_company_knowledge
+from jobs.bootstrap_company_seo import bootstrap_seo
+from jobs.bootstrap_company_social import bootstrap_social
+from jobs.bootstrap_company_marketing import bootstrap_marketing
+from jobs.activate_company_engine_matrix import activate_matrix
 
 class FakeHeaders:
     def get(self,key,default=None): return "text/html"
@@ -175,5 +179,41 @@ class CompanyOnboardingTests(unittest.TestCase):
         source=discover_keywords({"company_id":"fenix","seed_keywords":["hipoteca"],"source_texts":[],"geographies":[]})
         with self.assertRaisesRegex(ValueError,"cross-company"):
             bootstrap_company_knowledge({"company_id":"aion","inputs":[source]})
+
+    def test_seoboot_requires_waud_and_kw_and_never_publishes(self):
+        waud={"company_id":"fenix","engine_id":"WAUD-001","status":"GREEN","issue_count":1}
+        kw={"company_id":"fenix","engine_id":"KW-001","status":"GREEN","keywords":[{"keyword":"hipoteca cordoba","intent":"LOCAL"}]}
+        out=bootstrap_seo({"company_id":"fenix","inputs":[waud,kw]})
+        self.assertEqual(out["engine_id"],"SEOBOOT-001")
+        self.assertEqual(out["status"],"GREEN")
+        self.assertFalse(out["publication_allowed"])
+        self.assertFalse(out["external_mutation_allowed"])
+
+    def test_socboot_is_plan_only(self):
+        soc={"company_id":"fenix","engine_id":"SOCAUD-001","status":"GREEN","profiles":[{"platform":"instagram","handle_or_url":"@fenix"}]}
+        bmd={"company_id":"fenix","engine_id":"BMD-001","status":"GREEN","facts":{"products_services":["hipotecas"]}}
+        out=bootstrap_social({"company_id":"fenix","inputs":[soc,bmd]})
+        self.assertEqual(out["status"],"GREEN")
+        self.assertFalse(out["publication_allowed"])
+        self.assertFalse(out["paid_distribution_allowed"])
+
+    def test_mktboot_budget_defaults_to_zero(self):
+        bmd={"company_id":"aion","engine_id":"BMD-001","status":"GREEN","facts":{"target_customers":["pymes"]}}
+        kw={"company_id":"aion","engine_id":"KW-001","status":"GREEN","keywords":[{"keyword":"automatizacion pymes","intent":"DISCOVERY"}]}
+        out=bootstrap_marketing({"company_id":"aion","inputs":[bmd,kw]})
+        self.assertEqual(out["status"],"GREEN")
+        self.assertEqual(out["default_budget_eur"],0.0)
+        self.assertFalse(out["paid_campaigns_allowed"])
+
+    def test_engact_blocks_missing_required_evidence_and_never_activates_prod(self):
+        out=activate_matrix({"company_id":"fenix","engine_evidence":[]})
+        self.assertEqual(out["engine_id"],"ENGACT-001")
+        self.assertEqual(out["status"],"PARTIAL")
+        self.assertFalse(out["prod_activation_allowed"])
+        self.assertGreater(len(out["blocked_required_engines"]),0)
+
+    def test_engact_denies_cross_company_evidence(self):
+        with self.assertRaisesRegex(ValueError,"cross-company"):
+            activate_matrix({"company_id":"aion","engine_evidence":[{"company_id":"fenix","engine_id":"KW-001","status":"GREEN"}]})
 
 if __name__=="__main__": unittest.main()
