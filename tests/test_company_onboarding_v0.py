@@ -63,6 +63,36 @@ class CompanyOnboardingTests(unittest.TestCase):
         self.assertFalse(p["allowed_external_mutation"])
         self.assertEqual(p["required_cost_eur"],0)
 
+    def test_minimum_access_phase_binds_accessboot_with_iam_policy_gates(self):
+        s=initial_state("aion")
+        s["current_phase"]="MINIMUM_ACCESSES"
+        p=default_phase_plan(s)
+        self.assertEqual(p["target_engine_id"],"ACCESSBOOT-001")
+        self.assertEqual(p["execution_mode"],"LOCAL_DETERMINISTIC")
+        self.assertIn("IAM-001",p["required_gates"])
+        self.assertIn("POL-001",p["required_gates"])
+        self.assertFalse(p["allowed_external_mutation"])
+
+    def test_every_onboarding_phase_has_concrete_engine_binding(self):
+        s=initial_state("fenix")
+        expected={
+            "REGISTER_COMPANY":"COMP-REG-001","MINIMUM_ACCESSES":"ACCESSBOOT-001",
+            "SCAN_DIGITAL_FOOTPRINT":"SCAN-001","DISCOVER_BUSINESS_MODEL":"BMD-001",
+            "DISCOVER_PROCESSES":"PROC-001","AUDIT_WEBSITE":"WAUD-001",
+            "DISCOVER_KEYWORDS":"KW-001","AUDIT_SOCIAL_MEDIA":"SOCAUD-001",
+            "AUDIT_LOCAL_PRESENCE":"LOCALP-001","MAP_COMPETITORS":"COMPET-001",
+            "BOOTSTRAP_COMPANY_KNOWLEDGE":"KBOOT-001","BUILD_SEO_PLAN":"SEOBOOT-001",
+            "BUILD_SOCIAL_PLAN":"SOCBOOT-001","BUILD_MARKETING_PLAN":"MKTBOOT-001",
+            "DETERMINE_REQUIRED_ENGINES":"ENGACT-001","BOOTSTRAP_CRM":"CRMBOOT-001",
+            "BOOTSTRAP_APP":"APPBOOT-001","BOOTSTRAP_AUTOMATIONS":"AUTBOOT-001",
+            "BOOTSTRAP_TRAINING":"TRNBOOT-001","CREATE_SUPERVISOR_SCOPE":"COMP-HLT-001",
+            "CREATE_BACKUP_REBUILD_PACK":"COMP-BKP-001","PREPROD_TESTS":"COMP-DEP-001",
+            "PRODUCTION_ACTIVATION":"COMP-ONB-001",
+        }
+        for phase,target in expected.items():
+            s["current_phase"]=phase
+            self.assertEqual(default_phase_plan(s)["target_engine_id"],target)
+
     def test_scan_public_domain_is_read_only(self):
         with patch("urllib.request.urlopen",return_value=FakeResponse()):
             out=scan_company({"company_id":"fenix","domains":["example.com"],"version":"1"})
