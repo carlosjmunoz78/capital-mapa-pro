@@ -20,6 +20,9 @@ from jobs.bootstrap_company_crm import bootstrap_crm
 from jobs.bootstrap_company_app import bootstrap_app
 from jobs.bootstrap_company_automations import bootstrap_automations
 from jobs.bootstrap_company_training import bootstrap_training
+from jobs.create_company_supervisor_scope import create_supervisor_scope
+from jobs.create_company_backup_rebuild_pack import create_backup_rebuild_pack
+from jobs.evaluate_company_preprod_readiness import evaluate_preprod_readiness
 
 class FakeHeaders:
     def get(self,key,default=None): return "text/html"
@@ -256,5 +259,45 @@ class CompanyOnboardingTests(unittest.TestCase):
         self.assertEqual(out["status"],"GREEN")
         self.assertFalse(out["train_on_prod_data_allowed"])
         self.assertFalse(out["direct_prod_promotion_allowed"])
+
+    def test_company_supervisor_scope_requires_scoped_green_evidence(self):
+        required=("COMP-REG-001","COMP-ONB-001")
+        evidence=[
+            {"company_id":"fenix","engine_id":"COMP-REG-001","status":"GREEN","environment":"PREPROD","version":"1.0.0","evidence_hash":"sha256:a"},
+            {"company_id":"fenix","engine_id":"COMP-ONB-001","status":"GREEN","environment":"PREPROD","version":"1.0.0","evidence_hash":"sha256:b"},
+        ]
+        out=create_supervisor_scope({"company_id":"fenix","environment":"PREPROD","version":"1.0.0","required_engines":required,"engine_evidence":evidence})
+        self.assertEqual(out["engine_id"],"COMP-HLT-001")
+        self.assertEqual(out["status"],"GREEN")
+        self.assertFalse(out["prod_actions_allowed"])
+        self.assertFalse(out["self_heal_prod_allowed"])
+
+    def test_company_supervisor_scope_denies_cross_company_evidence(self):
+        with self.assertRaisesRegex(ValueError,"cross-company"):
+            create_supervisor_scope({"company_id":"aion","engine_evidence":[{"company_id":"fenix","engine_id":"COMP-REG-001","status":"GREEN"}]})
+
+    def test_company_backup_rebuild_pack_requires_restore_rehearsal(self):
+        backup={"company_id":"fenix","status":"GREEN","rehearsal":{"status":"GREEN"},"live_restore_performed":False}
+        rebuild={"company_id":"fenix","status":"GREEN","environment":"PREPROD","rebuild_performed":True}
+        out=create_backup_rebuild_pack({"company_id":"fenix","backup_evidence":backup,"rebuild_evidence":rebuild})
+        self.assertEqual(out["engine_id"],"COMP-BKP-001")
+        self.assertEqual(out["status"],"GREEN")
+        self.assertFalse(out["live_restore_allowed"])
+        self.assertFalse(out["prod_rebuild_allowed"])
+
+    def test_preprod_readiness_is_fail_closed_and_never_authorizes_prod(self):
+        evidence=[{"company_id":"fenix","engine_id":eid,"status":"GREEN"} for eid in ("COMP-HLT-001","COMP-BKP-001","QA-001","QAB-001","REG-001","TENANT-001","EVA-001","JDG-001")]
+        out=evaluate_preprod_readiness({"company_id":"fenix","engine_evidence":evidence})
+        self.assertTrue(out["preprod_ready"])
+        self.assertEqual(out["status"],"GREEN")
+        self.assertFalse(out["production_activation_allowed"])
+        self.assertFalse(out["canary_live_traffic_allowed"])
+        self.assertEqual(out["human_required_if_prod_requested"],"HIGH_RISK")
+
+    def test_preprod_readiness_blocks_missing_gates(self):
+        out=evaluate_preprod_readiness({"company_id":"aion","engine_evidence":[]})
+        self.assertEqual(out["status"],"BLOCKED")
+        self.assertFalse(out["preprod_ready"])
+        self.assertGreater(len(out["missing_evidence"]),0)
 
 if __name__=="__main__": unittest.main()
