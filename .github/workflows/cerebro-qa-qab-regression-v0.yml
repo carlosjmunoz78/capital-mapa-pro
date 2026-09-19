@@ -1,0 +1,23 @@
+name: CEREBRO QA QAB Regression V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/evaluate_qa_software_contract.py"
+      - "cerebro-os/jobs/evaluate_business_process_qa.py"
+      - "cerebro-os/jobs/run_regression_golden_suite.py"
+      - "tests/test_quality_regression.py"
+      - ".github/workflows/cerebro-qa-qab-regression-v0.yml"
+  push:
+    branches: [cerebro-qa-qab-regression-v0]
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_quality_regression.py
