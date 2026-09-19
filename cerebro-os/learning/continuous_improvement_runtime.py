@@ -52,6 +52,23 @@ class ContinuousImprovementRuntime:
         self._results: dict[str, StageResult] = {}
         self._attempts: dict[str, int] = {}
 
+    @classmethod
+    def from_snapshot(cls, snapshot: RuntimeSnapshot, *, max_red_retries: int = 3) -> "ContinuousImprovementRuntime":
+        runtime = cls(snapshot.company_id, snapshot.autonomy_profile, environment=snapshot.environment, version=snapshot.version, max_red_retries=max_red_retries)
+        valid_stages = runtime.cycle.stages()
+        seen: set[str] = set()
+        for result in snapshot.stage_results:
+            result.validate()
+            if result.stage not in valid_stages or result.stage in seen:
+                raise ValueError("invalid checkpoint stage sequence")
+            expected = valid_stages[len(seen)]
+            if result.stage != expected:
+                raise ValueError("checkpoint stages must be contiguous and ordered")
+            runtime._results[result.stage] = result
+            runtime._attempts[result.stage] = 1
+            seen.add(result.stage)
+        return runtime
+
     def next_stage(self) -> str | None:
         for stage in self.cycle.stages():
             result = self._results.get(stage)
