@@ -6,6 +6,8 @@ from typing import Callable
 
 from jobs.continuous_improvement_runner import CompanyImprovementJob, ImprovementEvidenceContext, ImprovementRunner, JobOutcome
 from learning.continuous_improvement_runtime import StageResult
+from learning.improvement_checkpoint_store import ImprovementCheckpointStore
+from observability.improvement_audit_store import ImprovementAuditStore
 
 
 @dataclass(frozen=True)
@@ -13,6 +15,10 @@ class FleetJob:
     job: CompanyImprovementJob
     execute_stage: Callable[[str, int], StageResult]
     evidence_context: ImprovementEvidenceContext = ImprovementEvidenceContext()
+    checkpoint_store: ImprovementCheckpointStore | None = None
+    audit_store: ImprovementAuditStore | None = None
+    cycle_id: str | None = None
+    engine_id: str = "SUP-IMPROVEMENT"
 
 
 @dataclass(frozen=True)
@@ -47,6 +53,10 @@ class ImprovementFleetRunner:
                     item.job,
                     now,
                     item.execute_stage,
+                    checkpoint_store=item.checkpoint_store,
+                    audit_store=item.audit_store,
+                    cycle_id=item.cycle_id,
+                    engine_id=item.engine_id,
                     evidence_context=item.evidence_context,
                 )
             except Exception:
