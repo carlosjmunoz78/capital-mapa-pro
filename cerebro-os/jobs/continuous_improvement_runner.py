@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Callable
 
 from jobs.continuous_improvement_schedule import ImprovementSchedule, ScheduleState, due, finish, start
-from learning.continuous_improvement_runtime import ContinuousImprovementRuntime, RuntimeSnapshot, StageResult
+from learning.continuous_improvement_runtime import ContinuousImprovementRuntime, RuntimeSnapshot, StageResult\nfrom learning.improvement_checkpoint_store import ImprovementCheckpointStore
 
 
 @dataclass(frozen=True)
@@ -40,7 +40,7 @@ class ImprovementRunner:
             environment=schedule.environment,
             version=schedule.version,
         )
-        snapshot = runtime.run_until_pause(execute_stage)
+        snapshot = runtime.run_until_pause(execute_stage)\n        if checkpoint_store:\n            checkpoint_store.save(snapshot)
 
         # WAITING means the job remains logically active; a shared worker can resume
         # the same stage later rather than pretending completion.
