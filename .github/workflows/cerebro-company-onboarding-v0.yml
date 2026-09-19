@@ -16,6 +16,10 @@ on:
       - "cerebro-os/jobs/bootstrap_company_social.py"
       - "cerebro-os/jobs/bootstrap_company_marketing.py"
       - "cerebro-os/jobs/activate_company_engine_matrix.py"
+      - "cerebro-os/jobs/bootstrap_company_crm.py"
+      - "cerebro-os/jobs/bootstrap_company_app.py"
+      - "cerebro-os/jobs/bootstrap_company_automations.py"
+      - "cerebro-os/jobs/bootstrap_company_training.py"
       - "tests/test_company_onboarding_v0.py"
       - ".github/workflows/cerebro-company-onboarding-v0.yml"
   push:
@@ -24,6 +28,7 @@ on:
       - cerebro-discovery-bmd-proc-waud-kw-v0
       - cerebro-discovery-social-local-compet-kboot-v0
       - cerebro-planning-seo-social-marketing-engact-v0
+      - cerebro-company-ops-bootstraps-v0
 permissions:
   contents: read
 jobs:
