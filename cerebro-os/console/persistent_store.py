@@ -80,27 +80,33 @@ class ConsoleStore:
         action=str(audit.get("action") or "COMMAND")
         evidence_ref=str(audit.get("evidence_ref") or "")
         metadata=json.dumps(audit,sort_keys=True,separators=(",",":"))
+        request_id=str(audit["request_id"])
+        company_id=str(audit["company_id"])
+        user_id=str(audit["user_id"])
+        version=str(audit["version"])
         with self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
             try:
+                existing=conn.execute(
+                  "SELECT company_id,user_id,engine_id,environment,version FROM console_audit WHERE request_id=?",
+                  (request_id,),
+                ).fetchone()
+                if existing is not None:
+                    existing_scope=(str(existing["company_id"]),str(existing["user_id"]),str(existing["engine_id"]),str(existing["environment"]),str(existing["version"]))
+                    new_scope=(company_id,user_id,engine_id,environment,version)
+                    if existing_scope!=new_scope:
+                        raise PermissionError("console request_id scope conflict")
+                    conn.execute("COMMIT")
+                    return
                 conn.execute(
                   """INSERT INTO console_audit(request_id,company_id,user_id,engine_id,action,result,evidence_ref,environment,version,timestamp_epoch,metadata_json)
-                     VALUES(?,?,?,?,?,?,?,?,?,?,?)
-                     ON CONFLICT(request_id) DO UPDATE SET
-                       company_id=excluded.company_id,user_id=excluded.user_id,engine_id=excluded.engine_id,
-                       action=excluded.action,result=excluded.result,evidence_ref=excluded.evidence_ref,
-                       environment=excluded.environment,version=excluded.version,
-                       timestamp_epoch=excluded.timestamp_epoch,metadata_json=excluded.metadata_json""",
-                  (str(audit["request_id"]),str(audit["company_id"]),str(audit["user_id"]),engine_id,action,result,evidence_ref,environment,str(audit["version"]),now_epoch,metadata),
+                     VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
+                  (request_id,company_id,user_id,engine_id,action,result,evidence_ref,environment,version,now_epoch,metadata),
                 )
                 conn.execute(
                   """INSERT INTO console_history(request_id,company_id,engine_id,status,evidence_ref,environment,version,timestamp_epoch)
-                     VALUES(?,?,?,?,?,?,?,?)
-                     ON CONFLICT(request_id) DO UPDATE SET
-                       company_id=excluded.company_id,engine_id=excluded.engine_id,status=excluded.status,
-                       evidence_ref=excluded.evidence_ref,environment=excluded.environment,
-                       version=excluded.version,timestamp_epoch=excluded.timestamp_epoch""",
-                  (str(audit["request_id"]),str(audit["company_id"]),engine_id,result,evidence_ref,environment,str(audit["version"]),now_epoch),
+                     VALUES(?,?,?,?,?,?,?,?)""",
+                  (request_id,company_id,engine_id,result,evidence_ref,environment,version,now_epoch),
                 )
                 conn.execute("COMMIT")
             except Exception:
