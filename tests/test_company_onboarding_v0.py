@@ -8,6 +8,10 @@ from jobs.discover_business_model import discover_business_model
 from jobs.discover_company_processes import discover_processes
 from jobs.audit_company_website import audit_website
 from jobs.discover_company_keywords import discover_keywords
+from jobs.audit_company_social import audit_social
+from jobs.audit_company_local_presence import audit_local_presence
+from jobs.map_company_competitors import map_competitors
+from jobs.bootstrap_company_knowledge import bootstrap_company_knowledge
 
 class FakeHeaders:
     def get(self,key,default=None): return "text/html"
@@ -136,5 +140,40 @@ class CompanyOnboardingTests(unittest.TestCase):
         out=discover_keywords({"company_id":"aion","seed_keywords":["automation"],"source_texts":[],"geographies":[]})
         self.assertIn("no_search_volume_without_external_source",out["limitations"])
         self.assertIn("no_serp_rank_without_external_source",out["limitations"])
+
+    def test_social_audit_is_read_only_and_exposes_unknowns(self):
+        out=audit_social({"company_id":"fenix","profiles":[{"platform":"instagram","handle_or_url":"@fenix","evidence_refs":["e://ig"]}]})
+        self.assertEqual(out["engine_id"],"SOCAUD-001")
+        self.assertTrue(out["read_only"])
+        self.assertFalse(out["posting_allowed"])
+        self.assertEqual(out["status"],"PARTIAL")
+
+    def test_local_presence_audit_detects_nap_inconsistency(self):
+        out=audit_local_presence({"company_id":"fenix","listings":[
+            {"provider":"google","name":"Fenix","address":"A","phone":"1","locality":"Cordoba","evidence_refs":["e://1"]},
+            {"provider":"bing","name":"Fenix","address":"B","phone":"1","locality":"Cordoba","evidence_refs":["e://2"]},
+        ]})
+        self.assertIn("NAP_INCONSISTENT",out["global_issues"])
+        self.assertFalse(out["external_mutation_allowed"])
+
+    def test_competitor_map_never_claims_market_share_or_rank(self):
+        out=map_competitors({"company_id":"aion","competitors":[{"name":"Comp A","domain":"a.example","signals":["same service"],"evidence_refs":["e://a"]}]})
+        self.assertEqual(out["engine_id"],"COMPET-001")
+        self.assertFalse(out["ranking_claimed"])
+        self.assertFalse(out["market_share_claimed"])
+        self.assertEqual(out["status"],"GREEN")
+
+    def test_kboot_requires_provenance_and_is_candidate_only(self):
+        source=discover_keywords({"company_id":"fenix","seed_keywords":["hipoteca"],"source_texts":["hipoteca cordoba"],"geographies":["cordoba"]})
+        out=bootstrap_company_knowledge({"company_id":"fenix","inputs":[source]})
+        self.assertEqual(out["engine_id"],"KBOOT-001")
+        self.assertEqual(out["status"],"GREEN")
+        self.assertFalse(out["direct_knowledge_promotion_allowed"])
+        self.assertIn("PRV-001",out["required_downstream_gates"])
+
+    def test_kboot_cross_company_is_denied(self):
+        source=discover_keywords({"company_id":"fenix","seed_keywords":["hipoteca"],"source_texts":[],"geographies":[]})
+        with self.assertRaisesRegex(ValueError,"cross-company"):
+            bootstrap_company_knowledge({"company_id":"aion","inputs":[source]})
 
 if __name__=="__main__": unittest.main()
