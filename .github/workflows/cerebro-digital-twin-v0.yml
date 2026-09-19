@@ -1,0 +1,21 @@
+name: CEREBRO Digital Twin V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/build_digital_twin_snapshot.py"
+      - "tests/test_digital_twin_snapshot.py"
+      - ".github/workflows/cerebro-digital-twin-v0.yml"
+  push:
+    branches: [cerebro-digital-twin-v0]
+permissions:
+  contents: read
+jobs:
+  twin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_digital_twin_snapshot.py
