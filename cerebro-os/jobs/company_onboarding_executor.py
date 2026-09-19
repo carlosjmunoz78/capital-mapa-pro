@@ -120,6 +120,7 @@ def execute_onboarding_superloop(
             raise ValueError("handler reported non-zero cost")
 
         engine_results.append(result)
+        context.setdefault("engine_results", {})[engine_id]=dict(result)
         executed.append({
           "phase":plan["phase"],"engine_id":engine_id,"execution_mode":mode,
           "status":str(result.get("status","UNKNOWN")).upper(),
