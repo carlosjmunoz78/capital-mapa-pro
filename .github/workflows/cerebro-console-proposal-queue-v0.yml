@@ -1,0 +1,22 @@
+name: CEREBRO Console Proposal Queue V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/learning/improvement_proposal_queue.py"
+      - "cerebro-os/jobs/export_improvement_console_snapshot.py"
+      - "tests/test_console_proposal_queue.py"
+      - ".github/workflows/cerebro-console-proposal-queue-v0.yml"
+  push:
+    branches: [cerebro-console-proposal-queue-v0]
+permissions:
+  contents: read
+jobs:
+  console-queue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_console_proposal_queue.py tests/test_improvement_console_snapshot.py tests/test_improvement_proposal_queue.py
