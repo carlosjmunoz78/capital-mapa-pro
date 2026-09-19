@@ -80,7 +80,8 @@ class ConsoleHttpSurface:
                 return _json_response(500, {"ok": False, "error": "invalid_onboarding_reader"})
             allowed = (
                 "engine_id","status","human_reason","environment","version",
-                "worker_autonomous","stale_lease_reclaim_supported","queue_stats","cost_eur",
+                "worker_autonomous","stale_lease_reclaim_supported","retry_backoff_supported",
+                "dead_letter_supported","priority_queue_supported","queue_stats","cost_eur",
             )
             safe = {key: row.get(key) for key in allowed if key in row}
             return _json_response(200, {"ok": True, "onboarding": safe})
