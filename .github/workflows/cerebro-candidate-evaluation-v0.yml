@@ -1,0 +1,22 @@
+name: CEREBRO Candidate Evaluation V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/evaluate_improvement_candidates.py"
+      - "cerebro-os/jobs/continuous_improvement_entrypoint.py"
+      - "tests/test_improvement_candidate_evaluation.py"
+      - ".github/workflows/cerebro-candidate-evaluation-v0.yml"
+  push:
+    branches: [cerebro-candidate-evaluation-v0]
+permissions:
+  contents: read
+jobs:
+  evaluation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_improvement_candidate_evaluation.py tests/test_improvement_candidate_tests.py tests/test_continuous_improvement_entrypoint.py
