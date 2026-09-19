@@ -8,12 +8,17 @@ on:
       - "cerebro-os/jobs/discover_company_processes.py"
       - "cerebro-os/jobs/audit_company_website.py"
       - "cerebro-os/jobs/discover_company_keywords.py"
+      - "cerebro-os/jobs/audit_company_social.py"
+      - "cerebro-os/jobs/audit_company_local_presence.py"
+      - "cerebro-os/jobs/map_company_competitors.py"
+      - "cerebro-os/jobs/bootstrap_company_knowledge.py"
       - "tests/test_company_onboarding_v0.py"
       - ".github/workflows/cerebro-company-onboarding-v0.yml"
   push:
     branches:
       - cerebro-company-onboarding-v0
       - cerebro-discovery-bmd-proc-waud-kw-v0
+      - cerebro-discovery-social-local-compet-kboot-v0
 permissions:
   contents: read
 jobs:
