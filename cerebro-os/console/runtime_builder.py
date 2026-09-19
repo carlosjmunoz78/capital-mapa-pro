@@ -79,6 +79,33 @@ def build_console_runtime(
     def onboarding_reader()->dict:
         return evaluate_worker_health(queue=queue,now_epoch=int(now_epoch_provider()))
 
+    def onboarding_company_reader(company_id:str)->tuple[dict,...]:
+        rows=[]
+        for item in queue.by_company(company_id):
+            result=item.last_result or {}
+            state=result.get("state") if isinstance(result,dict) else {}
+            if not isinstance(state,dict):
+                state={}
+            prefill=result.get("remote_prefill") if isinstance(result,dict) else {}
+            if not isinstance(prefill,dict):
+                prefill={}
+            rows.append({
+              "company_id":item.company_id,
+              "request_id":item.request_id,
+              "status":item.status,
+              "attempts":item.attempts,
+              "priority":item.priority,
+              "next_attempt_epoch":item.next_attempt_epoch,
+              "dead_letter_reason":item.dead_letter_reason,
+              "current_phase":state.get("current_phase"),
+              "human_reason":result.get("human_reason") if isinstance(result,dict) else None,
+              "stop_reason":result.get("stop_reason") or result.get("executor_stop_reason") if isinstance(result,dict) else None,
+              "remote_prefill_green":prefill.get("green_engine_count"),
+              "environment":str(item.payload.get("environment","LAB")),
+              "version":item.version,
+            })
+        return tuple(rows)
+
     surface=ConsoleHttpSurface(
         pipeline,
         company_reader or (lambda: ()),
@@ -88,5 +115,6 @@ def build_console_runtime(
         audit_reader=store.audit_by_company,
         access_reader=access_reader,
         onboarding_reader=onboarding_reader,
+        onboarding_company_reader=onboarding_company_reader,
     )
     return ConsoleRuntime(surface=surface,queue=queue,audits=audits,dispatcher=dispatcher,store=store)

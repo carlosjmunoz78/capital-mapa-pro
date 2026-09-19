@@ -98,6 +98,44 @@ class ConsoleLiveRuntimeTests(unittest.TestCase):
         self.assertEqual(audit.body["items"][0]["timestamp"],"123")
 
 
+    def test_company_onboarding_status_endpoint_exposes_safe_queue_state(self):
+        self.runtime.surface.handle(
+            method="POST",path="/commands",user_id="CARLOS",
+            payload={
+              "request_id":"req-status","company_id":"fenix","context_type":"company",
+              "message":"crear empresa","environment":"LAB","version":"1.0.0",
+            },
+        )
+        queued=self.runtime.surface.handle(
+            method="GET",path="/onboarding/company/fenix",user_id="CARLOS"
+        )
+        self.assertEqual(queued.status,200)
+        self.assertEqual(queued.body["items"][0]["request_id"],"req-status")
+        self.assertEqual(queued.body["items"][0]["status"],"QUEUED")
+        self.assertNotIn("payload",queued.body["items"][0])
+
+        self.runtime.queue.complete(
+            request_id="req-status",status="WAITING",now_epoch=120,
+            result={
+              "company_id":"fenix","status":"WAITING","stop_reason":"ENGINE_NOT_GREEN",
+              "state":{"current_phase":"MINIMUM_ACCESSES"},
+              "remote_prefill":{"green_engine_count":7},
+              "external_mutation_allowed":False,"production_activation_allowed":False,"cost_eur":0.0,
+            },
+        )
+        waiting=self.runtime.surface.handle(
+            method="GET",path="/onboarding/company/fenix",user_id="CARLOS"
+        )
+        row=waiting.body["items"][0]
+        self.assertEqual(row["status"],"WAITING")
+        self.assertEqual(row["current_phase"],"MINIMUM_ACCESSES")
+        self.assertEqual(row["stop_reason"],"ENGINE_NOT_GREEN")
+        self.assertEqual(row["remote_prefill_green"],7)
+        self.assertEqual(self.runtime.surface.handle(
+            method="GET",path="/onboarding/company/aion",user_id="CARLOS"
+        ).body["items"],())
+
+
     def test_wsgi_requires_trusted_identity_and_can_queue_when_remote_user_exists(self):
         app=wsgi_app(self.runtime.surface)
         calls=[]

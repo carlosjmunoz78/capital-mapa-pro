@@ -250,6 +250,21 @@ class OnboardingQueue:
           "stale_leases":int(stale["n"]) if stale else 0,
         }
 
+    def by_company(self,company_id:str)->tuple[QueueItem,...]:
+        if not company_id.strip():
+            raise ValueError("company_id required")
+        with self._connect() as conn:
+            rows=conn.execute(
+              "SELECT request_id FROM onboarding_requests WHERE company_id=? ORDER BY updated_at_epoch DESC,created_at_epoch DESC,request_id",
+              (company_id,),
+            ).fetchall()
+        items=[]
+        for row in rows:
+            item=self.get(str(row["request_id"]))
+            if item is not None:
+                items.append(item)
+        return tuple(items)
+
     def get(self,request_id:str)->QueueItem|None:
         with self._connect() as conn:
             row=conn.execute("SELECT * FROM onboarding_requests WHERE request_id=?",(request_id,)).fetchone()
