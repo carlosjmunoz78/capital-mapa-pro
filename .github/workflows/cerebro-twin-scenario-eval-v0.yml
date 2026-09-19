@@ -1,0 +1,21 @@
+name: CEREBRO Twin Scenario Evaluation V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/evaluate_digital_twin_scenario.py"
+      - "tests/test_digital_twin_scenario.py"
+      - ".github/workflows/cerebro-twin-scenario-eval-v0.yml"
+  push:
+    branches: [cerebro-twin-scenario-eval-v0]
+permissions:
+  contents: read
+jobs:
+  twin-scenario:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_digital_twin_scenario.py tests/test_digital_twin_snapshot.py tests/test_business_simulation.py
