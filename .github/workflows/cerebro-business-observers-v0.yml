@@ -10,6 +10,8 @@ on:
       - "tests/test_wordpress_content_observer.py"
       - "cerebro-os/jobs/collect_public_footprint_observations.py"
       - "tests/test_public_footprint_observer.py"
+      - "cerebro-os/config/improvement_source_policy.lab.json"
+      - "tests/test_improvement_source_policy.py"
       - "cerebro-os/config/improvement_competitor_sources.lab.json"
       - "tests/test_competitor_finops_observers.py"
       - "cerebro-os/config/improvement_business_sources.lab.json"
@@ -28,4 +30,4 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m unittest -v tests/test_public_footprint_observer.py tests/test_wordpress_content_observer.py tests/test_competitor_finops_observers.py tests/test_business_web_portfolio.py tests/test_business_observers.py tests/test_improvement_observation_plan.py tests/test_continuous_improvement_entrypoint.py
+      - run: python -m unittest -v tests/test_improvement_source_policy.py tests/test_public_footprint_observer.py tests/test_wordpress_content_observer.py tests/test_competitor_finops_observers.py tests/test_business_web_portfolio.py tests/test_business_observers.py tests/test_improvement_observation_plan.py tests/test_continuous_improvement_entrypoint.py

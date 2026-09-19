@@ -40,9 +40,12 @@ class BusinessObserverTests(unittest.TestCase):
                 "company_id":"fenix","checked":True,"source":"OFFICIAL_PUBLIC_WEB",
                 "evidence_ref":"e://web","status":"PROPOSAL_READY","confidence":0.95,"summary":"content changed"
             }), encoding="utf-8")
+            policy=root/"policy.json"
+            policy.write_text(json.dumps({"fenix":{"required":["technical","business"],"optional":[]}}))
             old=os.environ.copy()
             os.environ["CEREBRO_IMPROVEMENT_EVIDENCE_ROOT"]=str(root)
             os.environ["CEREBRO_IMPROVEMENT_COMPANIES"]=str(cfg)
+            os.environ["CEREBRO_IMPROVEMENT_SOURCE_POLICY"]=str(policy)
             try:
                 aggregate()
             finally:
@@ -63,9 +66,12 @@ class BusinessObserverTests(unittest.TestCase):
                 "company_id":"other","checked":True,"source":"OFFICIAL_PUBLIC_WEB",
                 "evidence_ref":"e://x","status":"NO_CHANGE","confidence":1.0,"summary":"x"
             }), encoding="utf-8")
+            policy=root/"policy.json"
+            policy.write_text(json.dumps({"fenix":{"required":["business"],"optional":[]}}))
             old=os.environ.copy()
             os.environ["CEREBRO_IMPROVEMENT_EVIDENCE_ROOT"]=str(root)
             os.environ["CEREBRO_IMPROVEMENT_COMPANIES"]=str(cfg)
+            os.environ["CEREBRO_IMPROVEMENT_SOURCE_POLICY"]=str(policy)
             try:
                 with self.assertRaises(ValueError):
                     aggregate()
