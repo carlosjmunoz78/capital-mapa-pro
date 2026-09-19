@@ -33,6 +33,7 @@ class ConsoleHttpSurfaceTests(unittest.TestCase):
             history_reader=lambda company_id: ({"company_id": company_id, "request_id": "REQ-H1", "engine_id": "ENG-001", "status": "GREEN", "evidence_ref": "e://1", "environment": "LAB", "version": "1.0.0", "secret": "never"},),
             audit_reader=lambda company_id: ({"company_id": company_id, "request_id": "REQ-A1", "engine_id": "ENG-001", "action": "STATUS", "result": "GREEN", "evidence_ref": "e://a", "timestamp": "2026-09-19T22:00:00Z", "secret": "never"},),
             access_reader=lambda company_id: ({"company_id": company_id, "engine_id": "ACCESS-HLT-001", "status": "GREEN", "human_reason": None, "environment": "LAB", "version": "1.0.0", "accounts_total": 2, "authenticated_accounts": 2, "credentialed_accounts": 2, "connector_account_count": 1, "online_bridge_profiles": 1, "secret": "never"},),
+            onboarding_reader=lambda: {"engine_id":"ONB-WRK-HLT-001","status":"GREEN","human_reason":None,"environment":"LAB","version":"1.0.0","worker_autonomous":True,"stale_lease_reclaim_supported":True,"queue_stats":{"queued":2,"waiting":1},"cost_eur":0.0,"secret":"never"},
         )
 
     def test_health_proves_no_direct_model_path(self):
@@ -81,6 +82,16 @@ class ConsoleHttpSurfaceTests(unittest.TestCase):
             self.assertEqual(len(r.body["items"]), 1)
             self.assertIn(expected, r.body["items"][0])
             self.assertNotIn(forbidden, r.body["items"][0])
+
+
+    def test_console_exposes_safe_global_onboarding_worker_status(self):
+        r = self.surface.handle(method="GET", path="/onboarding/queue", user_id="CARLOS")
+        self.assertEqual(r.status, 200)
+        row = r.body["onboarding"]
+        self.assertEqual(row["engine_id"], "ONB-WRK-HLT-001")
+        self.assertTrue(row["worker_autonomous"])
+        self.assertEqual(row["queue_stats"]["queued"], 2)
+        self.assertNotIn("secret", row)
 
     def test_scoped_console_route_requires_company_id(self):
         r = self.surface.handle(method="GET", path="/contexts/", user_id="CARLOS")
