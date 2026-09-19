@@ -12,6 +12,7 @@ from credential_scope import ScopedCredentialRef, authorize_credential_ref
 from account_lifecycle import AccountLifecycleRequest, plan_account_lifecycle
 from access_orchestrator import AccessExecutionRequest, plan_access_execution
 from session_discovery import SessionObservation, discover_session_metadata
+from connector_gap_planner import ConnectorGapRequest, plan_connector_gap
 
 
 class IdentityConnectorAndComputerUsePolicyTests(unittest.TestCase):
@@ -244,6 +245,52 @@ class IdentityConnectorAndComputerUsePolicyTests(unittest.TestCase):
                 company_id="fenix",provider="provider",environment="LAB",version="1.0.0",
                 authenticated=True,login_method="SESSION",secret_value_observed=True
             ))
+
+    def test_connector_gap_reuses_existing_connector_before_factory(self):
+        connectors=ConnectorRegistry()
+        connectors.register(ConnectorCapability("api","fenix","publish","OFFICIAL_API","LAB"))
+        out=plan_connector_gap(
+            ConnectorGapRequest(company_id="fenix",capability="publish",environment="LAB"),
+            connectors
+        )
+        self.assertEqual(out["decision"],"REUSE_EXISTING_CONNECTOR")
+        self.assertIsNone(out["factory_request"])
+
+    def test_connector_gap_prefers_official_api_when_known(self):
+        connectors=ConnectorRegistry()
+        out=plan_connector_gap(
+            ConnectorGapRequest(company_id="fenix",capability="research",environment="LAB",official_api_known=True),
+            connectors
+        )
+        self.assertEqual(out["decision"],"INTEGRATE_OFFICIAL_API")
+        self.assertEqual(out["factory_request"]["preferred_type"],"OFFICIAL_API")
+        self.assertIn("rollback",out["factory_request"]["requirements"])
+
+    def test_connector_gap_builds_zero_cost_candidate_only_after_reuse_paths_fail(self):
+        connectors=ConnectorRegistry()
+        out=plan_connector_gap(
+            ConnectorGapRequest(company_id="fenix",capability="custom_sync",environment="LAB"),
+            connectors
+        )
+        self.assertEqual(out["decision"],"FACTORY_BUILD_CONNECTOR_CANDIDATE")
+        self.assertEqual(out["connector_type"],"BUILT_CONNECTOR")
+        self.assertFalse(out["factory_request"]["external_mutation_allowed"])
+        self.assertFalse(out["factory_request"]["prod_activation_allowed"])
+        self.assertIn("secret_refs_only",out["factory_request"]["requirements"])
+
+    def test_connector_gap_never_auto_approves_paid_or_policy_risky_path(self):
+        connectors=ConnectorRegistry()
+        paid=plan_connector_gap(
+            ConnectorGapRequest(company_id="fenix",capability="paid_api",environment="LAB",estimated_cost_eur=10),
+            connectors
+        )
+        self.assertEqual(paid["status"],"HUMAN_REQUIRED")
+        self.assertEqual(paid["human_reason"],"MONEY_LIMIT")
+        risky=plan_connector_gap(
+            ConnectorGapRequest(company_id="fenix",capability="restricted",environment="LAB",legal_or_terms_risk=True),
+            connectors
+        )
+        self.assertEqual(risky["human_reason"],"POLICY_CONFLICT")
 
 
 if __name__ == "__main__":
