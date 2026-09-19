@@ -98,3 +98,15 @@ Para seguir desde aquí solo existen gates humanos/reales:
 ## Regla de cierre
 
 No considerar CEREBRO OS globalmente terminado/autónomo en PROD hasta que los gates anteriores tengan evidencia física. El trabajo ordinario seguro puede seguir en PREPROD y en los motores ya validados sin levantar estos bloqueos.
+
+
+### Advisory / session-context · gate autenticado final · 2026-09-19
+- App PR `#415` mergeado en `main` con merge SHA `b23fc83699e77b262a99812420228bc451ea3876`.
+- El workflow `CEREBRO Session Context Auth E2E Gate` queda instalado y preparado para ejecutar el harness HTTP autenticado OLD -> NEW sin exponer credenciales.
+- En la ejecución de PR el gate clasificó explícitamente `SESSION_CONTEXT_AUTH_HTTP_E2E=POR_AUDITAR_MISSING_SECURE_TOKEN`: no existe actualmente `CEREBRO_E2E_USER_JWT` disponible en GitHub Actions.
+- Post-merge `PROD Runtime Smoke #259`: SUCCESS sobre el merge SHA `b23fc83699e77b262a99812420228bc451ea3876`.
+- Estado vivo del ACL legacy auditado en Supabase PROD: `authenticated_execute=true`, `anon_execute=false`, `service_role_execute=true`.
+- `pg_stat_activity` no muestra callers directos activos del RPC legacy en el momento de la auditoría: `active_direct_callers=0`.
+- `pg_stat_statements` mantiene evidencia histórica acumulada de 5.102 llamadas al RPC legacy y 6.215 al wrapper server; al no aportar timestamp de última llamada, no se usa como prueba de caller actual ni como prueba suficiente de ausencia.
+- Decisión fail-closed: NO revocar aún `authenticated EXECUTE`. El retiro solo puede ejecutarse tras un E2E autenticado real en verde y evidencia suficiente de ausencia de consumidores externos.
+- Clasificación actual del bloqueo para este cierre: `HUMAN_REQUIRED: LOW_CONFIDENCE / credencial operacional` únicamente para aportar de forma segura un bearer de prueba reutilizable; después de eso, el resto del cierre vuelve a ser automático.
