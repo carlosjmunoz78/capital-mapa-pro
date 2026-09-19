@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - "cerebro-os/jobs/company_onboarding_orchestrator.py"
+      - "cerebro-os/jobs/bootstrap_company_access.py"
       - "cerebro-os/jobs/scan_company_digital_footprint.py"
       - "cerebro-os/jobs/discover_business_model.py"
       - "cerebro-os/jobs/discover_company_processes.py"
