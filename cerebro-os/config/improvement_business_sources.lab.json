@@ -7,7 +7,8 @@
       "https://fenixcapital.es/asesor-hipotecario-cordoba/",
       "https://fenixcapital.es/quienes-somos/"
     ],
-    "enabled": true
+    "enabled": true,
+    "wordpress_rest_base": "https://fenixcapital.es/wp-json/wp/v2"
   },
   {
     "company_id": "aion",
