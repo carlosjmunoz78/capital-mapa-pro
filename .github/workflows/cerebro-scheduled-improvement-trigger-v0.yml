@@ -184,6 +184,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/generate_meta_learning_experiments.py
 
+      - name: Generate Factory Supervisor self-improvement candidates
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/generate_factory_supervisor_self_improvement.py
+
       - name: Persist runtime state
         if: always()
         uses: actions/upload-artifact@v4
