@@ -32,6 +32,8 @@ def run()->list[Path]:
                 "knowledge_id":str(r.get("knowledge_id","")),
                 "kind":str(r.get("kind","KNOWLEDGE")),
                 "candidate_version":"revalidated-"+str(r.get("content_hash",""))[:12],
+                "provenance_id":str(r.get("provenance_id","")),
+                "source_type":str(r.get("source_type","")),
                 "source_uri":str(r.get("source_uri","")),
                 "observed_at":str(r.get("observed_at","")),
                 "validated_by":str(r.get("validated_by","")),
