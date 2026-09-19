@@ -1,0 +1,76 @@
+name: CEREBRO Scheduled Improvement Trigger V0
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/cerebro-scheduled-improvement-trigger-v0.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: cerebro-scheduled-improvement-trigger-v0
+  cancel-in-progress: false
+
+jobs:
+  daily-lab-improvement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CEREBRO_IMPROVEMENT_STATE_ROOT: .cerebro-runtime/improvement
+      CEREBRO_IMPROVEMENT_EVIDENCE_ROOT: .cerebro-runtime/evidence
+      CEREBRO_IMPROVEMENT_COMPANIES: cerebro-os/config/improvement_companies.lab.json
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout canonical CEREBRO runtime
+        uses: actions/checkout@v4
+        with:
+          ref: cerebro-engine-factory-v0
+
+      - name: Restore latest runtime state artifact if present
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .cerebro-runtime
+          ARTIFACT_ID="$(gh api             "/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=cerebro-improvement-runtime-state&per_page=100"             --jq '.artifacts | map(select(.expired == false)) | sort_by(.created_at) | last | .id // empty')"
+          if [ -n "$ARTIFACT_ID" ]; then
+            curl -fsSL               -H "Authorization: Bearer ${GITHUB_TOKEN}"               -H "X-GitHub-Api-Version: 2022-11-28"               "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip"               -o /tmp/cerebro-improvement-state.zip
+            unzip -o /tmp/cerebro-improvement-state.zip -d .cerebro-runtime
+          else
+            echo "No prior runtime state artifact; starting from clean LAB state."
+          fi
+
+      - name: Run scheduled LAB improvement worker
+        id: run
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/continuous_improvement_entrypoint.py | tee /tmp/cerebro-improvement-result.log
+          RESULT="$(tail -n 1 /tmp/cerebro-improvement-result.log)"
+          STATUS="$(printf '%s' "$RESULT" | python -c 'import json,sys; print(json.load(sys.stdin)["status"])')"
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          {
+            echo "## CEREBRO scheduled LAB improvement"
+            echo
+            echo "\`\`\`json"
+            echo "$RESULT"
+            echo "\`\`\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$STATUS" = "BLOCKED" ] || [ "$STATUS" = "HUMAN_REQUIRED" ]; then
+            echo "Fail-closed attention state: $STATUS"
+            exit 1
+          fi
+
+      - name: Persist runtime state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cerebro-improvement-runtime-state
+          path: .cerebro-runtime/
+          if-no-files-found: error
+          retention-days: 30
+          include-hidden-files: true
