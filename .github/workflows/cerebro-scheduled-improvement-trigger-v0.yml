@@ -97,6 +97,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/aggregate_improvement_observations.py
 
+      - name: Export CEREBRO Console source snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/export_improvement_console_snapshot.py
+
       - name: Run scheduled LAB improvement worker
         id: run
         shell: bash
