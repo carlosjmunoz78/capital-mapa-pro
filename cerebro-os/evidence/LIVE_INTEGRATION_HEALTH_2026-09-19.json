@@ -64,7 +64,16 @@
       "latest_error_started_at": "2026-09-15T09:09:07.409Z",
       "latest_error_name": "AccountValidationError",
       "latest_error_summary": "connection validation returned HTTP 400 before module execution",
-      "incomplete_executions": 0
+      "incomplete_executions": 0,
+      "parallel_test": {
+        "scenario_id": 9835328,
+        "original_scenario_modified": false,
+        "tested_existing_connections": 3,
+        "all_failed_runtime_validation": true,
+        "error_name": "AccountValidationError",
+        "error_summary": "all existing YouTube connections returned HTTP 400 during connection validation before module execution",
+        "test_scenario_status": "inactive"
+      }
     }
   },
   "mutation_performed": {
@@ -78,6 +87,7 @@
   "notes": [
     "Facebook, Instagram and LinkedIn health scenarios were temporarily activated for one read-only probe and immediately returned to inactive state.",
     "GSC production capture was already active before this audit and was not modified.",
-    "YouTube health was not activated because the existing scenario is already in error state."
+    "YouTube health was not activated because the existing scenario is already in error state.",
+    "A separate read-only TEST scenario was created to test the two alternate existing YouTube connections; all three existing YouTube connections failed runtime validation with HTTP 400. The original HEALTH scenario configuration was not changed."
   ]
 }
