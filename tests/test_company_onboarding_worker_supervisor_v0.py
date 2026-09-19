@@ -60,5 +60,33 @@ class OnboardingWorkerSupervisorTests(unittest.TestCase):
         waiting=evaluate_worker_health(queue=self.queue,now_epoch=120)
         self.assertEqual(waiting["status"],"GREEN")
 
+    def test_health_degrades_when_retry_is_scheduled(self):
+        self.queue.enqueue(request_id="r1",company_id="fenix",version="1.0.0",payload=self._payload("fenix"),now_epoch=100)
+        self.queue.claim(now_epoch=110,lease_seconds=5)
+        self.queue.retry_or_dead_letter(
+            request_id="r1",
+            result={"company_id":"fenix","status":"BLOCKED","reason":"EXECUTOR_EXCEPTION"},
+            now_epoch=111,max_attempts=3,base_backoff_seconds=60,max_backoff_seconds=600,
+        )
+        health=evaluate_worker_health(queue=self.queue,now_epoch=120)
+        self.assertEqual(health["status"],"DEGRADED")
+        self.assertEqual(health["queue_stats"]["retry_scheduled"],1)
+        self.assertTrue(health["retry_backoff_supported"])
+        self.assertTrue(health["dead_letter_supported"])
+        self.assertTrue(health["priority_queue_supported"])
+
+    def test_health_degrades_when_dead_letter_exists(self):
+        self.queue.enqueue(request_id="r1",company_id="fenix",version="1.0.0",payload=self._payload("fenix"),now_epoch=100)
+        self.queue.claim(now_epoch=110,lease_seconds=5)
+        self.queue.retry_or_dead_letter(
+            request_id="r1",
+            result={"company_id":"fenix","status":"BLOCKED","reason":"EXECUTOR_EXCEPTION"},
+            now_epoch=111,max_attempts=1,base_backoff_seconds=60,max_backoff_seconds=600,
+        )
+        health=evaluate_worker_health(queue=self.queue,now_epoch=120)
+        self.assertEqual(health["status"],"DEGRADED")
+        self.assertEqual(health["queue_stats"]["dead_letter"],1)
+
+
 if __name__=="__main__":
     unittest.main()
