@@ -122,5 +122,32 @@ class ProposalQueue:
     def count(self) -> int:
         return int(self.conn.execute("SELECT COUNT(*) FROM proposal_queue").fetchone()[0])
 
+    def summary(self) -> dict:
+        items = self.list_open()
+        return {
+            "queued": len(items),
+            "companies": sorted({item.company_id for item in items}),
+            "priorities": {
+                priority: sum(1 for item in items if item.priority == priority)
+                for priority in ("P0", "P1", "P2", "P3")
+            },
+            "domains": {
+                domain: sum(1 for item in items if item.domain == domain)
+                for domain in sorted({item.domain for item in items})
+            },
+            "top": [
+                {
+                    "company_id": item.company_id,
+                    "proposal_id": item.proposal_id,
+                    "priority": item.priority,
+                    "status": item.status,
+                    "domain": item.domain,
+                    "summary": item.summary,
+                    "evidence_ref": item.evidence_ref,
+                }
+                for item in items[:20]
+            ],
+        }
+
     def close(self) -> None:
         self.conn.close()
