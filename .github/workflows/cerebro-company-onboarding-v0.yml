@@ -1,0 +1,22 @@
+name: CEREBRO Company Onboarding V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/company_onboarding_orchestrator.py"
+      - "cerebro-os/jobs/scan_company_digital_footprint.py"
+      - "tests/test_company_onboarding_v0.py"
+      - ".github/workflows/cerebro-company-onboarding-v0.yml"
+  push:
+    branches: [cerebro-company-onboarding-v0]
+permissions:
+  contents: read
+jobs:
+  onboarding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_company_onboarding_v0.py
