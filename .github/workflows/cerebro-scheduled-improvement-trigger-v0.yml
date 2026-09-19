@@ -334,6 +334,18 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/build_control_plane_snapshot.py
 
+      - name: Build multiempresa company registry and activation matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/build_company_registry_activation.py
+
+      - name: Verify TENANT-001 runtime isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/verify_tenant_isolation.py
+
       - name: Persist runtime state
         if: always()
         uses: actions/upload-artifact@v4
