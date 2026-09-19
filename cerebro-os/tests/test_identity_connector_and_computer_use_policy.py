@@ -11,6 +11,7 @@ from account_registry import IdentityRecord, AccountRecord, IdentityAccountRegis
 from credential_scope import ScopedCredentialRef, authorize_credential_ref
 from account_lifecycle import AccountLifecycleRequest, plan_account_lifecycle
 from access_orchestrator import AccessExecutionRequest, plan_access_execution
+from session_discovery import SessionObservation, discover_session_metadata
 
 
 class IdentityConnectorAndComputerUsePolicyTests(unittest.TestCase):
@@ -215,6 +216,34 @@ class IdentityConnectorAndComputerUsePolicyTests(unittest.TestCase):
                 AccessExecutionRequest("fenix","other-id","acct-1","SOC-001","publish","PUBLISH_DRAFT","LAB","1.0.0"),
                 registry=registry,credential=credential,connectors=connectors
             )
+
+    def test_session_discovery_records_authenticated_state_without_extracting_secrets(self):
+        out=discover_session_metadata(SessionObservation(
+            company_id="fenix",provider="chrome-profile",environment="LAB",version="1.0.0",
+            authenticated=True,login_method="SESSION",account_hint="marketing",
+            profile_id="chrome-1",browser_family="CHROME",device_id="desktop-1",evidence_ref="e://session"
+        ))
+        self.assertEqual(out["status"],"AUTHENTICATED_SESSION_DISCOVERED")
+        self.assertTrue(out["authenticated"])
+        self.assertFalse(out["secret_value_exposed"])
+        self.assertFalse(out["secret_extraction_allowed"])
+        self.assertTrue(out["credential_reference_required_for_execution"])
+
+    def test_session_discovery_never_attempts_password_recovery_just_because_login_is_missing(self):
+        out=discover_session_metadata(SessionObservation(
+            company_id="fenix",provider="linkedin",environment="LAB",version="1.0.0",
+            authenticated=False,login_method="OAUTH"
+        ))
+        self.assertEqual(out["status"],"LOGIN_REQUIRED")
+        self.assertFalse(out["password_recovery_attempted"])
+        self.assertFalse(out["external_mutation_allowed"])
+
+    def test_session_discovery_rejects_observed_secret_values(self):
+        with self.assertRaisesRegex(ValueError,"secret extraction"):
+            discover_session_metadata(SessionObservation(
+                company_id="fenix",provider="provider",environment="LAB",version="1.0.0",
+                authenticated=True,login_method="SESSION",secret_value_observed=True
+            ))
 
 
 if __name__ == "__main__":
