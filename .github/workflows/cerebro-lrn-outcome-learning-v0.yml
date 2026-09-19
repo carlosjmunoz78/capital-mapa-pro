@@ -1,0 +1,21 @@
+name: CEREBRO LRN Outcome Learning V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/derive_learning_outcomes.py"
+      - "tests/test_learning_outcomes.py"
+      - ".github/workflows/cerebro-lrn-outcome-learning-v0.yml"
+  push:
+    branches: [cerebro-lrn-outcome-learning-v0]
+permissions:
+  contents: read
+jobs:
+  lrn-outcomes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_learning_outcomes.py
