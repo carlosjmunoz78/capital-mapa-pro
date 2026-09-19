@@ -1,0 +1,20 @@
+name: CEREBRO Knowledge Revalidation Queue V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/build_knowledge_revalidation_queue.py"
+      - "tests/test_knowledge_revalidation_queue.py"
+      - ".github/workflows/cerebro-knowledge-revalidation-queue-v0.yml"
+  push:
+    branches: [cerebro-knowledge-revalidation-queue-v0]
+permissions:
+  contents: read
+jobs:
+  revalidation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_knowledge_revalidation_queue.py
