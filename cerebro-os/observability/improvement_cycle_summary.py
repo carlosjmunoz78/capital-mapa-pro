@@ -56,7 +56,7 @@ def summarize_cycle(store: ImprovementAuditStore, *, company_id: str, environmen
     new_ref = next((r.get("new_ref") for r in records if r.get("new_ref")), None)
     rollback_ref = next((r.get("rollback_ref") for r in records if r.get("rollback_ref")), None)
     return ImprovementCycleSummary(
-        company_id, environment, cycle_id, status, len({r["stage"] for r in records}), total_cost,
+        company_id, environment, cycle_id, status, len({r.get("stage") for r in records if r.get("stage")}), total_cost,
         old_ref, new_ref, rollback_ref, chain_verified,
     )
 
