@@ -20,4 +20,4 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m unittest -v tests/test_business_observers.py tests/test_improvement_observation_plan.py tests/test_continuous_improvement_entrypoint.py
+      - run: python -m unittest -v tests/test_business_web_portfolio.py tests/test_business_observers.py tests/test_improvement_observation_plan.py tests/test_continuous_improvement_entrypoint.py
