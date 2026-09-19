@@ -1,6 +1,7 @@
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -76,6 +77,55 @@ class OnboardingQueueWorkerTests(unittest.TestCase):
         out=process_one(queue=self.queue,now_epoch=130)
         self.assertTrue(out["processed"])
         self.assertEqual(self.queue.get("req-1").attempts,2)
+
+    def test_priority_queue_claims_higher_priority_first(self):
+        self.queue.enqueue(request_id="low",company_id="fenix",version="1.0.0",payload=self._payload(),now_epoch=100,priority=10)
+        self.queue.enqueue(request_id="high",company_id="fenix",version="1.0.0",payload=self._payload(),now_epoch=101,priority=900)
+        first=self.queue.claim(now_epoch=110,lease_seconds=30)
+        self.assertEqual(first.request_id,"high")
+        self.assertEqual(first.priority,900)
+
+    def test_executor_exception_uses_backoff_then_dead_letter(self):
+        self.queue.enqueue(request_id="req-retry",company_id="fenix",version="1.0.0",payload=self._payload(),now_epoch=100)
+        with patch("jobs.run_company_onboarding_worker.run_request",side_effect=RuntimeError("boom")):
+            first=process_one(
+                queue=self.queue,now_epoch=110,lease_seconds=30,
+                max_attempts=2,base_backoff_seconds=60,max_backoff_seconds=600,
+            )
+        self.assertEqual(first["status"],"RETRY_SCHEDULED")
+        row=self.queue.get("req-retry")
+        self.assertEqual(row.status,"QUEUED")
+        self.assertEqual(row.next_attempt_epoch,170)
+        self.assertIsNone(self.queue.claim(now_epoch=169,lease_seconds=30))
+        with patch("jobs.run_company_onboarding_worker.run_request",side_effect=RuntimeError("boom again")):
+            second=process_one(
+                queue=self.queue,now_epoch=170,lease_seconds=30,
+                max_attempts=2,base_backoff_seconds=60,max_backoff_seconds=600,
+            )
+        self.assertEqual(second["status"],"DEAD_LETTER")
+        row=self.queue.get("req-retry")
+        self.assertEqual(row.status,"DEAD_LETTER")
+        self.assertEqual(row.dead_letter_reason,"EXECUTOR_EXCEPTION")
+        self.assertEqual(row.attempts,2)
+
+    def test_dead_letter_can_be_explicitly_requeued_with_new_context(self):
+        self.queue.enqueue(request_id="req-dead",company_id="fenix",version="1.0.0",payload=self._payload(),now_epoch=100)
+        claimed=self.queue.claim(now_epoch=110,lease_seconds=30)
+        self.assertIsNotNone(claimed)
+        self.queue.retry_or_dead_letter(
+            request_id="req-dead",
+            result={"company_id":"fenix","status":"BLOCKED","reason":"TRANSIENT"},
+            now_epoch=111,max_attempts=1,base_backoff_seconds=60,max_backoff_seconds=600,
+        )
+        self.assertEqual(self.queue.get("req-dead").status,"DEAD_LETTER")
+        payload=self._payload()
+        payload["context"]["domains"]=["example.com"]
+        self.queue.requeue(request_id="req-dead",payload=payload,now_epoch=200,priority=500)
+        row=self.queue.get("req-dead")
+        self.assertEqual(row.status,"QUEUED")
+        self.assertEqual(row.priority,500)
+        self.assertIsNone(row.dead_letter_reason)
+
 
 if __name__=="__main__":
     unittest.main()

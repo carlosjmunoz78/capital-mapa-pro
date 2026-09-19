@@ -13,7 +13,7 @@ def evaluate_worker_health(*,queue:OnboardingQueue,now_epoch:int)->dict:
     stats=queue.stats(now_epoch=now_epoch)
     if stats["human_required"]>0:
         status="HUMAN_REQUIRED"; human_reason="HIGH_RISK"
-    elif stats["stale_leases"]>0 or stats["blocked"]>0:
+    elif stats["stale_leases"]>0 or stats["blocked"]>0 or stats.get("dead_letter",0)>0 or stats.get("retry_scheduled",0)>0:
         status="DEGRADED"; human_reason=None
     else:
         status="GREEN"; human_reason=None
@@ -28,6 +28,9 @@ def evaluate_worker_health(*,queue:OnboardingQueue,now_epoch:int)->dict:
       "queue_stats":stats,
       "worker_autonomous":True,
       "stale_lease_reclaim_supported":True,
+      "retry_backoff_supported":True,
+      "dead_letter_supported":True,
+      "priority_queue_supported":True,
       "raw_secret_storage_allowed":False,
       "external_mutation_allowed":False,
       "production_activation_allowed":False,
