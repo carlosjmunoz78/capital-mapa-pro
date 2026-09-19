@@ -13,6 +13,7 @@ if str(CEREBRO_OS_ROOT) not in sys.path:
 from jobs.improvement_operations_registry import ImprovementCompanyConfig, ImprovementOperationsRegistry
 from jobs.improvement_shared_worker import SharedImprovementWorker, WorkerPaths
 from learning.continuous_improvement_runtime import StageResult
+from learning.improvement_observation_plan import ObservationEnvelope, plan_stage_results
 
 
 def _load_companies(path: Path) -> tuple[ImprovementCompanyConfig, ...]:
@@ -25,14 +26,25 @@ def _load_companies(path: Path) -> tuple[ImprovementCompanyConfig, ...]:
 def _evidence_executor_factory(evidence_root: Path):
     def factory(company_id: str):
         company_file = evidence_root / f"{company_id}.json"
+        observation_file = evidence_root / f"{company_id}.observations.json"
         data = {}
+        planned: dict[str, StageResult] = {}
         if company_file.exists():
             raw = json.loads(company_file.read_text(encoding="utf-8"))
             if not isinstance(raw, dict):
                 raise ValueError("evidence file must be object")
             data = raw
+        elif observation_file.exists():
+            raw = json.loads(observation_file.read_text(encoding="utf-8"))
+            if not isinstance(raw, dict):
+                raise ValueError("observation file must be object")
+            if str(raw.get("company_id", "")) != company_id:
+                raise ValueError("cross-company observation denied")
+            planned = plan_stage_results(ObservationEnvelope(**raw))
 
         def execute(stage: str, attempt: int) -> StageResult:
+            if stage in planned:
+                return planned[stage]
             item = data.get(stage)
             if not isinstance(item, dict):
                 return StageResult(stage, "WAITING", f"evidence://waiting/{company_id}/{stage}")
