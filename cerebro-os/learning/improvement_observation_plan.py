@@ -20,6 +20,7 @@ class ObservationEnvelope:
     status: str
     confidence: float = 1.0
     summary: str = ""
+    facts: dict | None = None
 
     def validate(self) -> None:
         if not self.company_id.strip() or not self.source.strip() or not self.evidence_ref.strip():
