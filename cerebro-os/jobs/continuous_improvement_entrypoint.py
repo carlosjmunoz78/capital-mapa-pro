@@ -32,6 +32,7 @@ def _evidence_executor_factory(evidence_root: Path):
         lab_evidence: dict = {}
         test_evidence: dict = {}
         evaluate_evidence: dict = {}
+        tribunal_evidence: dict = {}
         if company_file.exists():
             raw = json.loads(company_file.read_text(encoding="utf-8"))
             if not isinstance(raw, dict):
@@ -80,6 +81,20 @@ def _evidence_executor_factory(evidence_root: Path):
             if bool(raw_evaluate.get("external_mutation_allowed", True)):
                 raise ValueError("EVALUATE evidence cannot allow external mutation")
             evaluate_evidence = raw_evaluate
+        tribunal_file = evidence_root / f"{company_id}.tribunal.json"
+        if tribunal_file.exists():
+            raw_tribunal = json.loads(tribunal_file.read_text(encoding="utf-8"))
+            if not isinstance(raw_tribunal, dict):
+                raise ValueError("TRIBUNAL evidence file must be object")
+            if str(raw_tribunal.get("company_id", "")) != company_id:
+                raise ValueError("cross-company TRIBUNAL evidence denied")
+            if str(raw_tribunal.get("stage", "")) != "TRIBUNAL":
+                raise ValueError("TRIBUNAL evidence stage mismatch")
+            if bool(raw_tribunal.get("production_approval", True)):
+                raise ValueError("LAB tribunal packet cannot approve production")
+            if bool(raw_tribunal.get("external_mutation_allowed", True)):
+                raise ValueError("TRIBUNAL evidence cannot allow external mutation")
+            tribunal_evidence = raw_tribunal
 
         def execute(stage: str, attempt: int) -> StageResult:
             if stage == "LAB" and lab_evidence:
@@ -99,6 +114,12 @@ def _evidence_executor_factory(evidence_root: Path):
                     stage,
                     str(evaluate_evidence.get("status", "WAITING")),
                     str(evaluate_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/EVALUATE")),
+                )
+            if stage == "TRIBUNAL" and tribunal_evidence:
+                return StageResult(
+                    stage,
+                    str(tribunal_evidence.get("status", "WAITING")),
+                    str(tribunal_evidence.get("evidence_ref", f"evidence://waiting/{company_id}/TRIBUNAL")),
                 )
             if stage in planned:
                 return planned[stage]
