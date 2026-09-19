@@ -1,0 +1,21 @@
+name: CEREBRO Knowledge Inventory Bootstrap V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/bootstrap_runtime_knowledge_inventory.py"
+      - "tests/test_knowledge_inventory_bootstrap.py"
+      - ".github/workflows/cerebro-knowledge-inventory-bootstrap-v0.yml"
+  push:
+    branches: [cerebro-knowledge-inventory-bootstrap-v0]
+permissions:
+  contents: read
+jobs:
+  knowledge-inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_knowledge_inventory_bootstrap.py tests/test_knowledge_obsolescence.py tests/test_knowledge_revalidation_queue.py
