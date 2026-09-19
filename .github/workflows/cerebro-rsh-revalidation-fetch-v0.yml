@@ -1,0 +1,23 @@
+name: CEREBRO RSH Revalidation Fetch V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/jobs/analyze_knowledge_obsolescence.py"
+      - "cerebro-os/jobs/build_knowledge_revalidation_queue.py"
+      - "cerebro-os/jobs/refresh_knowledge_revalidation_evidence.py"
+      - "tests/test_research_revalidation_refresh.py"
+      - ".github/workflows/cerebro-rsh-revalidation-fetch-v0.yml"
+  push:
+    branches: [cerebro-rsh-revalidation-fetch-v0]
+permissions:
+  contents: read
+jobs:
+  rsh-refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_research_revalidation_refresh.py tests/test_knowledge_revalidation_queue.py tests/test_knowledge_obsolescence.py
