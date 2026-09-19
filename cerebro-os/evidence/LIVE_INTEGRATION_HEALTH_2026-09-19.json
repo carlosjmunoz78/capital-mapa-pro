@@ -1,0 +1,83 @@
+{
+  "captured_on": "2026-09-19",
+  "mode": "READ_ONLY_LIVE_AUDIT",
+  "supabase": {
+    "project_id": "cluhljgonannaafpmblx",
+    "project_status": "ACTIVE_HEALTHY",
+    "counts": {
+      "clientes": 87,
+      "inmobiliarias": 401,
+      "bancos": 6,
+      "contactos_inmobiliaria": 48,
+      "contactos_bancarios": 1,
+      "expediente_personas": 17
+    }
+  },
+  "make": {
+    "gsc": {
+      "scenario_id": 9597710,
+      "status": "active",
+      "connection_statuses": [
+        "ok",
+        "ok"
+      ],
+      "latest_success_started_at": "2026-09-16T11:37:00.474Z",
+      "next_scheduled_execution": "2026-09-23T11:36:57.672Z",
+      "incomplete_executions": 0
+    },
+    "facebook_health": {
+      "scenario_id": 9527908,
+      "status": "inactive",
+      "connection_statuses": [
+        "ok"
+      ],
+      "latest_probe_status": "success",
+      "latest_probe_started_at": "2026-09-19T13:37:10.199Z",
+      "incomplete_executions": 0
+    },
+    "instagram_health": {
+      "scenario_id": 9534092,
+      "status": "inactive",
+      "connection_statuses": [
+        "ok"
+      ],
+      "latest_probe_status": "success",
+      "latest_probe_started_at": "2026-09-19T13:37:34.574Z",
+      "incomplete_executions": 0
+    },
+    "linkedin_health": {
+      "scenario_id": 9522860,
+      "status": "inactive",
+      "connection_statuses": [
+        "ok"
+      ],
+      "latest_probe_status": "success",
+      "latest_probe_started_at": "2026-09-19T13:37:42.878Z",
+      "incomplete_executions": 0
+    },
+    "youtube_health": {
+      "scenario_id": 9537666,
+      "status": "error",
+      "connection_statuses": [
+        "ok"
+      ],
+      "latest_error_started_at": "2026-09-15T09:09:07.409Z",
+      "latest_error_name": "AccountValidationError",
+      "latest_error_summary": "connection validation returned HTTP 400 before module execution",
+      "incomplete_executions": 0
+    }
+  },
+  "mutation_performed": {
+    "supabase": false,
+    "facebook": false,
+    "instagram": false,
+    "linkedin": false,
+    "youtube": false,
+    "gsc": false
+  },
+  "notes": [
+    "Facebook, Instagram and LinkedIn health scenarios were temporarily activated for one read-only probe and immediately returned to inactive state.",
+    "GSC production capture was already active before this audit and was not modified.",
+    "YouTube health was not activated because the existing scenario is already in error state."
+  ]
+}
