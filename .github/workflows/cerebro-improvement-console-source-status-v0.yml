@@ -1,0 +1,23 @@
+name: CEREBRO Improvement Console Source Status V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/observability/improvement_source_health.py"
+      - "cerebro-os/console/improvement_status.py"
+      - "cerebro-os/evidence/LIVE_INTEGRATION_HEALTH_2026-09-19.json"
+      - "tests/test_improvement_source_health.py"
+      - ".github/workflows/cerebro-improvement-console-source-status-v0.yml"
+  push:
+    branches: [cerebro-improvement-console-source-status-v0]
+permissions:
+  contents: read
+jobs:
+  console-source-status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_improvement_source_health.py tests/test_live_integration_health.py tests/test_improvement_operations.py
