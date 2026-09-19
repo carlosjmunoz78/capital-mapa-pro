@@ -1,0 +1,23 @@
+name: CEREBRO Improvement Observation Proposal V0
+on:
+  pull_request:
+    paths:
+      - "cerebro-os/learning/improvement_observation_plan.py"
+      - "cerebro-os/jobs/collect_improvement_observations.py"
+      - "cerebro-os/jobs/continuous_improvement_entrypoint.py"
+      - "tests/test_improvement_observation_plan.py"
+      - ".github/workflows/cerebro-improvement-observation-proposal-v0.yml"
+  push:
+    branches: [cerebro-improvement-observation-proposal-v0]
+permissions:
+  contents: read
+jobs:
+  observation-proposal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest -v tests/test_improvement_observation_plan.py tests/test_continuous_improvement_entrypoint.py tests/test_improvement_operations.py
