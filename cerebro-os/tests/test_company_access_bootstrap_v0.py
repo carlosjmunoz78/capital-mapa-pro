@@ -48,6 +48,28 @@ class CompanyAccessBootstrapTests(unittest.TestCase):
         self.assertEqual(out["next_stage"],"ACCOUNT_CONNECTOR_SESSION_DISCOVERY")
         self.assertFalse(out["external_mutation_allowed"])
 
+    def test_empty_access_inventory_is_not_assumed_complete(self):
+        out=bootstrap_company_access({
+            "company_id":"fenix","environment":"LAB","version":"1.0.0",
+            "requirements":[],"existing_accounts":[],"existing_connectors":[],"session_observations":[],
+        })
+        self.assertEqual(out["status"],"PARTIAL")
+        self.assertFalse(out["minimum_accesses_ready"])
+        self.assertFalse(out["requirements_inventory_complete"])
+        self.assertEqual(out["reason"],"ACCESS_REQUIREMENTS_INVENTORY_REQUIRED")
+        self.assertEqual(out["next_stage"],"ACCESS_REQUIREMENTS_INVENTORY")
+
+    def test_explicit_zero_access_inventory_can_be_green(self):
+        out=bootstrap_company_access({
+            "company_id":"fenix","environment":"LAB","version":"1.0.0",
+            "requirements":[],"requirements_inventory_complete":True,
+            "existing_accounts":[],"existing_connectors":[],"session_observations":[],
+        })
+        self.assertEqual(out["status"],"GREEN")
+        self.assertTrue(out["requirements_inventory_complete"])
+        self.assertTrue(out["minimum_accesses_ready"])
+
+
     def test_raw_secret_fields_are_rejected(self):
         with self.assertRaisesRegex(ValueError,"raw secret field forbidden"):
             bootstrap_company_access({
