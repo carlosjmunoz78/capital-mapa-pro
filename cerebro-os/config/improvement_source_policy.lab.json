@@ -1,10 +1,23 @@
 {
   "fenix": {
-    "required": ["technical", "business", "footprint"],
-    "optional": ["competitors", "finops", "content"]
+    "required": [
+      "technical",
+      "business",
+      "footprint"
+    ],
+    "optional": [
+      "competitors",
+      "finops",
+      "content",
+      "availability"
+    ]
   },
   "aion": {
-    "required": ["technical"],
-    "optional": ["finops"]
+    "required": [
+      "technical"
+    ],
+    "optional": [
+      "finops"
+    ]
   }
 }
