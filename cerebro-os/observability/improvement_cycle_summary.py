@@ -33,14 +33,18 @@ def summarize_cycle(store: ImprovementAuditStore, *, company_id: str, environmen
     elif not records:
         status = "NO_DATA"
     else:
-        statuses = [r["status"] for r in records]
+        latest_by_stage: dict[str, dict] = {}
+        for record in records:
+            latest_by_stage[record["stage"]] = record
+        current = [latest_by_stage[s] for s in EXPECTED_STAGES if s in latest_by_stage]
+        statuses = [r["status"] for r in current]
         if "HUMAN_REQUIRED" in statuses:
             status = "HUMAN_REQUIRED"
         elif "BLOCKED" in statuses:
             status = "BLOCKED"
         elif "WAITING" in statuses:
             status = "WAITING"
-        elif len(records) == len(EXPECTED_STAGES) and all(r["stage"] == EXPECTED_STAGES[i] and r["status"] == "GREEN" for i, r in enumerate(records)):
+        elif len(current) == len(EXPECTED_STAGES) and all(r["stage"] == EXPECTED_STAGES[i] and r["status"] == "GREEN" for i, r in enumerate(current)):
             status = "GREEN"
         elif any(s == "RED" for s in statuses):
             status = "RED"
@@ -52,7 +56,7 @@ def summarize_cycle(store: ImprovementAuditStore, *, company_id: str, environmen
     new_ref = next((r.get("new_ref") for r in records if r.get("new_ref")), None)
     rollback_ref = next((r.get("rollback_ref") for r in records if r.get("rollback_ref")), None)
     return ImprovementCycleSummary(
-        company_id, environment, cycle_id, status, len(records), total_cost,
+        company_id, environment, cycle_id, status, len({r.get("stage") for r in records if r.get("stage")}), total_cost,
         old_ref, new_ref, rollback_ref, chain_verified,
     )
 
