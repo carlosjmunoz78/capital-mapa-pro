@@ -103,6 +103,12 @@ jobs:
           set -euo pipefail
           python cerebro-os/jobs/generate_improvement_lab_proposals.py
 
+      - name: Ingest LAB proposals into durable priority queue
+        shell: bash
+        run: |
+          set -euo pipefail
+          python cerebro-os/jobs/ingest_improvement_proposals.py
+
       - name: Export CEREBRO Console source snapshot
         shell: bash
         run: |
