@@ -126,9 +126,9 @@ def execute_onboarding_superloop(
           "evidence_ref":str(result.get("evidence_hash") or result.get("evidence_ref") or ""),
         })
 
-        loop=run_superloop(current,[result],max_steps=1)
+        loop=run_superloop(current,[result],max_steps=2)
         current=dict(loop["state"])
-        if loop["status"] in {"HUMAN_REQUIRED","BLOCKED"}:
+        if loop["status"]=="BLOCKED":
             return {
               **loop,
               "executor_stop_reason":loop["stop_reason"],
@@ -136,6 +136,16 @@ def execute_onboarding_superloop(
               "external_mutation_allowed":False,
               "cost_eur":0.0,
             }
+        if loop["status"]=="HUMAN_REQUIRED":
+            return {
+              **loop,
+              "executor_stop_reason":loop["stop_reason"],
+              "executed_handlers":tuple(executed),
+              "external_mutation_allowed":False,
+              "cost_eur":0.0,
+            }
+        if loop["status"]=="WAITING" and loop.get("stop_reason")=="ENGINE_RESULT_MISSING":
+            continue
         if loop["status"]=="WAITING" and loop.get("stop_reason")=="ENGINE_NOT_GREEN":
             return {
               **loop,
