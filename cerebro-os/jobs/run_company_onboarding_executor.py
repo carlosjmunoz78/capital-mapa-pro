@@ -7,6 +7,7 @@ from pathlib import Path
 from jobs.company_onboarding_orchestrator import initial_state
 from jobs.company_onboarding_executor import execute_onboarding_superloop
 from jobs.company_onboarding_default_handlers import build_default_onboarding_registry
+from jobs.prefill_remote_onboarding import prefill_remote_safe_context
 
 def run_request(payload:dict,previous:dict|None=None)->dict:
     if not isinstance(payload,dict):
@@ -45,6 +46,15 @@ def run_request(payload:dict,previous:dict|None=None)->dict:
     else:
         state=initial_state(company_id,version)
 
+    prefill={
+      "context":context,"events":(),"remote_prefill_engine_count":0,"green_engine_count":0,
+      "local_browser_required":False,"computer_use_performed":False,
+      "external_mutation_allowed":False,"cost_eur":0.0,
+    }
+    if bool(payload.get("remote_prefill_enabled",True)):
+        prefill=prefill_remote_safe_context(company_id=company_id,version=version,context=context)
+        context=dict(prefill["context"])
+
     result=execute_onboarding_superloop(
         state,
         registry=build_default_onboarding_registry(),
@@ -58,6 +68,14 @@ def run_request(payload:dict,previous:dict|None=None)->dict:
       "company_id":company_id,
       "version":version,
       "automatic_resume_supported":True,
+      "remote_prefill":{
+        "enabled":bool(payload.get("remote_prefill_enabled",True)),
+        "engine_count":prefill["remote_prefill_engine_count"],
+        "green_engine_count":prefill["green_engine_count"],
+        "events":prefill["events"],
+        "local_browser_required":prefill["local_browser_required"],
+        "computer_use_performed":prefill["computer_use_performed"],
+      },
       "external_mutation_allowed":False,
       "production_activation_allowed":False,
       "cost_eur":0.0,
