@@ -23,6 +23,7 @@ from jobs.bootstrap_company_training import bootstrap_training
 from jobs.create_company_supervisor_scope import create_supervisor_scope
 from jobs.create_company_backup_rebuild_pack import create_backup_rebuild_pack
 from jobs.evaluate_company_preprod_readiness import evaluate_preprod_readiness
+from jobs.evaluate_company_production_activation import evaluate_production_activation
 
 class FakeHeaders:
     def get(self,key,default=None): return "text/html"
@@ -302,5 +303,25 @@ class CompanyOnboardingTests(unittest.TestCase):
         self.assertEqual(out["status"],"BLOCKED")
         self.assertFalse(out["preprod_ready"])
         self.assertGreater(len(out["missing_evidence"]),0)
+
+    def test_production_activation_gate_blocks_when_preprod_is_not_green(self):
+        readiness={"company_id":"fenix","engine_id":"COMP-DEP-001","status":"BLOCKED","preprod_ready":False,"evidence_hash":"sha256:x"}
+        out=evaluate_production_activation({"company_id":"fenix","preprod_readiness":readiness})
+        self.assertEqual(out["status"],"BLOCKED")
+        self.assertFalse(out["production_activation_allowed"])
+        self.assertFalse(out["live_traffic_allowed"])
+
+    def test_production_activation_gate_emits_canonical_high_risk_exception(self):
+        readiness={"company_id":"fenix","engine_id":"COMP-DEP-001","status":"GREEN","preprod_ready":True,"evidence_hash":"sha256:x"}
+        out=evaluate_production_activation({"company_id":"fenix","preprod_readiness":readiness})
+        self.assertEqual(out["status"],"HUMAN_REQUIRED")
+        self.assertEqual(out["human_reason"],"HIGH_RISK")
+        self.assertFalse(out["production_activation_allowed"])
+        self.assertFalse(out["external_mutation_allowed"])
+
+    def test_production_activation_gate_denies_cross_company_readiness(self):
+        readiness={"company_id":"fenix","engine_id":"COMP-DEP-001","status":"GREEN","preprod_ready":True}
+        with self.assertRaisesRegex(ValueError,"cross-company"):
+            evaluate_production_activation({"company_id":"aion","preprod_readiness":readiness})
 
 if __name__=="__main__": unittest.main()
