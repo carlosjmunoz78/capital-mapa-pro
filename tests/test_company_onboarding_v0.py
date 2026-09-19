@@ -286,13 +286,16 @@ class CompanyOnboardingTests(unittest.TestCase):
         self.assertFalse(out["prod_rebuild_allowed"])
 
     def test_preprod_readiness_is_fail_closed_and_never_authorizes_prod(self):
-        evidence=[{"company_id":"fenix","engine_id":eid,"status":"GREEN"} for eid in ("COMP-HLT-001","COMP-BKP-001","QA-001","QAB-001","REG-001","TENANT-001","EVA-001","JDG-001")]
+        evidence=[{"company_id":"fenix","engine_id":eid,"status":"GREEN"} for eid in ("COMP-HLT-001","COMP-BKP-001","QA-001","QAB-001","REG-001","TENANT-001","EVA-001","JDG-001","TWIN-001","RED-001","BCP-001","OBSERV-001","DR-001","RBLD-001")]
         out=evaluate_preprod_readiness({"company_id":"fenix","engine_evidence":evidence})
         self.assertTrue(out["preprod_ready"])
         self.assertEqual(out["status"],"GREEN")
         self.assertFalse(out["production_activation_allowed"])
         self.assertFalse(out["canary_live_traffic_allowed"])
         self.assertEqual(out["human_required_if_prod_requested"],"HIGH_RISK")
+        self.assertIn("TWIN-001",out["required_evidence"])
+        self.assertIn("RED-001",out["required_evidence"])
+        self.assertIn("BCP-001",out["required_evidence"])
 
     def test_preprod_readiness_blocks_missing_gates(self):
         out=evaluate_preprod_readiness({"company_id":"aion","engine_evidence":[]})
