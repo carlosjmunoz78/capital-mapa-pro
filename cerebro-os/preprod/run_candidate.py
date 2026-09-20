@@ -107,6 +107,34 @@ def run_persistent_representative_validation() -> None:
                 "mode": "persistent_candidate",
                 "representative_cases": 3,
                 "domain_coverage": "12/12",
+                "remote_onboarding_rehearsal": "PASS",
+                "remote_onboarding_rehearsal_synthetic": True,
+                "external_writes": False,
+                "app_crm_access": False,
+                "prod_credentials": False,
+                "customer_data": False,
+            },
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+
+
+def run_remote_onboarding_rehearsal_validation() -> None:
+    run_test_discovery(
+        "test_remote_company_e2e_rehearsal_v0.py",
+        "persistent PREPROD remote onboarding E2E rehearsal failed",
+    )
+    print(
+        json.dumps(
+            {
+                "marker": "PERSISTENT_REMOTE_ONBOARDING_REHEARSAL_PASS",
+                "status": "PASS",
+                "environment": "PREPROD",
+                "mode": "persistent_candidate",
+                "synthetic_rehearsal": True,
+                "browser_bridge_used": False,
+                "computer_use_performed": False,
                 "external_writes": False,
                 "app_crm_access": False,
                 "prod_credentials": False,
@@ -153,6 +181,7 @@ def emit_persistent_observability_probe() -> None:
 
 def run_persistent_candidate() -> int:
     run_persistent_representative_validation()
+    run_remote_onboarding_rehearsal_validation()
     emit_persistent_observability_probe()
     port = int(os.getenv("PORT", "8080"))
 
@@ -171,6 +200,8 @@ def run_persistent_candidate() -> int:
                     "representative_validation": "PASS",
                     "representative_cases": 3,
                     "domain_coverage": "12/12",
+                    "remote_onboarding_rehearsal": "PASS",
+                    "remote_onboarding_rehearsal_synthetic": True,
                     "external_writes": False,
                     "app_crm_access": False,
                     "prod_credentials": False,
