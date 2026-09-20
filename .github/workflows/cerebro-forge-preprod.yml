@@ -164,6 +164,63 @@ jobs:
           echo "IMAGE_DIGEST=$EXPECTED_DIGEST" >> "$GITHUB_ENV"
           echo "Persistent PREPROD revision: $REVISION"
 
+      - name: Verify persistent remote onboarding rehearsal evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p forge-evidence
+          FILTER="resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"\${SERVICE_NAME}\" AND resource.labels.revision_name=\"\${REVISION}\" AND jsonPayload.marker=\"PERSISTENT_REMOTE_ONBOARDING_REHEARSAL_PASS\""
+          for attempt in $(seq 1 12); do
+            gcloud logging read "$FILTER" --limit=20 --format=json > /tmp/preprod-remote-rehearsal.json
+            if python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          rows = json.loads(Path('/tmp/preprod-remote-rehearsal.json').read_text(encoding='utf-8') or '[]')
+          payloads = [row.get('jsonPayload') or {} for row in rows]
+          valid = [
+              payload for payload in payloads
+              if payload.get('marker') == 'PERSISTENT_REMOTE_ONBOARDING_REHEARSAL_PASS'
+              and payload.get('status') == 'PASS'
+              and payload.get('environment') == 'PREPROD'
+              and payload.get('synthetic_rehearsal') is True
+              and payload.get('browser_bridge_used') is False
+              and payload.get('computer_use_performed') is False
+              and payload.get('external_writes') is False
+              and payload.get('app_crm_access') is False
+              and payload.get('prod_credentials') is False
+              and payload.get('customer_data') is False
+          ]
+          if not valid:
+              print('Waiting for persistent remote onboarding rehearsal evidence')
+              raise SystemExit(1)
+          evidence = {
+              'marker': 'PERSISTENT_REMOTE_ONBOARDING_REHEARSAL_PASS',
+              'environment': 'PREPROD',
+              'revision': os.environ['REVISION'],
+              'synthetic_rehearsal': True,
+              'browser_bridge_used': False,
+              'computer_use_performed': False,
+              'external_writes': False,
+              'prod_claimed': False,
+          }
+          Path('forge-evidence/preprod-remote-onboarding-rehearsal.json').write_text(
+              json.dumps(evidence, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+          print(json.dumps(evidence, sort_keys=True))
+          PY
+            then
+              break
+            fi
+            if [ "$attempt" -eq 12 ]; then
+              echo "Persistent remote onboarding rehearsal evidence did not become visible"
+              exit 1
+            fi
+            sleep 5
+          done
+
       - name: Verify persistent PREPROD observability coverage
         shell: bash
         run: |
@@ -244,6 +301,10 @@ jobs:
             echo "app_crm_access=disabled"
             echo "prod_credentials=disabled"
             echo "customer_data=disabled"
+            echo "remote_onboarding_rehearsal=PASS"
+            echo "remote_onboarding_rehearsal_synthetic=true"
+            echo "browser_bridge_used=false"
+            echo "computer_use_performed=false"
             echo "github_sha=$GITHUB_SHA"
           } > forge-evidence/preprod-deployment.txt
 
