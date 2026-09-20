@@ -3,13 +3,16 @@ from __future__ import annotations
 from runtime.onboarding_queue import OnboardingQueue
 
 class OnboardingQueueEngine:
-    def __init__(self,queue:OnboardingQueue,now_epoch_provider):
+    def __init__(self,queue:OnboardingQueue,now_epoch_provider,context_loader=None):
         if not isinstance(queue,OnboardingQueue):
             raise ValueError("OnboardingQueue required")
         if not callable(now_epoch_provider):
             raise ValueError("now_epoch_provider must be callable")
+        if context_loader is not None and not callable(context_loader):
+            raise ValueError("context_loader must be callable")
         self.queue=queue
         self.now_epoch_provider=now_epoch_provider
+        self.context_loader=context_loader
 
     def execute(self,command:dict,routed:dict)->dict:
         company_id=str(command.get("company_id","")).strip()
@@ -33,6 +36,14 @@ class OnboardingQueueEngine:
         context_id=str(command.get("context_id") or "").strip()
         if context_id:
             context["console_context_ref"]=context_id
+        if self.context_loader is not None:
+            loaded=self.context_loader(company_id,context_id,dict(command))
+            if not isinstance(loaded,dict):
+                raise ValueError("onboarding context_loader must return object")
+            if str(loaded.get("company_id",company_id))!=company_id:
+                raise ValueError("cross-company onboarding context denied")
+            loaded={k:v for k,v in loaded.items() if k!="company_id"}
+            context={**context,**loaded}
         payload={
           "company_id":company_id,
           "version":version,
