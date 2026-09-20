@@ -130,6 +130,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          set +e
           gcloud run deploy "$SERVICE_NAME" \
             --image="$IMAGE" \
             --region="$REGION" \
@@ -145,6 +146,31 @@ jobs:
             --timeout=300 \
             --set-env-vars=CEREBRO_ENV=PREPROD,CEREBRO_PREPROD_MODE=persistent_candidate,CEREBRO_EXTERNAL_WRITES=disabled,CEREBRO_APP_CRM_ACCESS=disabled,CEREBRO_PROD_CREDENTIALS=disabled,CEREBRO_CUSTOMER_DATA=disabled \
             --quiet
+          DEPLOY_RC=$?
+          set -e
+          if [ "$DEPLOY_RC" -ne 0 ]; then
+            echo "Cloud Run deploy failed; collecting revision diagnostics"
+            FAILED_REVISION="$(gcloud run revisions list \
+              --service="$SERVICE_NAME" \
+              --region="$REGION" \
+              --sort-by='~metadata.creationTimestamp' \
+              --limit=1 \
+              --format='value(metadata.name)' || true)"
+            echo "FAILED_REVISION=$FAILED_REVISION"
+            if [ -n "$FAILED_REVISION" ]; then
+              gcloud run revisions describe "$FAILED_REVISION" \
+                --region="$REGION" \
+                --format=json > /tmp/failed-revision.json || true
+              cat /tmp/failed-revision.json || true
+              gcloud logging read \
+                "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"$SERVICE_NAME\" AND resource.labels.revision_name=\"$FAILED_REVISION\"" \
+                --limit=100 \
+                --order=asc \
+                --format=json > /tmp/failed-revision-logs.json || true
+              cat /tmp/failed-revision-logs.json || true
+            fi
+            exit "$DEPLOY_RC"
+          fi
 
       - name: Verify revision and isolation contract
         shell: bash
