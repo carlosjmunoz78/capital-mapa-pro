@@ -47,12 +47,13 @@ class ConsoleHttpSurface:
         access_reader: Callable[[str], tuple[dict, ...]] | None = None,
         onboarding_reader: Callable[[], dict] | None = None,
         onboarding_company_reader: Callable[[str], tuple[dict, ...]] | None = None,
+        onboarding_remote_reader: Callable[[str], tuple[dict, ...]] | None = None,
     ):
         if not isinstance(pipeline, ConsolePipeline):
             raise ValueError("ConsoleHttpSurface requires ConsolePipeline")
         if not callable(company_reader):
             raise ValueError("company_reader must be callable")
-        readers = (context_reader, engine_reader, history_reader, audit_reader, access_reader, onboarding_company_reader)
+        readers = (context_reader, engine_reader, history_reader, audit_reader, access_reader, onboarding_company_reader, onboarding_remote_reader)
         if any(reader is not None and not callable(reader) for reader in readers):
             raise ValueError("optional console readers must be callable")
         if onboarding_reader is not None and not callable(onboarding_reader):
@@ -66,6 +67,7 @@ class ConsoleHttpSurface:
         self.access_reader = access_reader or (lambda _company_id: ())
         self.onboarding_reader = onboarding_reader or (lambda: {})
         self.onboarding_company_reader = onboarding_company_reader or (lambda _company_id: ())
+        self.onboarding_remote_reader = onboarding_remote_reader or (lambda _company_id: ())
 
     def handle(self, *, method: str, path: str, user_id: str, payload: dict | None = None) -> HttpResponse:
         method = method.upper().strip()
@@ -87,6 +89,24 @@ class ConsoleHttpSurface:
             )
             safe = {key: row.get(key) for key in allowed if key in row}
             return _json_response(200, {"ok": True, "onboarding": safe})
+
+        if method == "GET" and path.startswith("/onboarding/remote/"):
+            company_id=path[len("/onboarding/remote/"):].strip("/")
+            if not company_id:
+                return _json_response(400, {"ok": False, "error": "company_id_required"})
+            rows=tuple(self.onboarding_remote_reader(company_id))
+            allowed=(
+                "request_id","status","classification","current_phase","remotely_actionable",
+                "local_pc_required","remote_prefill_green_count","remote_prefill_total",
+                "remote_prefill_remaining","next_action","human_reason","stop_reason",
+                "environment","version",
+            )
+            safe=tuple(
+                {key:row.get(key) for key in allowed if key in row}
+                for row in rows
+                if isinstance(row,dict) and row.get("company_id",company_id)==company_id
+            )
+            return _json_response(200, {"ok": True, "company_id": company_id, "items": safe})
 
         if method == "GET" and path.startswith("/onboarding/company/"):
             company_id=path[len("/onboarding/company/"):].strip("/")
