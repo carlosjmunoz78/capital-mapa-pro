@@ -91,6 +91,38 @@ jobs:
             -e CEREBRO_CUSTOMER_DATA=disabled \
             "$IMAGE"
 
+      - name: Persistent candidate startup smoke before push
+        shell: bash
+        run: |
+          set -euo pipefail
+          CID="$(docker run -d             --network none             --read-only             --tmpfs /tmp:rw,nosuid,nodev,noexec,size=128m             --cap-drop ALL             --security-opt no-new-privileges             -e CEREBRO_ENV=PREPROD             -e CEREBRO_PREPROD_MODE=persistent_candidate             -e CEREBRO_EXTERNAL_WRITES=disabled             -e CEREBRO_APP_CRM_ACCESS=disabled             -e CEREBRO_PROD_CREDENTIALS=disabled             -e CEREBRO_CUSTOMER_DATA=disabled             -e PORT=8080             "$IMAGE")"
+          cleanup() {
+            docker logs "$CID" || true
+            docker rm -f "$CID" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if ! docker inspect "$CID" --format '{{.State.Running}}' | grep -q true; then
+              echo "Persistent candidate exited before readiness"
+              exit 1
+            fi
+            if docker exec "$CID" python - <<'PY'
+          import urllib.request
+          with urllib.request.urlopen('http://127.0.0.1:8080/ready', timeout=1) as response:
+              if response.status != 200:
+                  raise SystemExit(1)
+          PY
+            then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" = "1"
+          trap - EXIT
+          cleanup
+
       - name: Push image
         run: docker push "$IMAGE"
 
