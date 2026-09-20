@@ -165,6 +165,70 @@ class ConsoleLiveRuntimeTests(unittest.TestCase):
         self.assertEqual(row["remote_prefill_remaining"],8)
 
 
+    def test_console_onboarding_can_load_remote_safe_company_context(self):
+        queue_path=Path(self.tmp.name)/"context-loader-queue.sqlite3"
+        seen=[]
+        def loader(company_id,context_id,command):
+            seen.append((company_id,context_id,command["request_id"]))
+            return {
+              "company_id":"fenix",
+              "company_profile":{"legal_name":"Fenix Test","evidence_ref":"doc://company"},
+              "access_requirements":[{"capability":"crm","purpose":"sales","provider":"existing","required":True}],
+              "existing_accounts":[],"existing_connectors":[],"session_observations":[],"domains":[],
+            }
+        runtime=build_console_runtime(
+            queue_path=queue_path,
+            now_epoch_provider=lambda:100,
+            onboarding_context_loader=loader,
+            company_reader=lambda:({"company_id":"fenix","name":"Fenix","status":"ACTIVE"},),
+        )
+        response=runtime.surface.handle(
+            method="POST",path="/commands",user_id="CARLOS",
+            payload={
+              "request_id":"req-context","company_id":"fenix","context_type":"company","context_id":"company:fenix",
+              "message":"crear empresa","environment":"LAB","version":"1.0.0",
+            },
+        )
+        self.assertEqual(response.status,200)
+        item=runtime.queue.get("req-context")
+        self.assertEqual(item.payload["context"]["company_profile"]["legal_name"],"Fenix Test")
+        self.assertEqual(item.payload["context"]["console_context_ref"],"company:fenix")
+        self.assertEqual(seen,[("fenix","company:fenix","req-context")])
+
+    def test_console_onboarding_context_loader_denies_cross_company_context(self):
+        runtime=build_console_runtime(
+            queue_path=Path(self.tmp.name)/"cross-context.sqlite3",
+            now_epoch_provider=lambda:100,
+            onboarding_context_loader=lambda company_id,context_id,command:{"company_id":"aion"},
+        )
+        response=runtime.surface.handle(
+            method="POST",path="/commands",user_id="CARLOS",
+            payload={
+              "request_id":"req-cross","company_id":"fenix","context_type":"company",
+              "message":"crear empresa","environment":"LAB","version":"1.0.0",
+            },
+        )
+        self.assertEqual(response.status,400)
+        self.assertEqual(response.body["error"],"invalid_command")
+        self.assertIsNone(runtime.queue.get("req-cross"))
+
+    def test_console_onboarding_context_loader_raw_secret_is_rejected_by_queue(self):
+        runtime=build_console_runtime(
+            queue_path=Path(self.tmp.name)/"secret-context.sqlite3",
+            now_epoch_provider=lambda:100,
+            onboarding_context_loader=lambda company_id,context_id,command:{"password":"never-store"},
+        )
+        response=runtime.surface.handle(
+            method="POST",path="/commands",user_id="CARLOS",
+            payload={
+              "request_id":"req-secret","company_id":"fenix","context_type":"company",
+              "message":"crear empresa","environment":"LAB","version":"1.0.0",
+            },
+        )
+        self.assertEqual(response.status,400)
+        self.assertIsNone(runtime.queue.get("req-secret"))
+
+
     def test_wsgi_requires_trusted_identity_and_can_queue_when_remote_user_exists(self):
         app=wsgi_app(self.runtime.surface)
         calls=[]
