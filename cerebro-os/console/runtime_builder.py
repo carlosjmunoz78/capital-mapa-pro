@@ -41,6 +41,7 @@ def build_console_runtime(
     history_reader=None,
     access_reader=None,
     store_path:str|Path|None=None,
+    onboarding_context_loader=None,
 )->ConsoleRuntime:
     if not callable(now_epoch_provider):
         raise ValueError("now_epoch_provider must be callable")
@@ -49,7 +50,7 @@ def build_console_runtime(
     store=ConsoleStore(store_path or queue_path.with_name("console.sqlite3"))
     audits:list[dict]=[]
     dispatcher=EngineDispatcher()
-    onboarding=OnboardingQueueEngine(queue,now_epoch_provider)
+    onboarding=OnboardingQueueEngine(queue,now_epoch_provider,onboarding_context_loader)
     dispatcher.register("COMP-ONB-001",onboarding.execute)
 
     def gateway(command:dict)->dict:
