@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT/"cerebro-os"))
+sys.path.insert(0,str(ROOT))
 
 from jobs.run_remote_company_rehearsal import run_remote_company_rehearsal
 
