@@ -227,7 +227,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p forge-evidence
-          FILTER="resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"\${SERVICE_NAME}\" AND resource.labels.revision_name=\"\${REVISION}\" AND jsonPayload.marker=\"PERSISTENT_REMOTE_ONBOARDING_REHEARSAL_PASS\""
+          FILTER="resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${SERVICE_NAME}\" AND resource.labels.revision_name=\"${REVISION}\" AND jsonPayload.marker=\"PERSISTENT_REMOTE_ONBOARDING_REHEARSAL_PASS\""
           for attempt in $(seq 1 12); do
             gcloud logging read "$FILTER" --limit=20 --format=json > /tmp/preprod-remote-rehearsal.json
             if python - <<'PY'
