@@ -21,6 +21,7 @@ except ImportError:
 
 from runtime.onboarding_queue import OnboardingQueue
 from jobs.build_onboarding_worker_health import evaluate_worker_health
+from jobs.assess_remote_onboarding_gaps import assess_remote_onboarding_gaps
 
 @dataclass
 class ConsoleRuntime:
@@ -106,6 +107,20 @@ def build_console_runtime(
             })
         return tuple(rows)
 
+    def onboarding_remote_reader(company_id:str)->tuple[dict,...]:
+        rows=[]
+        for item in queue.by_company(company_id):
+            result=item.last_result
+            if not isinstance(result,dict):
+                continue
+            assessed=assess_remote_onboarding_gaps(result)
+            rows.append({
+              "company_id":company_id,
+              "request_id":item.request_id,
+              **assessed,
+            })
+        return tuple(rows)
+
     surface=ConsoleHttpSurface(
         pipeline,
         company_reader or (lambda: ()),
@@ -116,5 +131,6 @@ def build_console_runtime(
         access_reader=access_reader,
         onboarding_reader=onboarding_reader,
         onboarding_company_reader=onboarding_company_reader,
+        onboarding_remote_reader=onboarding_remote_reader,
     )
     return ConsoleRuntime(surface=surface,queue=queue,audits=audits,dispatcher=dispatcher,store=store)
