@@ -136,6 +136,35 @@ class ConsoleLiveRuntimeTests(unittest.TestCase):
         ).body["items"],())
 
 
+    def test_remote_gap_endpoint_reports_what_can_continue_without_local_pc(self):
+        queue_path=Path(self.tmp.name)/"remote-gap-queue.sqlite3"
+        runtime=build_console_runtime(
+            queue_path=queue_path,
+            now_epoch_provider=lambda:100,
+            company_reader=lambda:({"company_id":"fenix","name":"Fenix","status":"ACTIVE"},),
+        )
+        runtime.queue.enqueue(
+            request_id="req-gap",company_id="fenix",version="1.0.0",now_epoch=100,
+            payload={"company_id":"fenix","version":"1.0.0"},
+        )
+        runtime.queue.complete(
+            request_id="req-gap",status="WAITING",now_epoch=101,
+            result={
+              "company_id":"fenix","version":"1.0.0","status":"WAITING",
+              "state":{"company_id":"fenix","environment":"LAB","current_phase":"SCAN_DIGITAL_FOOTPRINT"},
+              "remote_prefill":{"engine_count":13,"green_engine_count":5},
+              "executor_stop_reason":"ENGINE_RESULT_MISSING",
+            },
+        )
+        response=runtime.surface.handle(method="GET",path="/onboarding/remote/fenix",user_id="CARLOS")
+        self.assertEqual(response.status,200)
+        row=response.body["items"][0]
+        self.assertEqual(row["classification"],"REMOTE_SAFE")
+        self.assertTrue(row["remotely_actionable"])
+        self.assertFalse(row["local_pc_required"])
+        self.assertEqual(row["remote_prefill_remaining"],8)
+
+
     def test_wsgi_requires_trusted_identity_and_can_queue_when_remote_user_exists(self):
         app=wsgi_app(self.runtime.surface)
         calls=[]
