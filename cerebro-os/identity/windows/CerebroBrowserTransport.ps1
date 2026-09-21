@@ -9,7 +9,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$TransportVersion = "1.4.0"
+$TransportVersion = "1.4.1"
 $GatewayBase = "https://hnqlnvakzaywtafeiybt.supabase.co/functions/v1/cerebro-device-gateway-preprod"
 $BridgeBase = "http://127.0.0.1:$BridgePort"
 $Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
@@ -18,7 +18,7 @@ $CredentialPath = Join-Path $RuntimeDir "transport-$TransportVersion.json"
 $LogPath = Join-Path $RuntimeDir "transport-$TransportVersion.log"
 
 $createdNew = $false
-$mutex = New-Object System.Threading.Mutex($true, "Local\CEREBROBrowserTransportV140", [ref]$createdNew)
+$mutex = New-Object System.Threading.Mutex($true, "Local\CEREBROBrowserTransportV141", [ref]$createdNew)
 if (-not $createdNew) { exit 0 }
 
 function Log([string]$Message) {
