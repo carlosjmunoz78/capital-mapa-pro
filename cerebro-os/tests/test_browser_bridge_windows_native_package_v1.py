@@ -35,5 +35,15 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertIn('Perfil del navegador',service)
         self.assertNotIn('type="password"',service.lower())
 
+    def test_local_chrome_discovery_is_metadata_only(self):
+        service=(WIN/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
+        self.assertIn('Discover-Chrome',service)
+        self.assertIn('profile_directory',service)
+        self.assertIn('display_name',service)
+        self.assertIn('browser_discovery_status',service)
+        self.assertNotIn('Cookies',service)
+        self.assertNotIn('Login Data',service)
+        self.assertNotIn('Web Data',service)
+
 if __name__=="__main__":
     unittest.main()

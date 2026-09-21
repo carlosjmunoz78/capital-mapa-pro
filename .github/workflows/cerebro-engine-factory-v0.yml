@@ -89,6 +89,30 @@ jobs:
           assert payload["profile_id"]=="chrome-default", payload
           assert payload["environment"]=="LAB", payload
           PY
+          mkdir -p "$tmpdir/chrome/Default" "$tmpdir/chrome/Profile 1"
+          cat > "$tmpdir/chrome/Local State" <<'JSON'
+          {"profile":{"last_used":"Profile 1","info_cache":{"Default":{"name":"Persona 1"},"Profile 1":{"name":"Trabajo"}}}}
+          JSON
+          cleanup
+          CEREBRO_CHROME_USER_DATA_DIR="$tmpdir/chrome" pwsh -NoProfile -File cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1 -Port "$port" -StatePath "$tmpdir/state2.json" >"$tmpdir/stdout2.log" 2>"$tmpdir/stderr2.log" &
+          pid=$!
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent "http://127.0.0.1:${port}/health" >/dev/null; then ready=1; break; fi
+            sleep 0.2
+          done
+          test "$ready" = "1"
+          curl --fail --silent "http://127.0.0.1:${port}/discover" >"$tmpdir/discover.html"
+          grep -q "Deteccion local de Chrome completada" "$tmpdir/discover.html"
+          curl --fail --silent "http://127.0.0.1:${port}/health" >"$tmpdir/health3.json"
+          python - "$tmpdir/health3.json" <<'PY'
+          import json,sys
+          payload=json.load(open(sys.argv[1],encoding="utf-8-sig"))
+          assert payload["browser_discovery_status"]=="GREEN", payload
+          assert payload["chrome_last_used_profile"]=="Profile 1", payload
+          dirs={x["profile_directory"] for x in payload["chrome_profiles"]}
+          assert dirs=={"Default","Profile 1"}, payload
+          PY
           trap - EXIT
           cleanup
 

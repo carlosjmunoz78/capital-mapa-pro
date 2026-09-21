@@ -33,6 +33,11 @@ function Get-DefaultState {
         pid = $PID
         cloud_transport_configured = $false
         cloud_transport_status = "NOT_CONFIGURED"
+        chrome_running = $false
+        chrome_user_data_dir = ""
+        chrome_profiles = @()
+        chrome_last_used_profile = ""
+        browser_discovery_status = "NOT_RUN"
     }
 }
 
@@ -57,7 +62,9 @@ function Read-State {
             foreach ($key in @(
                 "device_id","company_id","profile_id","browser_family","environment","version",
                 "paired","online","kill_switch_enabled","last_seen_at",
-                "cloud_transport_configured","cloud_transport_status"
+                "cloud_transport_configured","cloud_transport_status",
+                "chrome_running","chrome_user_data_dir","chrome_profiles",
+                "chrome_last_used_profile","browser_discovery_status"
             )) {
                 if ($null -ne $raw.$key) { $state[$key] = $raw.$key }
             }
@@ -113,7 +120,84 @@ function Public-State([System.Collections.IDictionary]$State) {
         last_seen_at = [int64]$State["last_seen_at"]
         cloud_transport_configured = [bool]$State["cloud_transport_configured"]
         cloud_transport_status = $State["cloud_transport_status"]
+        chrome_running = [bool]$State["chrome_running"]
+        chrome_user_data_dir = $State["chrome_user_data_dir"]
+        chrome_profiles = @($State["chrome_profiles"])
+        chrome_last_used_profile = $State["chrome_last_used_profile"]
+        browser_discovery_status = $State["browser_discovery_status"]
     }
+}
+
+function Get-ChromeUserDataDir {
+    if ($env:CEREBRO_CHROME_USER_DATA_DIR) {
+        return $env:CEREBRO_CHROME_USER_DATA_DIR
+    }
+    if ($env:LOCALAPPDATA) {
+        return (Join-Path $env:LOCALAPPDATA "Google\Chrome\User Data")
+    }
+    return ""
+}
+
+function Discover-Chrome([System.Collections.IDictionary]$State) {
+    $userData = Get-ChromeUserDataDir
+    $profiles = @()
+    $lastUsed = ""
+
+    try {
+        $State["chrome_running"] = @((Get-Process chrome -ErrorAction SilentlyContinue)).Count -gt 0
+    } catch {
+        $State["chrome_running"] = $false
+    }
+
+    $State["chrome_user_data_dir"] = $userData
+    if ([string]::IsNullOrWhiteSpace($userData) -or -not (Test-Path $userData)) {
+        $State["chrome_profiles"] = @()
+        $State["chrome_last_used_profile"] = ""
+        $State["browser_discovery_status"] = "CHROME_USER_DATA_NOT_FOUND"
+        return $State
+    }
+
+    $localStatePath = Join-Path $userData "Local State"
+    if (Test-Path $localStatePath) {
+        try {
+            $localState = Get-Content -Raw -LiteralPath $localStatePath -Encoding UTF8 | ConvertFrom-Json
+            if ($localState.profile.last_used) {
+                $lastUsed = [string]$localState.profile.last_used
+            }
+            if ($localState.profile.info_cache) {
+                foreach ($prop in $localState.profile.info_cache.PSObject.Properties) {
+                    $directory = [string]$prop.Name
+                    $displayName = [string]$prop.Value.name
+                    $profiles += [ordered]@{
+                        profile_directory = $directory
+                        display_name = $displayName
+                        directory_exists = [bool](Test-Path (Join-Path $userData $directory))
+                    }
+                }
+            }
+        } catch {
+            $State["browser_discovery_status"] = "LOCAL_STATE_PARSE_FAILED"
+            $State["chrome_profiles"] = @()
+            $State["chrome_last_used_profile"] = ""
+            return $State
+        }
+    }
+
+    if ($profiles.Count -eq 0) {
+        foreach ($candidate in @("Default") + @(Get-ChildItem -LiteralPath $userData -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "Profile *" } | Select-Object -ExpandProperty Name)) {
+            if ([string]::IsNullOrWhiteSpace([string]$candidate)) { continue }
+            $profiles += [ordered]@{
+                profile_directory = [string]$candidate
+                display_name = [string]$candidate
+                directory_exists = [bool](Test-Path (Join-Path $userData $candidate))
+            }
+        }
+    }
+
+    $State["chrome_profiles"] = @($profiles)
+    $State["chrome_last_used_profile"] = $lastUsed
+    $State["browser_discovery_status"] = if ($profiles.Count -gt 0) { "GREEN" } else { "NO_PROFILES_FOUND" }
+    return $State
 }
 
 function Render-Page([System.Collections.IDictionary]$State, [string]$Message = "") {
@@ -146,10 +230,11 @@ $messageHtml
 <label>Perfil del navegador <input name="profile_id" value="$(Html $profile)"></label>
 <label>Navegador <select name="browser_family"><option>CHROME</option><option>EDGE</option></select></label>
 <label>Entorno <select name="environment"><option>LAB</option><option>PREPROD</option></select></label>
-<label>Versión <input name="version" value="$(Html $version)"></label>
+<label>Version <input name="version" value="$(Html $version)"></label>
 <button type="submit">Emparejar este PC</button></form>
+<p><a href="/discover">Detectar perfiles de Chrome en este PC</a></p>
 <table>$rows</table>
-<p class="warn">No guarda contraseñas ni tokens. El transporte cloud permanece cerrado hasta validarlo explícitamente.</p>
+<p class="warn">No guarda contrasenas ni tokens. El transporte cloud permanece cerrado hasta validarlo explicitamente.</p>
 </main></body></html>
 "@
 }
@@ -208,6 +293,12 @@ try {
                 Send-Response $stream 200 "application/json; charset=utf-8" ($payload | ConvertTo-Json -Compress)
                 continue
             }
+            if ($path -eq "/discover") {
+                $state = Discover-Chrome $state
+                Write-State $state
+                Send-Response $stream 200 "text/html; charset=utf-8" (Render-Page $state "Deteccion local de Chrome completada.")
+                continue
+            }
             if ($path -eq "/pair") {
                 $form = Parse-Query $query
                 $company = [string]$form["company_id"]; $profile = [string]$form["profile_id"]
@@ -233,7 +324,7 @@ try {
                 $state["cloud_transport_configured"]=$false; $state["cloud_transport_status"]="NOT_CONFIGURED"
                 $state["last_seen_at"]=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
                 Write-State $state
-                Send-Response $stream 200 "text/html; charset=utf-8" (Render-Page $state "PC emparejado localmente. Mantén CEREBRO activo.")
+                Send-Response $stream 200 "text/html; charset=utf-8" (Render-Page $state "PC emparejado localmente. Manten CEREBRO activo.")
                 continue
             }
             if ($path -eq "/" -or $path -eq "/index.html") {
