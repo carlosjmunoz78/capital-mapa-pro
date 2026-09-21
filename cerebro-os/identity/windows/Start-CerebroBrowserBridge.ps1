@@ -1,9 +1,9 @@
 $ErrorActionPreference = "Stop"
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ServiceCandidates = @(
-    (Join-Path $ScriptDir "browser_bridge_local_service.py"),
-    (Join-Path (Resolve-Path (Join-Path $ScriptDir "..")) "browser_bridge_local_service.py")
+    (Join-Path $ScriptDir "CerebroBrowserBridgeService.ps1"),
+    (Join-Path (Resolve-Path (Join-Path $ScriptDir "..")) "windows\CerebroBrowserBridgeService.ps1")
 )
 $Service = $null
 foreach ($Candidate in $ServiceCandidates) {
@@ -12,24 +12,34 @@ foreach ($Candidate in $ServiceCandidates) {
         break
     }
 }
+
+function Show-BridgeError([string]$Message) {
+    try {
+        Add-Type -AssemblyName PresentationFramework
+        [System.Windows.MessageBox]::Show($Message, "CEREBRO Browser Bridge") | Out-Null
+    } catch {
+        Write-Host $Message
+    }
+}
+
 if (-not $Service) {
-    Add-Type -AssemblyName PresentationFramework
-    [System.Windows.MessageBox]::Show(
-      "No se encuentra browser_bridge_local_service.py junto al launcher ni en la carpeta esperada.",
-      "CEREBRO Browser Bridge"
-    ) | Out-Null
+    Show-BridgeError "Falta CerebroBrowserBridgeService.ps1 en el paquete. No se ha iniciado nada."
     exit 5
 }
-$BridgeRoot = Split-Path -Parent $Service
 
-function Find-Python {
-    if (Get-Command py -ErrorAction SilentlyContinue) { return @("py","-3") }
-    if (Get-Command python -ErrorAction SilentlyContinue) { return @("python") }
-    return $null
+$Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
+$RuntimeDir = Join-Path $Base "CEREBRO\browser-bridge"
+New-Item -ItemType Directory -Path $RuntimeDir -Force | Out-Null
+$StdoutLog = Join-Path $RuntimeDir "service.stdout.log"
+$StderrLog = Join-Path $RuntimeDir "service.stderr.log"
+$LauncherLog = Join-Path $RuntimeDir "launcher.log"
+
+function Write-LauncherLog([string]$Message) {
+    $line = "$(Get-Date -Format o) $Message"
+    Add-Content -LiteralPath $LauncherLog -Value $line -Encoding UTF8
 }
 
-function Test-CerebroBridge {
-    param([int]$Port)
+function Test-CerebroBridge([int]$Port) {
     try {
         $resp = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$Port/health" -TimeoutSec 1
         if ($resp.StatusCode -ne 200) { return $false }
@@ -40,10 +50,9 @@ function Test-CerebroBridge {
     }
 }
 
-function Test-PortFree {
-    param([int]$Port)
+function Test-PortFree([int]$Port) {
     try {
-        $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback,$Port)
+        $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $Port)
         $listener.Start()
         $listener.Stop()
         return $true
@@ -52,70 +61,66 @@ function Test-PortFree {
     }
 }
 
-$Python = Find-Python
-if (-not $Python) {
-    Add-Type -AssemblyName PresentationFramework
-    [System.Windows.MessageBox]::Show(
-      "No se ha encontrado Python 3 en este PC. CEREBRO Browser Bridge no se ha iniciado.",
-      "CEREBRO Browser Bridge"
-    ) | Out-Null
-    exit 2
-}
-
 $RequestedPort = if ($env:CEREBRO_BRIDGE_PORT) { [int]$env:CEREBRO_BRIDGE_PORT } else { 8765 }
 $Port = $RequestedPort
 
-if (Test-CerebroBridge -Port $Port) {
+if (Test-CerebroBridge $Port) {
+    Write-LauncherLog "Reusing existing CEREBRO Bridge on port $Port"
     Start-Process "http://127.0.0.1:$Port/"
     exit 0
 }
 
-if (-not (Test-PortFree -Port $Port)) {
+if (-not (Test-PortFree $Port)) {
     $Found = $false
     foreach ($Candidate in 8766..8785) {
-        if (Test-CerebroBridge -Port $Candidate) {
+        if (Test-CerebroBridge $Candidate) {
+            Write-LauncherLog "Reusing existing CEREBRO Bridge on port $Candidate"
             Start-Process "http://127.0.0.1:$Candidate/"
             exit 0
         }
-        if (Test-PortFree -Port $Candidate) {
+        if (Test-PortFree $Candidate) {
             $Port = $Candidate
             $Found = $true
             break
         }
     }
     if (-not $Found) {
-        Add-Type -AssemblyName PresentationFramework
-        [System.Windows.MessageBox]::Show(
-          "No hay un puerto local libre entre 8765 y 8785. CEREBRO no ha modificado ningun otro servicio.",
-          "CEREBRO Browser Bridge"
-        ) | Out-Null
+        Show-BridgeError "No hay un puerto local libre entre 8765 y 8785. CEREBRO no ha modificado otros servicios."
         exit 4
     }
 }
 
-$env:CEREBRO_BRIDGE_PORT = [string]$Port
-$Args = @()
-if ($Python.Count -gt 1) { $Args += $Python[1] }
-$Args += @($Service)
+$PowerShellExe = Join-Path $PSHOME "powershell.exe"
+if (-not (Test-Path $PowerShellExe)) { $PowerShellExe = "powershell.exe" }
 
-$Exe = $Python[0]
-$WorkDir = Split-Path -Parent $BridgeRoot
-$Process = Start-Process -FilePath $Exe -ArgumentList $Args -WorkingDirectory $WorkDir -WindowStyle Hidden -PassThru
+Remove-Item -LiteralPath $StdoutLog -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $StderrLog -Force -ErrorAction SilentlyContinue
+
+$ArgumentLine = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $Service + '" -Port ' + $Port
+Write-LauncherLog "Starting native PowerShell Bridge on port $Port"
+$Process = Start-Process -FilePath $PowerShellExe -ArgumentList $ArgumentLine -WindowStyle Hidden -RedirectStandardOutput $StdoutLog -RedirectStandardError $StderrLog -PassThru
 
 $Ready = $false
-for ($i=0; $i -lt 30; $i++) {
-    Start-Sleep -Milliseconds 200
+for ($i = 0; $i -lt 40; $i++) {
+    Start-Sleep -Milliseconds 250
     if ($Process.HasExited) { break }
-    if (Test-CerebroBridge -Port $Port) { $Ready = $true; break }
+    if (Test-CerebroBridge $Port) {
+        $Ready = $true
+        break
+    }
 }
 
 if (-not $Ready) {
-    Add-Type -AssemblyName PresentationFramework
-    [System.Windows.MessageBox]::Show(
-      "El servicio local no ha podido arrancar. No se ha tocado PROD ni se han enviado credenciales.",
-      "CEREBRO Browser Bridge"
-    ) | Out-Null
+    $stderr = ""
+    if (Test-Path $StderrLog) {
+        $stderr = (Get-Content -Raw -LiteralPath $StderrLog -ErrorAction SilentlyContinue)
+    }
+    $summary = if ($stderr) { ($stderr -split "\r?\n" | Select-Object -First 4) -join " " } else { "sin detalle adicional" }
+    Write-LauncherLog "FAILED: $summary"
+    $nl = [Environment]::NewLine
+    Show-BridgeError ("El servicio local no ha podido arrancar. Detalle: " + $summary + $nl + $nl + "Registro: " + $LauncherLog)
     exit 3
 }
 
+Write-LauncherLog "READY on http://127.0.0.1:$Port/"
 Start-Process "http://127.0.0.1:$Port/"
