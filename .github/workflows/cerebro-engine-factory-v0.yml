@@ -34,7 +34,8 @@ jobs:
           pwsh -NoProfile -Command '& {
             $files = @(
               "cerebro-os/identity/windows/Start-CerebroBrowserBridge.ps1",
-              "cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1"
+              "cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1",
+              "cerebro-os/identity/windows/CerebroBrowserTransport.ps1"
             )
             foreach ($file in $files) {
               $tokens = $null
@@ -48,7 +49,7 @@ jobs:
           }'
           tmpdir="$(mktemp -d)"
           port=18765
-          pwsh -NoProfile -File cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1 -Port "$port" -StatePath "$tmpdir/state.json" >"$tmpdir/stdout.log" 2>"$tmpdir/stderr.log" &
+          pwsh -NoProfile -File cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1 -Port "$port" -StatePath "$tmpdir/state.json" -TransportKey "ci-test-key" >"$tmpdir/stdout.log" 2>"$tmpdir/stderr.log" &
           pid=$!
           cleanup() { kill "$pid" >/dev/null 2>&1 || true; }
           trap cleanup EXIT
@@ -94,7 +95,7 @@ jobs:
           {"profile":{"last_used":"Profile 1","info_cache":{"Default":{"name":"Persona 1"},"Profile 1":{"name":"Trabajo"}}}}
           JSON
           cleanup
-          CEREBRO_CHROME_USER_DATA_DIR="$tmpdir/chrome" pwsh -NoProfile -File cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1 -Port "$port" -StatePath "$tmpdir/state2.json" >"$tmpdir/stdout2.log" 2>"$tmpdir/stderr2.log" &
+          CEREBRO_CHROME_USER_DATA_DIR="$tmpdir/chrome" pwsh -NoProfile -File cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1 -Port "$port" -StatePath "$tmpdir/state2.json" -TransportKey "ci-test-key" >"$tmpdir/stdout2.log" 2>"$tmpdir/stderr2.log" &
           pid=$!
           ready=0
           for attempt in $(seq 1 30); do
@@ -112,11 +113,28 @@ jobs:
             --data-urlencode "version=v0" >"$tmpdir/pair2.html"
           curl --fail --silent --get "http://127.0.0.1:${port}/extension/ping" \
             --data-urlencode "extension_id=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" >"$tmpdir/ext.json"
+          curl --fail --silent --get "http://127.0.0.1:${port}/transport/status" \
+            --data-urlencode "transport_key=ci-test-key" \
+            --data-urlencode "status=ONLINE" >"$tmpdir/transport.json"
+          curl --fail --silent --get "http://127.0.0.1:${port}/cloud/enqueue" \
+            --data-urlencode "transport_key=ci-test-key" \
+            --data-urlencode "command_id=ci-cloud-1" \
+            --data-urlencode "action=OPEN_LOCAL_TEST_PAGE" >"$tmpdir/enqueue.json"
+          curl --fail --silent --get "http://127.0.0.1:${port}/extension/command" \
+            --data-urlencode "extension_id=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" >"$tmpdir/command.json"
+          curl --fail --silent --get "http://127.0.0.1:${port}/extension/result" \
+            --data-urlencode "extension_id=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
+            --data-urlencode "command_id=ci-cloud-1" \
+            --data-urlencode "result=COMPLETED" >"$tmpdir/result.json"
           curl --fail --silent "http://127.0.0.1:${port}/health" >"$tmpdir/health3.json"
-          python - "$tmpdir/health3.json" "$tmpdir/ext.json" <<'PY'
+          python - "$tmpdir/health3.json" "$tmpdir/ext.json" "$tmpdir/transport.json" "$tmpdir/enqueue.json" "$tmpdir/command.json" "$tmpdir/result.json" <<'PY'
           import json,sys
           payload=json.load(open(sys.argv[1],encoding="utf-8-sig"))
           ext=json.load(open(sys.argv[2],encoding="utf-8-sig"))
+          transport=json.load(open(sys.argv[3],encoding="utf-8-sig"))
+          enqueue=json.load(open(sys.argv[4],encoding="utf-8-sig"))
+          command=json.load(open(sys.argv[5],encoding="utf-8-sig"))
+          result=json.load(open(sys.argv[6],encoding="utf-8-sig"))
           assert payload["browser_discovery_status"]=="GREEN", payload
           assert payload["chrome_last_used_profile"]=="Profile 1", payload
           dirs={x["profile_directory"] for x in payload["chrome_profiles"]}
@@ -128,8 +146,19 @@ jobs:
           assert ext["decision"]=="EXTENSION_HEARTBEAT_ACCEPTED", ext
           assert ext["external_mutation_allowed"] is False, ext
           assert ext["cloud_transport_configured"] is False, ext
+          assert transport["decision"]=="TRANSPORT_STATUS_ACCEPTED", transport
+          assert enqueue["decision"]=="REMOTE_COMMAND_ENQUEUED", enqueue
+          assert command["decision"]=="LAB_COMMAND_AVAILABLE", command
+          assert command["command_id"]=="ci-cloud-1", command
+          assert command["external_mutation_allowed"] is False, command
+          assert result["decision"]=="LAB_COMMAND_RECEIPT_ACCEPTED", result
+          assert payload["cloud_transport_status"]=="ONLINE", payload
+          assert payload["cloud_transport_configured"] is True, payload
+          assert payload["lab_command_status"]=="COMPLETED", payload
+          assert payload["lab_command_evidence"]=="LOCAL_TEST_PAGE_OPENED", payload
           PY
           node --check cerebro-os/identity/chrome_extension_v1_2/service_worker.js
+          node --check cerebro-os/identity/chrome_extension_v1_4/service_worker.js
           python - <<'PY'
           import json
           manifest=json.load(open("cerebro-os/identity/chrome_extension_v1_2/manifest.json",encoding="utf-8"))
@@ -139,6 +168,10 @@ jobs:
           assert manifest["host_permissions"]==["http://127.0.0.1/*"]
           assert "tabs" not in manifest["permissions"]
           assert "scripting" not in manifest["permissions"]
+          manifest14=json.load(open("cerebro-os/identity/chrome_extension_v1_4/manifest.json",encoding="utf-8"))
+          assert manifest14["version"]=="1.4.0"
+          assert manifest14["permissions"]==["alarms"]
+          assert manifest14["host_permissions"]==["http://127.0.0.1/*"]
           PY
           trap - EXIT
           cleanup
