@@ -104,14 +104,41 @@ jobs:
           test "$ready" = "1"
           curl --fail --silent "http://127.0.0.1:${port}/discover" >"$tmpdir/discover.html"
           grep -q "Deteccion local de Chrome completada" "$tmpdir/discover.html"
+          curl --fail --silent --get "http://127.0.0.1:${port}/pair" \
+            --data-urlencode "company_id=fenix" \
+            --data-urlencode "profile_id=profile 1" \
+            --data-urlencode "browser_family=CHROME" \
+            --data-urlencode "environment=LAB" \
+            --data-urlencode "version=v0" >"$tmpdir/pair2.html"
+          curl --fail --silent --get "http://127.0.0.1:${port}/extension/ping" \
+            --data-urlencode "extension_id=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" >"$tmpdir/ext.json"
           curl --fail --silent "http://127.0.0.1:${port}/health" >"$tmpdir/health3.json"
-          python - "$tmpdir/health3.json" <<'PY'
+          python - "$tmpdir/health3.json" "$tmpdir/ext.json" <<'PY'
           import json,sys
           payload=json.load(open(sys.argv[1],encoding="utf-8-sig"))
+          ext=json.load(open(sys.argv[2],encoding="utf-8-sig"))
           assert payload["browser_discovery_status"]=="GREEN", payload
           assert payload["chrome_last_used_profile"]=="Profile 1", payload
           dirs={x["profile_directory"] for x in payload["chrome_profiles"]}
           assert dirs=={"Default","Profile 1"}, payload
+          assert payload["profile_id"]=="Profile 1", payload
+          assert payload["extension_status"]=="CONNECTED", payload
+          assert payload["extension_id"]=="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", payload
+          assert ext["status"]=="GREEN", ext
+          assert ext["decision"]=="EXTENSION_HEARTBEAT_ACCEPTED", ext
+          assert ext["external_mutation_allowed"] is False, ext
+          assert ext["cloud_transport_configured"] is False, ext
+          PY
+          node --check cerebro-os/identity/chrome_extension_v1_2/service_worker.js
+          python - <<'PY'
+          import json
+          manifest=json.load(open("cerebro-os/identity/chrome_extension_v1_2/manifest.json",encoding="utf-8"))
+          assert manifest["manifest_version"]==3
+          assert manifest["version"]=="1.2.0"
+          assert manifest["permissions"]==["alarms"]
+          assert manifest["host_permissions"]==["http://127.0.0.1/*"]
+          assert "tabs" not in manifest["permissions"]
+          assert "scripting" not in manifest["permissions"]
           PY
           trap - EXIT
           cleanup
