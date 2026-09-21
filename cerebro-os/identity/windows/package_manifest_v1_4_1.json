@@ -1,0 +1,26 @@
+{
+  "record_type": "cerebro_browser_bridge_windows_package_manifest",
+  "service": "CEREBRO Browser Bridge",
+  "service_version": "1.4.1",
+  "environment_scope": ["LAB", "PREPROD"],
+  "physical_actuation_scope": ["LAB"],
+  "prod_enabled": false,
+  "external_website_mutation_enabled": false,
+  "raw_secret_storage_allowed": false,
+  "additional_cost_eur": 0,
+  "required_files": [
+    "START_CEREBRO_BROWSER_BRIDGE.bat",
+    "Start-CerebroBrowserBridge.ps1",
+    "CerebroBrowserBridgeService.ps1",
+    "CerebroBrowserTransport.ps1",
+    "VERIFY_CEREBRO_BROWSER_BRIDGE.bat",
+    "Verify-CerebroBrowserBridge.ps1"
+  ],
+  "extension_directory": "chrome_extension_v1_4_1",
+  "pairing_file": {
+    "name": "PAIRING_ONCE.txt",
+    "committed_to_repo": false,
+    "required_for_first_cloud_enrollment": true,
+    "one_time": true
+  }
+}
