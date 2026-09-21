@@ -1,4 +1,5 @@
 $ErrorActionPreference = "Stop"
+$ExpectedServiceVersion = "1.1.0"
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ServiceCandidates = @(
@@ -44,7 +45,7 @@ function Test-CerebroBridge([int]$Port) {
         $resp = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$Port/health" -TimeoutSec 1
         if ($resp.StatusCode -ne 200) { return $false }
         $json = $resp.Content | ConvertFrom-Json
-        return ($json.service -eq "CEREBRO Browser Bridge" -and $json.status -eq "GREEN")
+        return ($json.service -eq "CEREBRO Browser Bridge" -and $json.status -eq "GREEN" -and $json.service_version -eq $ExpectedServiceVersion)
     } catch {
         return $false
     }
