@@ -8,7 +8,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ServiceName = "CEREBRO Browser Bridge"
-$ServiceVersion = "1.4.0"
+$ServiceVersion = "1.4.1"
 $HostAddress = [System.Net.IPAddress]::Loopback
 
 $Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
@@ -67,6 +67,30 @@ function Get-DeviceId {
     return "desktop-$safe"
 }
 
+function Test-ExtensionFresh([System.Collections.IDictionary]$State, [int]$MaxAgeSeconds = 90) {
+    if ([string]$State["extension_status"] -ne "CONNECTED") { return $false }
+    $seen = [int64]$State["extension_last_seen_at"]
+    if ($seen -le 0) { return $false }
+    $age = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds() - $seen
+    return ($age -ge 0 -and $age -le $MaxAgeSeconds)
+}
+
+function Apply-RuntimeExpiry([System.Collections.IDictionary]$State) {
+    $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+    if ([string]$State["extension_status"] -eq "CONNECTED" -and -not (Test-ExtensionFresh $State)) {
+        $State["extension_status"] = "STALE"
+    }
+    if ([string]$State["lab_command_status"] -eq "QUEUED") {
+        $created = [int64]$State["lab_command_created_at"]
+        if ($created -gt 0 -and ($now - $created) -gt 180) {
+            $State["lab_command_status"] = "FAILED"
+            $State["lab_command_completed_at"] = $now
+            $State["lab_command_evidence"] = "LOCAL_COMMAND_TIMEOUT"
+        }
+    }
+    return $State
+}
+
 function Read-State {
     $state = Get-DefaultState
 
@@ -107,6 +131,7 @@ function Read-State {
     $state["kill_switch_enabled"] = $true
     $state["last_seen_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
     $state["pid"] = $PID
+    $state = Apply-RuntimeExpiry $state
     return $state
 }
 
@@ -384,7 +409,7 @@ try {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"TRANSPORT_KEY_MISMATCH"}'
                     continue
                 }
-                if (-not [bool]$state["paired"] -or [string]$state["environment"] -ne "LAB" -or [string]$state["extension_status"] -ne "CONNECTED") {
+                if (-not [bool]$state["paired"] -or [string]$state["environment"] -ne "LAB" -or -not (Test-ExtensionFresh $state)) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LOCAL_EXECUTOR_NOT_READY"}'
                     continue
                 }
@@ -418,7 +443,7 @@ try {
                 continue
             }
             if ($path -eq "/lab/queue-test") {
-                if (-not [bool]$state["paired"] -or [string]$state["environment"] -ne "LAB" -or [string]$state["extension_status"] -ne "CONNECTED") {
+                if (-not [bool]$state["paired"] -or [string]$state["environment"] -ne "LAB" -or -not (Test-ExtensionFresh $state)) {
                     Send-Response $stream 400 "text/html; charset=utf-8" (Render-Page $state "LAB no listo: requiere paired + LAB + extension CONNECTED.")
                     continue
                 }
@@ -474,8 +499,17 @@ try {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"RESULT_STATUS_INVALID"}'
                     continue
                 }
-                if ([string]$state["lab_command_status"] -eq "COMPLETED" -and $result -eq "COMPLETED") {
-                    Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"IDEMPOTENT_REPLAY_SUPPRESSED"}'
+                $currentStatus = [string]$state["lab_command_status"]
+                if ($currentStatus -in @("COMPLETED","FAILED")) {
+                    if ($currentStatus -eq $result) {
+                        Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"IDEMPOTENT_REPLAY_SUPPRESSED"}'
+                    } else {
+                        Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"RESULT_TERMINAL_CONFLICT"}'
+                    }
+                    continue
+                }
+                if ($currentStatus -ne "QUEUED") {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"RESULT_NOT_QUEUED"}'
                     continue
                 }
                 $state["lab_command_status"] = $result
@@ -504,6 +538,12 @@ try {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_ID_REQUIRED"}'
                     continue
                 }
+                if (-not [string]::IsNullOrWhiteSpace([string]$state["extension_id"]) -and
+                    [string]$state["extension_id"] -ne $extensionId -and
+                    (Test-ExtensionFresh $state)) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_ID_CONFLICT"}'
+                    continue
+                }
                 $state["extension_status"] = "CONNECTED"
                 $state["extension_id"] = $extensionId
                 $state["extension_last_seen_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
@@ -517,7 +557,7 @@ try {
                     environment = $state["environment"]
                     version = $state["version"]
                     external_mutation_allowed = $false
-                    cloud_transport_configured = $false
+                    cloud_transport_configured = [bool]$state["cloud_transport_configured"]
                 }
                 Send-Response $stream 200 "application/json; charset=utf-8" ($payload | ConvertTo-Json -Compress)
                 continue

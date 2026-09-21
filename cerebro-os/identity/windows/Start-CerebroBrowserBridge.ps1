@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-$ExpectedServiceVersion = "1.4.0"
+$ExpectedServiceVersion = "1.4.1"
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ServiceCandidates = @(
@@ -103,7 +103,7 @@ if (-not $ReuseExisting -and -not (Test-PortFree $Port)) {
 $PowerShellExe = Join-Path $PSHOME "powershell.exe"
 if (-not (Test-Path $PowerShellExe)) { $PowerShellExe = "powershell.exe" }
 
-$TransportKeyPath = Join-Path $RuntimeDir "transport-local-key-1.4.0.txt"
+$TransportKeyPath = Join-Path $RuntimeDir "transport-local-key-1.4.1.txt"
 if (Test-Path $TransportKeyPath) {
     $TransportKey = (Get-Content -Raw -LiteralPath $TransportKeyPath -Encoding UTF8).Trim()
 }
@@ -117,7 +117,7 @@ if (-not $ReuseExisting) {
     Remove-Item -LiteralPath $StderrLog -Force -ErrorAction SilentlyContinue
 
     $ArgumentLine = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $Service + '" -Port ' + $Port + ' -TransportKey "' + $TransportKey + '"'
-    Write-LauncherLog "Starting native PowerShell Bridge V1.4 on port $Port"
+    Write-LauncherLog "Starting native PowerShell Bridge V1.4.1 on port $Port"
     $Process = Start-Process -FilePath $PowerShellExe -ArgumentList $ArgumentLine -WindowStyle Hidden -RedirectStandardOutput $StdoutLog -RedirectStandardError $StderrLog -PassThru
 
     $Ready = $false
@@ -142,7 +142,7 @@ if (-not $ReuseExisting) {
         exit 3
     }
 } else {
-    Write-LauncherLog "Existing V1.4 Bridge reused on port $Port"
+    Write-LauncherLog "Existing V1.4.1 Bridge reused on port $Port"
 }
 
 $TransportStdout = Join-Path $RuntimeDir "transport.stdout.log"

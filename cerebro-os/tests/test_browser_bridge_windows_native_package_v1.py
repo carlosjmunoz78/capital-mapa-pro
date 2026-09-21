@@ -20,13 +20,13 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertIn("Test-PortFree",launcher)
         self.assertIn("/health",launcher)
         self.assertIn("launcher.log",launcher)
-        self.assertIn('$ExpectedServiceVersion = "1.4.0"',launcher)
+        self.assertIn('$ExpectedServiceVersion = "1.4.1"',launcher)
         self.assertIn('$json.service_version -eq $ExpectedServiceVersion',launcher)
 
     def test_service_is_loopback_and_fail_closed_for_prod(self):
         service=(WIN/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
         self.assertIn("[System.Net.IPAddress]::Loopback",service)
-        self.assertIn('$ServiceVersion = "1.4.0"',service)
+        self.assertIn('$ServiceVersion = "1.4.1"',service)
         self.assertIn('@("LAB","PREPROD")',service)
         self.assertIn('cloud_transport_status = "NOT_CONFIGURED"',service)
         self.assertNotIn("0.0.0.0",service)
@@ -121,6 +121,23 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertNotIn('"https://*/*"',manifest)
         self.assertIn('EXPECTED_SERVICE_VERSION = "1.4.0"',worker)
         self.assertIn('OPEN_LOCAL_TEST_PAGE',worker)
+
+    def test_v141_recovers_stale_executor_and_rejects_terminal_conflicts(self):
+        service=(WIN/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
+        transport=(WIN/"CerebroBrowserTransport.ps1").read_text(encoding="utf-8")
+        ext=ROOT/"identity"/"chrome_extension_v1_4_1"
+        manifest=(ext/"manifest.json").read_text(encoding="utf-8")
+        worker=(ext/"service_worker.js").read_text(encoding="utf-8")
+        self.assertIn('Test-ExtensionFresh',service)
+        self.assertIn('LOCAL_COMMAND_TIMEOUT',service)
+        self.assertIn('RESULT_TERMINAL_CONFLICT',service)
+        self.assertIn('RESULT_NOT_QUEUED',service)
+        self.assertIn('EXTENSION_ID_CONFLICT',service)
+        self.assertIn('$TransportVersion = "1.4.1"',transport)
+        self.assertIn('"version": "1.4.1"',manifest)
+        self.assertIn('EXPECTED_SERVICE_VERSION = "1.4.1"',worker)
+        self.assertNotIn('"<all_urls>"',manifest)
+        self.assertNotIn('"https://*/*"',manifest)
 
     def test_preprod_gateway_v5_is_scope_bound(self):
         gateway=(ROOT/"identity"/"transport_preprod"/"cerebro-device-gateway-preprod-v5.ts").read_text(encoding="utf-8")

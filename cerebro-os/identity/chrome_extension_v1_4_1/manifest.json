@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "CEREBRO Browser Bridge",
+  "version": "1.4.1",
+  "description": "LAB-only CEREBRO Browser Bridge with outbound PREPROD transport handoff.",
+  "permissions": ["alarms"],
+  "host_permissions": ["http://127.0.0.1/*"],
+  "background": {"service_worker": "service_worker.js"},
+  "action": {"default_title": "CEREBRO Browser Bridge"}
+}
