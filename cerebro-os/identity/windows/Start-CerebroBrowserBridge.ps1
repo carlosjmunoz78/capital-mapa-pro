@@ -1,7 +1,26 @@
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$BridgeRoot = Resolve-Path (Join-Path $ScriptDir "..")
-$Service = Join-Path $BridgeRoot "browser_bridge_local_service.py"
+
+$ServiceCandidates = @(
+    (Join-Path $ScriptDir "browser_bridge_local_service.py"),
+    (Join-Path (Resolve-Path (Join-Path $ScriptDir "..")) "browser_bridge_local_service.py")
+)
+$Service = $null
+foreach ($Candidate in $ServiceCandidates) {
+    if (Test-Path $Candidate) {
+        $Service = (Resolve-Path $Candidate).Path
+        break
+    }
+}
+if (-not $Service) {
+    Add-Type -AssemblyName PresentationFramework
+    [System.Windows.MessageBox]::Show(
+      "No se encuentra browser_bridge_local_service.py junto al launcher ni en la carpeta esperada.",
+      "CEREBRO Browser Bridge"
+    ) | Out-Null
+    exit 5
+}
+$BridgeRoot = Split-Path -Parent $Service
 
 function Find-Python {
     if (Get-Command py -ErrorAction SilentlyContinue) { return @("py","-3") }
