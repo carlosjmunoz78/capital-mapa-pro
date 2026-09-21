@@ -13,7 +13,7 @@ from jobs.build_browser_bridge_windows_package import build_package
 class BrowserBridgeAcceptanceV141Tests(unittest.TestCase):
     def test_verifier_is_fail_closed_and_secret_free(self):
         script=(ROOT/"identity"/"windows"/"Verify-CerebroBrowserBridge.ps1").read_text(encoding="utf-8")
-        self.assertIn('service_version = "1.4.1"', script.lower())
+        self.assertIn('$ExpectedVersion = "1.4.1"', script)
         self.assertIn('"LAB"',script)
         self.assertIn('"PREPROD_DEVICE_ENROLLMENT"',script)
         self.assertIn('"REMOTE_LAB_ROUNDTRIP"',script)
