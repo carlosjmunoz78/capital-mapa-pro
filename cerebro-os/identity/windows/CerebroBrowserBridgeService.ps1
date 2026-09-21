@@ -7,12 +7,15 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ServiceName = "CEREBRO Browser Bridge"
-$ServiceVersion = "1.3.0"
+$ServiceVersion = "1.3.1"
 $HostAddress = [System.Net.IPAddress]::Loopback
 
+$Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
+$RuntimeDir = Join-Path $Base "CEREBRO\browser-bridge"
+$LegacyStatePath = Join-Path $RuntimeDir "state.json"
+
 if ([string]::IsNullOrWhiteSpace($StatePath)) {
-    $Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
-    $StatePath = Join-Path $Base "CEREBRO\browser-bridge\state.json"
+    $StatePath = Join-Path $RuntimeDir ("state-" + $ServiceVersion + ".json")
 }
 
 function Get-DefaultState {
@@ -65,6 +68,20 @@ function Get-DeviceId {
 
 function Read-State {
     $state = Get-DefaultState
+
+    if (-not (Test-Path $StatePath) -and (Test-Path $LegacyStatePath)) {
+        try {
+            $legacy = Get-Content -Raw -LiteralPath $LegacyStatePath -Encoding UTF8 | ConvertFrom-Json
+            foreach ($key in @(
+                "device_id","company_id","profile_id","browser_family","environment","version",
+                "paired","chrome_running","chrome_user_data_dir","chrome_profiles",
+                "chrome_last_used_profile","browser_discovery_status"
+            )) {
+                if ($null -ne $legacy.$key) { $state[$key] = $legacy.$key }
+            }
+        } catch {}
+    }
+
     if (Test-Path $StatePath) {
         try {
             $raw = Get-Content -Raw -LiteralPath $StatePath -Encoding UTF8 | ConvertFrom-Json
@@ -448,6 +465,7 @@ try {
                 $payload = [ordered]@{
                     status = "GREEN"
                     decision = "EXTENSION_HEARTBEAT_ACCEPTED"
+                    service_version = $ServiceVersion
                     company_id = $state["company_id"]
                     profile_id = $state["profile_id"]
                     environment = $state["environment"]
