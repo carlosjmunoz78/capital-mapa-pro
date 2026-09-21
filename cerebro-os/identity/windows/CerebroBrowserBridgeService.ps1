@@ -382,6 +382,79 @@ try {
                 Send-Response $stream 200 "text/html; charset=utf-8" (Render-Page $state "Deteccion local de Chrome completada.")
                 continue
             }
+            if ($path -eq "/bootstrap/fenix-lab") {
+                $form = Parse-Query $query
+                $providedKey = [string]$form["transport_key"]
+                if ([string]::IsNullOrWhiteSpace($TransportKey) -or $providedKey -ne $TransportKey) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"TRANSPORT_KEY_MISMATCH"}'
+                    continue
+                }
+
+                $state = Discover-Chrome $state
+                $selectedProfile = ""
+                $currentProfile = [string]$state["profile_id"]
+                foreach ($item in @($state["chrome_profiles"])) {
+                    $candidate = [string]$item.profile_directory
+                    if (-not [string]::IsNullOrWhiteSpace($candidate) -and
+                        -not [string]::IsNullOrWhiteSpace($currentProfile) -and
+                        $candidate.Equals($currentProfile,[System.StringComparison]::OrdinalIgnoreCase)) {
+                        $selectedProfile = $candidate
+                        break
+                    }
+                }
+                if ([string]::IsNullOrWhiteSpace($selectedProfile)) {
+                    $lastUsed = [string]$state["chrome_last_used_profile"]
+                    if (-not [string]::IsNullOrWhiteSpace($lastUsed)) {
+                        $selectedProfile = Canonicalize-ProfileId $state $lastUsed
+                    }
+                }
+                if ([string]::IsNullOrWhiteSpace($selectedProfile) -and @($state["chrome_profiles"]).Count -gt 0) {
+                    $selectedProfile = [string]$state["chrome_profiles"][0].profile_directory
+                }
+                if ([string]::IsNullOrWhiteSpace($selectedProfile)) {
+                    Write-State $state
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"PILOT_PROFILE_NOT_FOUND"}'
+                    continue
+                }
+
+                $state["company_id"] = "fenix"
+                $state["profile_id"] = $selectedProfile
+                $state["browser_family"] = "CHROME"
+                $state["environment"] = "LAB"
+                $state["version"] = "v0"
+                $state["paired"] = $true
+                $state["online"] = $true
+                $state["kill_switch_enabled"] = $true
+                $state["cloud_transport_configured"] = $false
+                $state["cloud_transport_status"] = "NOT_CONFIGURED"
+                $state["extension_status"] = "NOT_CONNECTED"
+                $state["extension_id"] = ""
+                $state["extension_last_seen_at"] = 0
+                $state["lab_command_id"] = ""
+                $state["lab_command_action"] = ""
+                $state["lab_command_status"] = "NONE"
+                $state["lab_command_created_at"] = 0
+                $state["lab_command_completed_at"] = 0
+                $state["lab_command_evidence"] = ""
+                $state["last_seen_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+                Write-State $state
+
+                $payload = [ordered]@{
+                    status = "GREEN"
+                    decision = "FENIX_LAB_PILOT_BOOTSTRAPPED"
+                    company_id = $state["company_id"]
+                    device_id = $state["device_id"]
+                    profile_id = $state["profile_id"]
+                    environment = $state["environment"]
+                    version = $state["version"]
+                    browser_discovery_status = $state["browser_discovery_status"]
+                    external_mutation_allowed = $false
+                    prod_activation_allowed = $false
+                    secret_value_included = $false
+                }
+                Send-Response $stream 200 "application/json; charset=utf-8" ($payload | ConvertTo-Json -Compress)
+                continue
+            }
             if ($path -eq "/transport/status") {
                 $form = Parse-Query $query
                 $providedKey = [string]$form["transport_key"]
