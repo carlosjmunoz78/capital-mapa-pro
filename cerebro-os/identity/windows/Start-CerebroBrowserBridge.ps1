@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-$ExpectedServiceVersion = "1.3.1"
+$ExpectedServiceVersion = "1.4.0"
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ServiceCandidates = @(
@@ -26,6 +26,13 @@ function Show-BridgeError([string]$Message) {
 if (-not $Service) {
     Show-BridgeError "Falta CerebroBrowserBridgeService.ps1 en el paquete. No se ha iniciado nada."
     exit 5
+}
+
+$Transport = Join-Path $ScriptDir "CerebroBrowserTransport.ps1"
+$PairingFile = Join-Path $ScriptDir "PAIRING_ONCE.txt"
+if (-not (Test-Path $Transport)) {
+    Show-BridgeError "Falta CerebroBrowserTransport.ps1 en el paquete."
+    exit 6
 }
 
 $Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
@@ -65,19 +72,21 @@ function Test-PortFree([int]$Port) {
 $RequestedPort = if ($env:CEREBRO_BRIDGE_PORT) { [int]$env:CEREBRO_BRIDGE_PORT } else { 8765 }
 $Port = $RequestedPort
 
+$ReuseExisting = $false
 if (Test-CerebroBridge $Port) {
     Write-LauncherLog "Reusing existing CEREBRO Bridge on port $Port"
-    Start-Process "http://127.0.0.1:$Port/"
-    exit 0
+    $ReuseExisting = $true
 }
 
-if (-not (Test-PortFree $Port)) {
+if (-not $ReuseExisting -and -not (Test-PortFree $Port)) {
     $Found = $false
     foreach ($Candidate in 8766..8785) {
         if (Test-CerebroBridge $Candidate) {
+            $Port = $Candidate
+            $ReuseExisting = $true
+            $Found = $true
             Write-LauncherLog "Reusing existing CEREBRO Bridge on port $Candidate"
-            Start-Process "http://127.0.0.1:$Candidate/"
-            exit 0
+            break
         }
         if (Test-PortFree $Candidate) {
             $Port = $Candidate
@@ -94,33 +103,47 @@ if (-not (Test-PortFree $Port)) {
 $PowerShellExe = Join-Path $PSHOME "powershell.exe"
 if (-not (Test-Path $PowerShellExe)) { $PowerShellExe = "powershell.exe" }
 
-Remove-Item -LiteralPath $StdoutLog -Force -ErrorAction SilentlyContinue
-Remove-Item -LiteralPath $StderrLog -Force -ErrorAction SilentlyContinue
+$TransportKey = [Guid]::NewGuid().ToString("N")
 
-$ArgumentLine = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $Service + '" -Port ' + $Port
-Write-LauncherLog "Starting native PowerShell Bridge on port $Port"
-$Process = Start-Process -FilePath $PowerShellExe -ArgumentList $ArgumentLine -WindowStyle Hidden -RedirectStandardOutput $StdoutLog -RedirectStandardError $StderrLog -PassThru
+if (-not $ReuseExisting) {
+    Remove-Item -LiteralPath $StdoutLog -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $StderrLog -Force -ErrorAction SilentlyContinue
 
-$Ready = $false
-for ($i = 0; $i -lt 40; $i++) {
-    Start-Sleep -Milliseconds 250
-    if ($Process.HasExited) { break }
-    if (Test-CerebroBridge $Port) {
-        $Ready = $true
-        break
+    $ArgumentLine = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $Service + '" -Port ' + $Port + ' -TransportKey "' + $TransportKey + '"'
+    Write-LauncherLog "Starting native PowerShell Bridge V1.4 on port $Port"
+    $Process = Start-Process -FilePath $PowerShellExe -ArgumentList $ArgumentLine -WindowStyle Hidden -RedirectStandardOutput $StdoutLog -RedirectStandardError $StderrLog -PassThru
+
+    $Ready = $false
+    for ($i = 0; $i -lt 40; $i++) {
+        Start-Sleep -Milliseconds 250
+        if ($Process.HasExited) { break }
+        if (Test-CerebroBridge $Port) {
+            $Ready = $true
+            break
+        }
     }
+
+    if (-not $Ready) {
+        $stderr = ""
+        if (Test-Path $StderrLog) {
+            $stderr = (Get-Content -Raw -LiteralPath $StderrLog -ErrorAction SilentlyContinue)
+        }
+        $summary = if ($stderr) { ($stderr -split "\r?\n" | Select-Object -First 4) -join " " } else { "sin detalle adicional" }
+        Write-LauncherLog "FAILED: $summary"
+        $nl = [Environment]::NewLine
+        Show-BridgeError ("El servicio local no ha podido arrancar. Detalle: " + $summary + $nl + $nl + "Registro: " + $LauncherLog)
+        exit 3
+    }
+} else {
+    Write-LauncherLog "Existing V1.4 Bridge reused; transport worker will only start if its local key is available from this launcher session."
 }
 
-if (-not $Ready) {
-    $stderr = ""
-    if (Test-Path $StderrLog) {
-        $stderr = (Get-Content -Raw -LiteralPath $StderrLog -ErrorAction SilentlyContinue)
-    }
-    $summary = if ($stderr) { ($stderr -split "\r?\n" | Select-Object -First 4) -join " " } else { "sin detalle adicional" }
-    Write-LauncherLog "FAILED: $summary"
-    $nl = [Environment]::NewLine
-    Show-BridgeError ("El servicio local no ha podido arrancar. Detalle: " + $summary + $nl + $nl + "Registro: " + $LauncherLog)
-    exit 3
+if (-not $ReuseExisting) {
+    $TransportStdout = Join-Path $RuntimeDir "transport.stdout.log"
+    $TransportStderr = Join-Path $RuntimeDir "transport.stderr.log"
+    $TransportArgs = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $Transport + '" -BridgePort ' + $Port + ' -TransportKey "' + $TransportKey + '" -PairingFile "' + $PairingFile + '"'
+    Start-Process -FilePath $PowerShellExe -ArgumentList $TransportArgs -WindowStyle Hidden -RedirectStandardOutput $TransportStdout -RedirectStandardError $TransportStderr | Out-Null
+    Write-LauncherLog "Cloud transport worker started for port $Port"
 }
 
 Write-LauncherLog "READY on http://127.0.0.1:$Port/"
