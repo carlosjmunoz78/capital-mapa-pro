@@ -103,7 +103,14 @@ if (-not $ReuseExisting -and -not (Test-PortFree $Port)) {
 $PowerShellExe = Join-Path $PSHOME "powershell.exe"
 if (-not (Test-Path $PowerShellExe)) { $PowerShellExe = "powershell.exe" }
 
-$TransportKey = [Guid]::NewGuid().ToString("N")
+$TransportKeyPath = Join-Path $RuntimeDir "transport-local-key-1.4.0.txt"
+if (Test-Path $TransportKeyPath) {
+    $TransportKey = (Get-Content -Raw -LiteralPath $TransportKeyPath -Encoding UTF8).Trim()
+}
+if ([string]::IsNullOrWhiteSpace($TransportKey)) {
+    $TransportKey = [Guid]::NewGuid().ToString("N")
+    Set-Content -LiteralPath $TransportKeyPath -Value $TransportKey -Encoding ASCII
+}
 
 if (-not $ReuseExisting) {
     Remove-Item -LiteralPath $StdoutLog -Force -ErrorAction SilentlyContinue
@@ -135,16 +142,14 @@ if (-not $ReuseExisting) {
         exit 3
     }
 } else {
-    Write-LauncherLog "Existing V1.4 Bridge reused; transport worker will only start if its local key is available from this launcher session."
+    Write-LauncherLog "Existing V1.4 Bridge reused on port $Port"
 }
 
-if (-not $ReuseExisting) {
-    $TransportStdout = Join-Path $RuntimeDir "transport.stdout.log"
-    $TransportStderr = Join-Path $RuntimeDir "transport.stderr.log"
-    $TransportArgs = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $Transport + '" -BridgePort ' + $Port + ' -TransportKey "' + $TransportKey + '" -PairingFile "' + $PairingFile + '"'
-    Start-Process -FilePath $PowerShellExe -ArgumentList $TransportArgs -WindowStyle Hidden -RedirectStandardOutput $TransportStdout -RedirectStandardError $TransportStderr | Out-Null
-    Write-LauncherLog "Cloud transport worker started for port $Port"
-}
+$TransportStdout = Join-Path $RuntimeDir "transport.stdout.log"
+$TransportStderr = Join-Path $RuntimeDir "transport.stderr.log"
+$TransportArgs = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $Transport + '" -BridgePort ' + $Port + ' -TransportKey "' + $TransportKey + '" -PairingFile "' + $PairingFile + '"'
+Start-Process -FilePath $PowerShellExe -ArgumentList $TransportArgs -WindowStyle Hidden -RedirectStandardOutput $TransportStdout -RedirectStandardError $TransportStderr | Out-Null
+Write-LauncherLog "Cloud transport worker ensured for port $Port"
 
 Write-LauncherLog "READY on http://127.0.0.1:$Port/"
 Start-Process "http://127.0.0.1:$Port/"
