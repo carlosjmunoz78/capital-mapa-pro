@@ -20,10 +20,13 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertIn("Test-PortFree",launcher)
         self.assertIn("/health",launcher)
         self.assertIn("launcher.log",launcher)
+        self.assertIn('$ExpectedServiceVersion = "1.1.0"',launcher)
+        self.assertIn('$json.service_version -eq $ExpectedServiceVersion',launcher)
 
     def test_service_is_loopback_and_fail_closed_for_prod(self):
         service=(WIN/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
         self.assertIn("[System.Net.IPAddress]::Loopback",service)
+        self.assertIn('$ServiceVersion = "1.1.0"',service)
         self.assertIn('@("LAB","PREPROD")',service)
         self.assertIn('cloud_transport_status = "NOT_CONFIGURED"',service)
         self.assertNotIn("0.0.0.0",service)
