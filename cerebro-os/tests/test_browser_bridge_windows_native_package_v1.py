@@ -20,13 +20,13 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertIn("Test-PortFree",launcher)
         self.assertIn("/health",launcher)
         self.assertIn("launcher.log",launcher)
-        self.assertIn('$ExpectedServiceVersion = "1.1.0"',launcher)
+        self.assertIn('$ExpectedServiceVersion = "1.2.0"',launcher)
         self.assertIn('$json.service_version -eq $ExpectedServiceVersion',launcher)
 
     def test_service_is_loopback_and_fail_closed_for_prod(self):
         service=(WIN/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
         self.assertIn("[System.Net.IPAddress]::Loopback",service)
-        self.assertIn('$ServiceVersion = "1.1.0"',service)
+        self.assertIn('$ServiceVersion = "1.2.0"',service)
         self.assertIn('@("LAB","PREPROD")',service)
         self.assertIn('cloud_transport_status = "NOT_CONFIGURED"',service)
         self.assertNotIn("0.0.0.0",service)
@@ -41,12 +41,31 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
     def test_local_chrome_discovery_is_metadata_only(self):
         service=(WIN/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
         self.assertIn('Discover-Chrome',service)
+        self.assertIn('Canonicalize-ProfileId',service)
         self.assertIn('profile_directory',service)
         self.assertIn('display_name',service)
         self.assertIn('browser_discovery_status',service)
         self.assertNotIn('Cookies',service)
         self.assertNotIn('Login Data',service)
         self.assertNotIn('Web Data',service)
+
+    def test_extension_heartbeat_is_local_and_non_mutating(self):
+        service=(WIN/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
+        self.assertIn('/extension/ping',service)
+        self.assertIn('EXTENSION_HEARTBEAT_ACCEPTED',service)
+        self.assertIn('external_mutation_allowed = $false',service)
+        self.assertIn('cloud_transport_configured = $false',service)
+
+    def test_extension_manifest_has_no_page_access(self):
+        ext=ROOT/"identity"/"chrome_extension_v1_2"
+        manifest=(ext/"manifest.json").read_text(encoding="utf-8")
+        worker=(ext/"service_worker.js").read_text(encoding="utf-8")
+        self.assertIn('"version": "1.2.0"',manifest)
+        self.assertIn('"http://127.0.0.1/*"',manifest)
+        self.assertNotIn('"tabs"',manifest)
+        self.assertNotIn('"scripting"',manifest)
+        self.assertNotIn('"<all_urls>"',manifest)
+        self.assertIn('/extension/ping',worker)
 
 if __name__=="__main__":
     unittest.main()
