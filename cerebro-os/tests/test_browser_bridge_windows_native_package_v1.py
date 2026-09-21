@@ -20,13 +20,13 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertIn("Test-PortFree",launcher)
         self.assertIn("/health",launcher)
         self.assertIn("launcher.log",launcher)
-        self.assertIn('$ExpectedServiceVersion = "1.3.0"',launcher)
+        self.assertIn('$ExpectedServiceVersion = "1.3.1"',launcher)
         self.assertIn('$json.service_version -eq $ExpectedServiceVersion',launcher)
 
     def test_service_is_loopback_and_fail_closed_for_prod(self):
         service=(WIN/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
         self.assertIn("[System.Net.IPAddress]::Loopback",service)
-        self.assertIn('$ServiceVersion = "1.3.0"',service)
+        self.assertIn('$ServiceVersion = "1.3.1"',service)
         self.assertIn('@("LAB","PREPROD")',service)
         self.assertIn('cloud_transport_status = "NOT_CONFIGURED"',service)
         self.assertNotIn("0.0.0.0",service)
@@ -83,6 +83,17 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertNotIn('"scripting"',manifest)
         self.assertIn('chrome.tabs.create',worker)
         self.assertIn('startsWith("http://127.0.0.1:"',worker)
+
+    def test_v131_ignores_stale_bridge_versions_and_isolates_state(self):
+        service=(WIN/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
+        ext=ROOT/"identity"/"chrome_extension_v1_3_1"
+        manifest=(ext/"manifest.json").read_text(encoding="utf-8")
+        worker=(ext/"service_worker.js").read_text(encoding="utf-8")
+        self.assertIn('state-" + $ServiceVersion + ".json',service)
+        self.assertIn('service_version = $ServiceVersion',service)
+        self.assertIn('"version": "1.3.1"',manifest)
+        self.assertIn('EXPECTED_SERVICE_VERSION = "1.3.1"',worker)
+        self.assertIn('ping.service_version !== EXPECTED_SERVICE_VERSION',worker)
 
 if __name__=="__main__":
     unittest.main()
