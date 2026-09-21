@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-$ExpectedServiceVersion = "1.2.0"
+$ExpectedServiceVersion = "1.3.0"
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ServiceCandidates = @(

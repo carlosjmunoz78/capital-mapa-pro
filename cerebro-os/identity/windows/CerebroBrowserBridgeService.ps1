@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ServiceName = "CEREBRO Browser Bridge"
-$ServiceVersion = "1.2.0"
+$ServiceVersion = "1.3.0"
 $HostAddress = [System.Net.IPAddress]::Loopback
 
 if ([string]::IsNullOrWhiteSpace($StatePath)) {
@@ -41,6 +41,12 @@ function Get-DefaultState {
         extension_status = "NOT_CONNECTED"
         extension_id = ""
         extension_last_seen_at = 0
+        lab_command_id = ""
+        lab_command_action = ""
+        lab_command_status = "NONE"
+        lab_command_created_at = 0
+        lab_command_completed_at = 0
+        lab_command_evidence = ""
     }
 }
 
@@ -68,7 +74,9 @@ function Read-State {
                 "cloud_transport_configured","cloud_transport_status",
                 "chrome_running","chrome_user_data_dir","chrome_profiles",
                 "chrome_last_used_profile","browser_discovery_status",
-                "extension_status","extension_id","extension_last_seen_at"
+                "extension_status","extension_id","extension_last_seen_at",
+                "lab_command_id","lab_command_action","lab_command_status",
+                "lab_command_created_at","lab_command_completed_at","lab_command_evidence"
             )) {
                 if ($null -ne $raw.$key) { $state[$key] = $raw.$key }
             }
@@ -132,6 +140,12 @@ function Public-State([System.Collections.IDictionary]$State) {
         extension_status = $State["extension_status"]
         extension_id = $State["extension_id"]
         extension_last_seen_at = [int64]$State["extension_last_seen_at"]
+        lab_command_id = $State["lab_command_id"]
+        lab_command_action = $State["lab_command_action"]
+        lab_command_status = $State["lab_command_status"]
+        lab_command_created_at = [int64]$State["lab_command_created_at"]
+        lab_command_completed_at = [int64]$State["lab_command_completed_at"]
+        lab_command_evidence = $State["lab_command_evidence"]
     }
 }
 
@@ -258,6 +272,7 @@ $messageHtml
 <button type="submit">Emparejar este PC</button></form>
 <p><a href="/discover">Detectar perfiles de Chrome en este PC</a></p>
 <p>Extension Chrome: <strong>$(Html $State["extension_status"])</strong></p>
+<p><a href="/lab/queue-test">Encolar prueba LAB local</a></p>
 <table>$rows</table>
 <p class="warn">No guarda contrasenas ni tokens. El transporte cloud permanece cerrado hasta validarlo explicitamente.</p>
 </main></body></html>
@@ -324,6 +339,89 @@ try {
                 Send-Response $stream 200 "text/html; charset=utf-8" (Render-Page $state "Deteccion local de Chrome completada.")
                 continue
             }
+            if ($path -eq "/lab/test") {
+                $form = Parse-Query $query
+                $commandId = [string]$form["command_id"]
+                $body = "<!doctype html><html><head><meta charset='utf-8'><title>CEREBRO LAB TEST</title></head><body><h1>CEREBRO LAB TEST</h1><p>Pagina local de prueba. Sin mutacion externa.</p><p>command_id=$(Html $commandId)</p></body></html>"
+                Send-Response $stream 200 "text/html; charset=utf-8" $body
+                continue
+            }
+            if ($path -eq "/lab/queue-test") {
+                if (-not [bool]$state["paired"] -or [string]$state["environment"] -ne "LAB" -or [string]$state["extension_status"] -ne "CONNECTED") {
+                    Send-Response $stream 400 "text/html; charset=utf-8" (Render-Page $state "LAB no listo: requiere paired + LAB + extension CONNECTED.")
+                    continue
+                }
+                $commandId = "lab-" + [Guid]::NewGuid().ToString("N")
+                $state["lab_command_id"] = $commandId
+                $state["lab_command_action"] = "OPEN_LOCAL_TEST_PAGE"
+                $state["lab_command_status"] = "QUEUED"
+                $state["lab_command_created_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+                $state["lab_command_completed_at"] = 0
+                $state["lab_command_evidence"] = ""
+                Write-State $state
+                Send-Response $stream 200 "text/html; charset=utf-8" (Render-Page $state "Prueba LAB local encolada. La extension la ejecutara sin tocar webs externas.")
+                continue
+            }
+            if ($path -eq "/extension/command") {
+                if (-not [bool]$state["paired"] -or [string]$state["environment"] -ne "LAB") {
+                    Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"NO_COMMAND"}'
+                    continue
+                }
+                $form = Parse-Query $query
+                $extensionId = [string]$form["extension_id"]
+                if ([string]::IsNullOrWhiteSpace($extensionId) -or $extensionId -ne [string]$state["extension_id"]) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_SCOPE_MISMATCH"}'
+                    continue
+                }
+                if ([string]$state["lab_command_status"] -ne "QUEUED") {
+                    Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"NO_COMMAND"}'
+                    continue
+                }
+                $target = "http://127.0.0.1:" + $Port + "/lab/test?command_id=" + [Uri]::EscapeDataString([string]$state["lab_command_id"])
+                $payload = [ordered]@{
+                    status = "GREEN"
+                    decision = "LAB_COMMAND_AVAILABLE"
+                    command_id = $state["lab_command_id"]
+                    action = $state["lab_command_action"]
+                    target_url = $target
+                    external_mutation_allowed = $false
+                    environment = "LAB"
+                }
+                Send-Response $stream 200 "application/json; charset=utf-8" ($payload | ConvertTo-Json -Compress)
+                continue
+            }
+            if ($path -eq "/extension/result") {
+                $form = Parse-Query $query
+                $extensionId = [string]$form["extension_id"]
+                $commandId = [string]$form["command_id"]
+                $result = ([string]$form["result"]).ToUpperInvariant()
+                if ($extensionId -ne [string]$state["extension_id"] -or $commandId -ne [string]$state["lab_command_id"]) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"RESULT_SCOPE_MISMATCH"}'
+                    continue
+                }
+                if ($result -notin @("COMPLETED","FAILED")) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"RESULT_STATUS_INVALID"}'
+                    continue
+                }
+                if ([string]$state["lab_command_status"] -eq "COMPLETED" -and $result -eq "COMPLETED") {
+                    Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"IDEMPOTENT_REPLAY_SUPPRESSED"}'
+                    continue
+                }
+                $state["lab_command_status"] = $result
+                $state["lab_command_completed_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+                $state["lab_command_evidence"] = if ($result -eq "COMPLETED") { "LOCAL_TEST_PAGE_OPENED" } else { "LOCAL_TEST_PAGE_FAILED" }
+                Write-State $state
+                $payload = [ordered]@{
+                    status = if ($result -eq "COMPLETED") { "GREEN" } else { "BLOCKED" }
+                    decision = if ($result -eq "COMPLETED") { "LAB_COMMAND_RECEIPT_ACCEPTED" } else { "LAB_COMMAND_FAILED" }
+                    command_id = $commandId
+                    result = $result
+                    evidence = $state["lab_command_evidence"]
+                    external_mutation_performed = $false
+                }
+                Send-Response $stream 200 "application/json; charset=utf-8" ($payload | ConvertTo-Json -Compress)
+                continue
+            }
             if ($path -eq "/extension/ping") {
                 if (-not [bool]$state["paired"] -or [string]$state["environment"] -eq "PROD") {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"BRIDGE_NOT_READY"}'
@@ -338,6 +436,14 @@ try {
                 $state["extension_status"] = "CONNECTED"
                 $state["extension_id"] = $extensionId
                 $state["extension_last_seen_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+                if ([string]$state["environment"] -eq "LAB" -and [string]$state["lab_command_status"] -eq "NONE") {
+                    $state["lab_command_id"] = "lab-" + [Guid]::NewGuid().ToString("N")
+                    $state["lab_command_action"] = "OPEN_LOCAL_TEST_PAGE"
+                    $state["lab_command_status"] = "QUEUED"
+                    $state["lab_command_created_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+                    $state["lab_command_completed_at"] = 0
+                    $state["lab_command_evidence"] = ""
+                }
                 Write-State $state
                 $payload = [ordered]@{
                     status = "GREEN"
