@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ServiceName = "CEREBRO Browser Bridge"
-$ServiceVersion = "1.1.0"
+$ServiceVersion = "1.2.0"
 $HostAddress = [System.Net.IPAddress]::Loopback
 
 if ([string]::IsNullOrWhiteSpace($StatePath)) {
@@ -38,6 +38,9 @@ function Get-DefaultState {
         chrome_profiles = @()
         chrome_last_used_profile = ""
         browser_discovery_status = "NOT_RUN"
+        extension_status = "NOT_CONNECTED"
+        extension_id = ""
+        extension_last_seen_at = 0
     }
 }
 
@@ -64,7 +67,8 @@ function Read-State {
                 "paired","online","kill_switch_enabled","last_seen_at",
                 "cloud_transport_configured","cloud_transport_status",
                 "chrome_running","chrome_user_data_dir","chrome_profiles",
-                "chrome_last_used_profile","browser_discovery_status"
+                "chrome_last_used_profile","browser_discovery_status",
+                "extension_status","extension_id","extension_last_seen_at"
             )) {
                 if ($null -ne $raw.$key) { $state[$key] = $raw.$key }
             }
@@ -125,6 +129,9 @@ function Public-State([System.Collections.IDictionary]$State) {
         chrome_profiles = @($State["chrome_profiles"])
         chrome_last_used_profile = $State["chrome_last_used_profile"]
         browser_discovery_status = $State["browser_discovery_status"]
+        extension_status = $State["extension_status"]
+        extension_id = $State["extension_id"]
+        extension_last_seen_at = [int64]$State["extension_last_seen_at"]
     }
 }
 
@@ -200,6 +207,23 @@ function Discover-Chrome([System.Collections.IDictionary]$State) {
     return $State
 }
 
+function Canonicalize-ProfileId([System.Collections.IDictionary]$State, [string]$Requested) {
+    if ([string]::IsNullOrWhiteSpace($Requested)) { return $Requested }
+    foreach ($item in @($State["chrome_profiles"])) {
+        try {
+            $candidate = [string]$item.profile_directory
+            if (-not [string]::IsNullOrWhiteSpace($candidate) -and $candidate.Equals($Requested, [System.StringComparison]::OrdinalIgnoreCase)) {
+                return $candidate
+            }
+        } catch {}
+    }
+    $lastUsed = [string]$State["chrome_last_used_profile"]
+    if (-not [string]::IsNullOrWhiteSpace($lastUsed) -and $lastUsed.Equals($Requested, [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $lastUsed
+    }
+    return $Requested
+}
+
 function Render-Page([System.Collections.IDictionary]$State, [string]$Message = "") {
     $messageHtml = if ($Message) { "<p><strong>$(Html $Message)</strong></p>" } else { "" }
     $rows = ""
@@ -233,6 +257,7 @@ $messageHtml
 <label>Version <input name="version" value="$(Html $version)"></label>
 <button type="submit">Emparejar este PC</button></form>
 <p><a href="/discover">Detectar perfiles de Chrome en este PC</a></p>
+<p>Extension Chrome: <strong>$(Html $State["extension_status"])</strong></p>
 <table>$rows</table>
 <p class="warn">No guarda contrasenas ni tokens. El transporte cloud permanece cerrado hasta validarlo explicitamente.</p>
 </main></body></html>
@@ -299,9 +324,38 @@ try {
                 Send-Response $stream 200 "text/html; charset=utf-8" (Render-Page $state "Deteccion local de Chrome completada.")
                 continue
             }
+            if ($path -eq "/extension/ping") {
+                if (-not [bool]$state["paired"] -or [string]$state["environment"] -eq "PROD") {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"BRIDGE_NOT_READY"}'
+                    continue
+                }
+                $form = Parse-Query $query
+                $extensionId = [string]$form["extension_id"]
+                if ([string]::IsNullOrWhiteSpace($extensionId) -or $extensionId.Length -gt 128) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_ID_REQUIRED"}'
+                    continue
+                }
+                $state["extension_status"] = "CONNECTED"
+                $state["extension_id"] = $extensionId
+                $state["extension_last_seen_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+                Write-State $state
+                $payload = [ordered]@{
+                    status = "GREEN"
+                    decision = "EXTENSION_HEARTBEAT_ACCEPTED"
+                    company_id = $state["company_id"]
+                    profile_id = $state["profile_id"]
+                    environment = $state["environment"]
+                    version = $state["version"]
+                    external_mutation_allowed = $false
+                    cloud_transport_configured = $false
+                }
+                Send-Response $stream 200 "application/json; charset=utf-8" ($payload | ConvertTo-Json -Compress)
+                continue
+            }
             if ($path -eq "/pair") {
                 $form = Parse-Query $query
                 $company = [string]$form["company_id"]; $profile = [string]$form["profile_id"]
+                $profile = Canonicalize-ProfileId $state $profile
                 $browser = ([string]$form["browser_family"]).ToUpperInvariant()
                 $environment = ([string]$form["environment"]).ToUpperInvariant()
                 $version = [string]$form["version"]
