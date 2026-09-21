@@ -1,20 +1,22 @@
-# CEREBRO Browser Bridge · Windows Launcher V0
+# CEREBRO Browser Bridge · Windows Native V1
 
 Estado: LAB/PREPROD. No autoriza PROD.
 
-Uso previsto:
-1. ejecutar `START_CEREBRO_BROWSER_BRIDGE.bat`;
-2. el launcher arranca un servicio local en `127.0.0.1:8765`;
-3. abre la interfaz `CEREBRO Browser Bridge` en el navegador;
-4. el usuario confirma empresa, perfil de navegador y entorno;
-5. el estado local queda persistido en `%LOCALAPPDATA%\CEREBRO\browser-bridge\state.json`.
+Esta versión elimina la dependencia de Python en el PC. El launcher y el servicio local funcionan solo con Windows PowerShell.
 
-Seguridad V0:
-- solo escucha en loopback;
-- no acepta PROD;
-- no almacena contraseñas, tokens ni credenciales;
-- kill switch lógico requerido;
-- no ejecuta acciones externas;
-- el transporte cloud permanece `NOT_CONFIGURED` hasta validación física del PC.
+Uso:
+1. Extraer el paquete completo.
+2. Ejecutar START_CEREBRO_BROWSER_BRIDGE.bat.
+3. El launcher valida que el servicio sea realmente CEREBRO.
+4. Si 8765 está ocupado por otro servicio, busca automáticamente un puerto libre entre 8766 y 8785.
+5. Arranca solo en 127.0.0.1 y valida /health antes de abrir el navegador.
+6. Los errores quedan registrados en %LOCALAPPDATA%\CEREBRO\browser-bridge\launcher.log.
 
-Este launcher resuelve el acceso físico/local al Bridge. La siguiente fase conecta de forma controlada el heartbeat/worker local con el CEREBRO Gateway, sin exponer secretos.
+Seguridad:
+- loopback únicamente;
+- solo LAB/PREPROD;
+- no almacena contraseñas, tokens ni claves;
+- no realiza mutaciones externas;
+- no toca servicios locales ajenos;
+- transporte cloud permanece NOT_CONFIGURED;
+- coste adicional 0 €.
