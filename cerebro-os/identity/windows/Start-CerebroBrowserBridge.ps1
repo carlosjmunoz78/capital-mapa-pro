@@ -2,12 +2,35 @@ $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $BridgeRoot = Resolve-Path (Join-Path $ScriptDir "..")
 $Service = Join-Path $BridgeRoot "browser_bridge_local_service.py"
-$Port = if ($env:CEREBRO_BRIDGE_PORT) { $env:CEREBRO_BRIDGE_PORT } else { "8765" }
 
 function Find-Python {
     if (Get-Command py -ErrorAction SilentlyContinue) { return @("py","-3") }
     if (Get-Command python -ErrorAction SilentlyContinue) { return @("python") }
     return $null
+}
+
+function Test-CerebroBridge {
+    param([int]$Port)
+    try {
+        $resp = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$Port/health" -TimeoutSec 1
+        if ($resp.StatusCode -ne 200) { return $false }
+        $json = $resp.Content | ConvertFrom-Json
+        return ($json.service -eq "CEREBRO Browser Bridge" -and $json.status -eq "GREEN")
+    } catch {
+        return $false
+    }
+}
+
+function Test-PortFree {
+    param([int]$Port)
+    try {
+        $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback,$Port)
+        $listener.Start()
+        $listener.Stop()
+        return $true
+    } catch {
+        return $false
+    }
 }
 
 $Python = Find-Python
@@ -20,15 +43,38 @@ if (-not $Python) {
     exit 2
 }
 
-$Url = "http://127.0.0.1:$Port/"
-try {
-    $existing = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$Port/health" -TimeoutSec 1
-    if ($existing.StatusCode -eq 200) {
-        Start-Process $Url
-        exit 0
-    }
-} catch {}
+$RequestedPort = if ($env:CEREBRO_BRIDGE_PORT) { [int]$env:CEREBRO_BRIDGE_PORT } else { 8765 }
+$Port = $RequestedPort
 
+if (Test-CerebroBridge -Port $Port) {
+    Start-Process "http://127.0.0.1:$Port/"
+    exit 0
+}
+
+if (-not (Test-PortFree -Port $Port)) {
+    $Found = $false
+    foreach ($Candidate in 8766..8785) {
+        if (Test-CerebroBridge -Port $Candidate) {
+            Start-Process "http://127.0.0.1:$Candidate/"
+            exit 0
+        }
+        if (Test-PortFree -Port $Candidate) {
+            $Port = $Candidate
+            $Found = $true
+            break
+        }
+    }
+    if (-not $Found) {
+        Add-Type -AssemblyName PresentationFramework
+        [System.Windows.MessageBox]::Show(
+          "No hay un puerto local libre entre 8765 y 8785. CEREBRO no ha modificado ningun otro servicio.",
+          "CEREBRO Browser Bridge"
+        ) | Out-Null
+        exit 4
+    }
+}
+
+$env:CEREBRO_BRIDGE_PORT = [string]$Port
 $Args = @()
 if ($Python.Count -gt 1) { $Args += $Python[1] }
 $Args += @($Service)
@@ -38,13 +84,10 @@ $WorkDir = Split-Path -Parent $BridgeRoot
 $Process = Start-Process -FilePath $Exe -ArgumentList $Args -WorkingDirectory $WorkDir -WindowStyle Hidden -PassThru
 
 $Ready = $false
-for ($i=0; $i -lt 25; $i++) {
+for ($i=0; $i -lt 30; $i++) {
     Start-Sleep -Milliseconds 200
     if ($Process.HasExited) { break }
-    try {
-        $health = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$Port/health" -TimeoutSec 1
-        if ($health.StatusCode -eq 200) { $Ready = $true; break }
-    } catch {}
+    if (Test-CerebroBridge -Port $Port) { $Ready = $true; break }
 }
 
 if (-not $Ready) {
@@ -56,4 +99,4 @@ if (-not $Ready) {
     exit 3
 }
 
-Start-Process $Url
+Start-Process "http://127.0.0.1:$Port/"
