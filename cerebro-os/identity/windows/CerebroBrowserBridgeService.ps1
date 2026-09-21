@@ -157,7 +157,8 @@ $messageHtml
 function Send-Response($Stream, [int]$Status, [string]$ContentType, [string]$Body) {
     $statusText = switch ($Status) { 200 { "OK" } 400 { "Bad Request" } 404 { "Not Found" } default { "Error" } }
     $bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($Body)
-    $header = "HTTP/1.1 $Status $statusText\r\nContent-Type: $ContentType\r\nContent-Length: $($bodyBytes.Length)\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\nConnection: close\r\n\r\n"
+    $crlf = [string][char]13 + [string][char]10
+    $header = "HTTP/1.1 $Status $statusText${crlf}Content-Type: $ContentType${crlf}Content-Length: $($bodyBytes.Length)${crlf}Cache-Control: no-store${crlf}X-Content-Type-Options: nosniff${crlf}X-Frame-Options: DENY${crlf}Connection: close${crlf}${crlf}"
     $headerBytes = [System.Text.Encoding]::ASCII.GetBytes($header)
     $Stream.Write($headerBytes, 0, $headerBytes.Length)
     $Stream.Write($bodyBytes, 0, $bodyBytes.Length)
