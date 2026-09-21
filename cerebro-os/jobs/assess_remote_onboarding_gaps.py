@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from identity.browser_bridge_acceptance_gate import evaluate_browser_bridge_acceptance
+
 REMOTE_SAFE_PHASES={
     "REGISTER_COMPANY","SCAN_DIGITAL_FOOTPRINT","DISCOVER_BUSINESS_MODEL","DISCOVER_PROCESSES",
     "AUDIT_WEBSITE","DISCOVER_KEYWORDS","AUDIT_SOCIAL_MEDIA","AUDIT_LOCAL_PRESENCE",
@@ -31,6 +33,7 @@ def assess_remote_onboarding_gaps(result:dict)->dict:
     phase=str(state.get("current_phase") or "").strip()
     human_reason=str(result.get("human_reason") or state.get("human_reason") or "").strip() or None
     stop_reason=str(result.get("executor_stop_reason") or result.get("stop_reason") or "").strip() or None
+    bridge_acceptance=None
 
     if status=="HUMAN_REQUIRED":
         classification="HUMAN_REQUIRED"
@@ -45,9 +48,23 @@ def assess_remote_onboarding_gaps(result:dict)->dict:
         remotely_actionable=True
         local_pc_required=False
     elif phase in LOCAL_ACCESS_PHASES:
-        classification="LOCAL_ACCESS_DEPENDENT"
-        remotely_actionable=False
-        local_pc_required=True
+        bridge_acceptance=evaluate_browser_bridge_acceptance(
+            result.get("browser_bridge_acceptance"),
+            company_id=company_id,
+        )
+        if bridge_acceptance.get("status")=="HUMAN_REQUIRED":
+            classification="HUMAN_REQUIRED"
+            remotely_actionable=False
+            local_pc_required=False
+            human_reason=str(bridge_acceptance.get("human_reason") or "SECURITY_INCIDENT")
+        elif bridge_acceptance.get("remote_lab_roundtrip_allowed"):
+            classification="LOCAL_ACCESS_REMOTE_TEST_READY"
+            remotely_actionable=True
+            local_pc_required=False
+        else:
+            classification="LOCAL_ACCESS_DEPENDENT"
+            remotely_actionable=False
+            local_pc_required=True
     elif phase in PROD_PHASES:
         classification="PROD_GATE"
         remotely_actionable=False
@@ -69,6 +86,7 @@ def assess_remote_onboarding_gaps(result:dict)->dict:
     next_action={
         "REMOTE_SAFE":"RUN_OR_RESUME_REMOTE_SAFE_PHASE",
         "REMOTE_PREPROD_SAFE":"RUN_OR_RESUME_PREPROD_PHASE",
+        "LOCAL_ACCESS_REMOTE_TEST_READY":"RUN_REMOTE_LAB_BRIDGE_ACCEPTANCE",
         "LOCAL_ACCESS_DEPENDENT":"WAIT_FOR_LOCAL_ACCESS_OR_EXISTING_CLOUD_EVIDENCE",
         "HUMAN_REQUIRED":"WAIT_FOR_CANONICAL_HUMAN_EXCEPTION",
         "PROD_GATE":"KEEP_PROD_FAIL_CLOSED",
@@ -82,7 +100,7 @@ def assess_remote_onboarding_gaps(result:dict)->dict:
       "engine_id":"ONB-GAP-001",
       "environment":str(state.get("environment") or result.get("environment") or "LAB"),
       "version":version,
-      "status":"GREEN" if classification in {"REMOTE_SAFE","REMOTE_PREPROD_SAFE","COMPLETE"} else "WAITING" if classification in {"LOCAL_ACCESS_DEPENDENT","PROD_GATE","UNKNOWN_GAP"} else "HUMAN_REQUIRED",
+      "status":"GREEN" if classification in {"REMOTE_SAFE","REMOTE_PREPROD_SAFE","LOCAL_ACCESS_REMOTE_TEST_READY","COMPLETE"} else "WAITING" if classification in {"LOCAL_ACCESS_DEPENDENT","PROD_GATE","UNKNOWN_GAP"} else "HUMAN_REQUIRED",
       "classification":classification,
       "current_phase":phase or None,
       "source_status":status,
@@ -90,6 +108,7 @@ def assess_remote_onboarding_gaps(result:dict)->dict:
       "human_reason":human_reason,
       "remotely_actionable":remotely_actionable,
       "local_pc_required":local_pc_required,
+      "browser_bridge_acceptance":bridge_acceptance,
       "remote_prefill_green_count":green_prefill,
       "remote_prefill_total":engine_count,
       "remote_prefill_remaining":remaining,
