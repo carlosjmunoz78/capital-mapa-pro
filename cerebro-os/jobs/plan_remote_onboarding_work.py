@@ -20,6 +20,15 @@ def plan_remote_work(result:dict)->dict:
           "may_mutate_prod":False,
           "requires_local_pc":False,
         }
+    elif classification=="LOCAL_ACCESS_REMOTE_TEST_READY":
+        work={
+          "execution_mode":"BROWSER_BRIDGE_LAB_ACCEPTANCE",
+          "may_use_browser_bridge":True,
+          "browser_bridge_action":"OPEN_LOCAL_TEST_PAGE",
+          "may_use_computer_use":False,
+          "may_mutate_prod":False,
+          "requires_local_pc":False,
+        }
     else:
         work={
           "execution_mode":"NO_AUTONOMOUS_EXECUTION",
