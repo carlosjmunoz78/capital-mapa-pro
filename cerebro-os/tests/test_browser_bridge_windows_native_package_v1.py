@@ -67,9 +67,6 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertNotIn('"<all_urls>"',manifest)
         self.assertIn('/extension/ping',worker)
 
-if __name__=="__main__":
-    unittest.main()
-
     def test_lab_actuation_v13_is_local_only(self):
         service=(WIN/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
         ext=ROOT/"identity"/"chrome_extension_v1_3"
@@ -86,3 +83,6 @@ if __name__=="__main__":
         self.assertNotIn('"scripting"',manifest)
         self.assertIn('chrome.tabs.create',worker)
         self.assertIn('startsWith("http://127.0.0.1:"',worker)
+
+if __name__=="__main__":
+    unittest.main()
