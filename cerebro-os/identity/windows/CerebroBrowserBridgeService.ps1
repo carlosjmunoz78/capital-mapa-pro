@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ServiceName = "CEREBRO Browser Bridge"
-$ServiceVersion = "1.0.0"
+$ServiceVersion = "1.1.0"
 $HostAddress = [System.Net.IPAddress]::Loopback
 
 if ([string]::IsNullOrWhiteSpace($StatePath)) {
