@@ -417,6 +417,9 @@ try {
                     continue
                 }
 
+                # Physical device identity for the Fenix pilot is derived from this Windows machine,
+                # never inherited from another company's legacy Browser Bridge state.
+                $state["device_id"] = Get-DeviceId
                 $state["company_id"] = "fenix"
                 $state["profile_id"] = $selectedProfile
                 $state["browser_family"] = "CHROME"
