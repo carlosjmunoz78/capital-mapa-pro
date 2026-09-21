@@ -145,6 +145,18 @@ if (-not $ReuseExisting) {
     Write-LauncherLog "Existing V1.4.1 Bridge reused on port $Port"
 }
 
+try {
+    $bootstrapUri = "http://127.0.0.1:$Port/bootstrap/fenix-lab?transport_key=" + [uri]::EscapeDataString($TransportKey)
+    $bootstrap = Invoke-RestMethod -UseBasicParsing -Uri $bootstrapUri -Method Get -TimeoutSec 5
+    if ($bootstrap.decision -eq "FENIX_LAB_PILOT_BOOTSTRAPPED") {
+        Write-LauncherLog "FENIX LAB pilot bootstrapped device=$($bootstrap.device_id) profile=$($bootstrap.profile_id)"
+    } else {
+        Write-LauncherLog "FENIX LAB pilot bootstrap returned decision=$($bootstrap.decision)"
+    }
+} catch {
+    Write-LauncherLog ("FENIX LAB pilot bootstrap pending: " + $_.Exception.Message)
+}
+
 $TransportStdout = Join-Path $RuntimeDir "transport.stdout.log"
 $TransportStderr = Join-Path $RuntimeDir "transport.stderr.log"
 $TransportArgs = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $Transport + '" -BridgePort ' + $Port + ' -TransportKey "' + $TransportKey + '" -PairingFile "' + $PairingFile + '"'
