@@ -436,6 +436,14 @@ try {
                 $state["extension_status"] = "CONNECTED"
                 $state["extension_id"] = $extensionId
                 $state["extension_last_seen_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+                if ([string]$state["environment"] -eq "LAB" -and [string]$state["lab_command_status"] -eq "NONE") {
+                    $state["lab_command_id"] = "lab-" + [Guid]::NewGuid().ToString("N")
+                    $state["lab_command_action"] = "OPEN_LOCAL_TEST_PAGE"
+                    $state["lab_command_status"] = "QUEUED"
+                    $state["lab_command_created_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+                    $state["lab_command_completed_at"] = 0
+                    $state["lab_command_evidence"] = ""
+                }
                 Write-State $state
                 $payload = [ordered]@{
                     status = "GREEN"
