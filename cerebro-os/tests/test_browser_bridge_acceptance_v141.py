@@ -32,12 +32,28 @@ class BrowserBridgeAcceptanceV141Tests(unittest.TestCase):
                 names=set(zf.namelist())
                 self.assertIn("START_CEREBRO_BROWSER_BRIDGE.bat",names)
                 self.assertIn("VERIFY_CEREBRO_BROWSER_BRIDGE.bat",names)
+                self.assertIn("OPEN_CHROME_EXTENSION_SETUP.bat",names)
+                self.assertIn("PHYSICAL_SETUP_README.txt",names)
                 self.assertIn("chrome_extension_v1_4_1/manifest.json",names)
                 self.assertIn("BUILD_EVIDENCE.json",names)
                 self.assertNotIn("PAIRING_ONCE.txt",names)
                 manifest=json.loads(zf.read("package_manifest_v1_4_1.json"))
                 self.assertFalse(manifest["prod_enabled"])
                 self.assertTrue(manifest["pairing_file"]["required_for_first_cloud_enrollment"])
+
+    def test_fenix_lab_pilot_bootstrap_is_transport_keyed_and_non_prod(self):
+        service=(ROOT/"identity"/"windows"/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
+        launcher=(ROOT/"identity"/"windows"/"Start-CerebroBrowserBridge.ps1").read_text(encoding="utf-8")
+        self.assertIn('/bootstrap/fenix-lab',service)
+        self.assertIn('TRANSPORT_KEY_MISMATCH',service)
+        self.assertIn('FENIX_LAB_PILOT_BOOTSTRAPPED',service)
+        self.assertIn('$state["company_id"] = "fenix"',service)
+        self.assertIn('$state["environment"] = "LAB"',service)
+        self.assertIn('$state["version"] = "v0"',service)
+        self.assertIn('external_mutation_allowed = $false',service)
+        self.assertIn('prod_activation_allowed = $false',service)
+        self.assertIn('/bootstrap/fenix-lab?transport_key=',launcher)
+        self.assertNotIn('password=',launcher.lower())
 
 if __name__=="__main__":
     unittest.main()
