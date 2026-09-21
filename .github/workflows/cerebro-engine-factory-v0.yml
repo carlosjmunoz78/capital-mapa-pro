@@ -27,6 +27,71 @@ jobs:
           python-version: '3.12'
       - name: Run unit tests
         run: python -m unittest discover -s cerebro-os/tests -v
+      - name: Validate Windows Browser Bridge PowerShell V1
+        shell: bash
+        run: |
+          set -euo pipefail
+          pwsh -NoProfile -Command '& {
+            $files = @(
+              "cerebro-os/identity/windows/Start-CerebroBrowserBridge.ps1",
+              "cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1"
+            )
+            foreach ($file in $files) {
+              $tokens = $null
+              $errors = $null
+              [System.Management.Automation.Language.Parser]::ParseFile($file, [ref]$tokens, [ref]$errors) | Out-Null
+              if ($errors.Count -gt 0) {
+                $errors | ForEach-Object { Write-Error $_.Message }
+                exit 1
+              }
+            }
+          }'
+          tmpdir="$(mktemp -d)"
+          port=18765
+          pwsh -NoProfile -File cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1 -Port "$port" -StatePath "$tmpdir/state.json" >"$tmpdir/stdout.log" 2>"$tmpdir/stderr.log" &
+          pid=$!
+          cleanup() { kill "$pid" >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent "http://127.0.0.1:${port}/health" >"$tmpdir/health.json"; then
+              ready=1
+              break
+            fi
+            sleep 0.2
+          done
+          if [ "$ready" != "1" ]; then
+            cat "$tmpdir/stdout.log" || true
+            cat "$tmpdir/stderr.log" || true
+            exit 1
+          fi
+          python - "$tmpdir/health.json" <<'PY'
+          import json,sys
+          payload=json.load(open(sys.argv[1],encoding="utf-8-sig"))
+          assert payload["status"]=="GREEN", payload
+          assert payload["service"]=="CEREBRO Browser Bridge", payload
+          assert payload["cloud_transport_status"]=="NOT_CONFIGURED", payload
+          assert payload["paired"] is False, payload
+          PY
+          curl --fail --silent --get "http://127.0.0.1:${port}/pair" \
+            --data-urlencode "company_id=fenix" \
+            --data-urlencode "profile_id=chrome-default" \
+            --data-urlencode "browser_family=CHROME" \
+            --data-urlencode "environment=LAB" \
+            --data-urlencode "version=v0" >"$tmpdir/pair.html"
+          grep -q "PC emparejado localmente" "$tmpdir/pair.html"
+          curl --fail --silent "http://127.0.0.1:${port}/health" >"$tmpdir/health2.json"
+          python - "$tmpdir/health2.json" <<'PY'
+          import json,sys
+          payload=json.load(open(sys.argv[1],encoding="utf-8-sig"))
+          assert payload["paired"] is True, payload
+          assert payload["company_id"]=="fenix", payload
+          assert payload["profile_id"]=="chrome-default", payload
+          assert payload["environment"]=="LAB", payload
+          PY
+          trap - EXIT
+          cleanup
+
       - name: Runtime boot and rollback rehearsal
         run: python cerebro-os/runtime/runtime_rehearsal.py
       - name: Non-destructive release rollback rehearsal
