@@ -2,8 +2,13 @@
   "record_type": "cerebro_browser_bridge_windows_package_manifest",
   "service": "CEREBRO Browser Bridge",
   "service_version": "1.4.1",
-  "environment_scope": ["LAB", "PREPROD"],
-  "physical_actuation_scope": ["LAB"],
+  "environment_scope": [
+    "LAB",
+    "PREPROD"
+  ],
+  "physical_actuation_scope": [
+    "LAB"
+  ],
   "prod_enabled": false,
   "external_website_mutation_enabled": false,
   "raw_secret_storage_allowed": false,
@@ -14,7 +19,9 @@
     "CerebroBrowserBridgeService.ps1",
     "CerebroBrowserTransport.ps1",
     "VERIFY_CEREBRO_BROWSER_BRIDGE.bat",
-    "Verify-CerebroBrowserBridge.ps1"
+    "Verify-CerebroBrowserBridge.ps1",
+    "OPEN_CHROME_EXTENSION_SETUP.bat",
+    "PHYSICAL_SETUP_README.txt"
   ],
   "extension_directory": "chrome_extension_v1_4_1",
   "pairing_file": {
