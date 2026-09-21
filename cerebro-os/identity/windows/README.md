@@ -1,4 +1,4 @@
-# CEREBRO Browser Bridge · Windows Native V1
+# CEREBRO Browser Bridge · Windows Native V1.4.1
 
 Estado: LAB/PREPROD. No autoriza PROD.
 
@@ -20,3 +20,13 @@ Seguridad:
 - no toca servicios locales ajenos;
 - transporte cloud permanece NOT_CONFIGURED;
 - coste adicional 0 €.
+
+
+## Recovery hardening V1.4.1
+
+- extension heartbeat is considered fresh for 90 seconds only;
+- stale extension state cannot receive a remote command;
+- queued local commands expire fail-closed after 180 seconds;
+- terminal receipts are immutable: conflicting replay is rejected;
+- an already-fresh extension identity cannot be silently replaced;
+- cloud transport remains outbound-only, Fénix pilot, LAB actuation only.
