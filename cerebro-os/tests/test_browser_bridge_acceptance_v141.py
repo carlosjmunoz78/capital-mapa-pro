@@ -47,6 +47,7 @@ class BrowserBridgeAcceptanceV141Tests(unittest.TestCase):
         self.assertIn('/bootstrap/fenix-lab',service)
         self.assertIn('TRANSPORT_KEY_MISMATCH',service)
         self.assertIn('FENIX_LAB_PILOT_BOOTSTRAPPED',service)
+        self.assertIn('$state["device_id"] = Get-DeviceId',service)
         self.assertIn('$state["company_id"] = "fenix"',service)
         self.assertIn('$state["environment"] = "LAB"',service)
         self.assertIn('$state["version"] = "v0"',service)
