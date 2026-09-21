@@ -2,12 +2,13 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateRange(1024, 65535)]
     [int]$Port,
-    [string]$StatePath = ""
+    [string]$StatePath = "",
+    [string]$TransportKey = ""
 )
 
 $ErrorActionPreference = "Stop"
 $ServiceName = "CEREBRO Browser Bridge"
-$ServiceVersion = "1.3.1"
+$ServiceVersion = "1.4.0"
 $HostAddress = [System.Net.IPAddress]::Loopback
 
 $Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
@@ -356,6 +357,59 @@ try {
                 Send-Response $stream 200 "text/html; charset=utf-8" (Render-Page $state "Deteccion local de Chrome completada.")
                 continue
             }
+            if ($path -eq "/transport/status") {
+                $form = Parse-Query $query
+                $providedKey = [string]$form["transport_key"]
+                $status = ([string]$form["status"]).ToUpperInvariant()
+                if ([string]::IsNullOrWhiteSpace($TransportKey) -or $providedKey -ne $TransportKey) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"TRANSPORT_KEY_MISMATCH"}'
+                    continue
+                }
+                if ($status -notin @("ENROLLING","ONLINE","ERROR","OFFLINE")) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"TRANSPORT_STATUS_INVALID"}'
+                    continue
+                }
+                $state["cloud_transport_configured"] = $status -eq "ONLINE"
+                $state["cloud_transport_status"] = $status
+                Write-State $state
+                Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"TRANSPORT_STATUS_ACCEPTED"}'
+                continue
+            }
+            if ($path -eq "/cloud/enqueue") {
+                $form = Parse-Query $query
+                $providedKey = [string]$form["transport_key"]
+                $commandId = [string]$form["command_id"]
+                $action = ([string]$form["action"]).ToUpperInvariant()
+                if ([string]::IsNullOrWhiteSpace($TransportKey) -or $providedKey -ne $TransportKey) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"TRANSPORT_KEY_MISMATCH"}'
+                    continue
+                }
+                if (-not [bool]$state["paired"] -or [string]$state["environment"] -ne "LAB" -or [string]$state["extension_status"] -ne "CONNECTED") {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LOCAL_EXECUTOR_NOT_READY"}'
+                    continue
+                }
+                if ([string]::IsNullOrWhiteSpace($commandId) -or $action -ne "OPEN_LOCAL_TEST_PAGE") {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"REMOTE_ACTION_DENIED"}'
+                    continue
+                }
+                if ([string]$state["lab_command_id"] -eq $commandId -and [string]$state["lab_command_status"] -eq "COMPLETED") {
+                    Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"IDEMPOTENT_REPLAY_SUPPRESSED"}'
+                    continue
+                }
+                if ([string]$state["lab_command_status"] -eq "QUEUED" -and [string]$state["lab_command_id"] -ne $commandId) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LOCAL_COMMAND_BUSY"}'
+                    continue
+                }
+                $state["lab_command_id"] = $commandId
+                $state["lab_command_action"] = $action
+                $state["lab_command_status"] = "QUEUED"
+                $state["lab_command_created_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+                $state["lab_command_completed_at"] = 0
+                $state["lab_command_evidence"] = ""
+                Write-State $state
+                Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"REMOTE_COMMAND_ENQUEUED"}'
+                continue
+            }
             if ($path -eq "/lab/test") {
                 $form = Parse-Query $query
                 $commandId = [string]$form["command_id"]
@@ -453,14 +507,6 @@ try {
                 $state["extension_status"] = "CONNECTED"
                 $state["extension_id"] = $extensionId
                 $state["extension_last_seen_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
-                if ([string]$state["environment"] -eq "LAB" -and [string]$state["lab_command_status"] -eq "NONE") {
-                    $state["lab_command_id"] = "lab-" + [Guid]::NewGuid().ToString("N")
-                    $state["lab_command_action"] = "OPEN_LOCAL_TEST_PAGE"
-                    $state["lab_command_status"] = "QUEUED"
-                    $state["lab_command_created_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
-                    $state["lab_command_completed_at"] = 0
-                    $state["lab_command_evidence"] = ""
-                }
                 Write-State $state
                 $payload = [ordered]@{
                     status = "GREEN"

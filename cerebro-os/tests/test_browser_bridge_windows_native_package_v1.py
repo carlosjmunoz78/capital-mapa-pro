@@ -20,13 +20,13 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertIn("Test-PortFree",launcher)
         self.assertIn("/health",launcher)
         self.assertIn("launcher.log",launcher)
-        self.assertIn('$ExpectedServiceVersion = "1.3.1"',launcher)
+        self.assertIn('$ExpectedServiceVersion = "1.4.0"',launcher)
         self.assertIn('$json.service_version -eq $ExpectedServiceVersion',launcher)
 
     def test_service_is_loopback_and_fail_closed_for_prod(self):
         service=(WIN/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
         self.assertIn("[System.Net.IPAddress]::Loopback",service)
-        self.assertIn('$ServiceVersion = "1.3.1"',service)
+        self.assertIn('$ServiceVersion = "1.4.0"',service)
         self.assertIn('@("LAB","PREPROD")',service)
         self.assertIn('cloud_transport_status = "NOT_CONFIGURED"',service)
         self.assertNotIn("0.0.0.0",service)
@@ -94,6 +94,42 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertIn('"version": "1.3.1"',manifest)
         self.assertIn('EXPECTED_SERVICE_VERSION = "1.3.1"',worker)
         self.assertIn('ping.service_version !== EXPECTED_SERVICE_VERSION',worker)
+
+    def test_v14_cloud_transport_is_outbound_scoped_and_dpapi_protected(self):
+        service=(WIN/"CerebroBrowserBridgeService.ps1").read_text(encoding="utf-8")
+        launcher=(WIN/"Start-CerebroBrowserBridge.ps1").read_text(encoding="utf-8")
+        transport=(WIN/"CerebroBrowserTransport.ps1").read_text(encoding="utf-8")
+        self.assertIn('/cloud/enqueue',service)
+        self.assertIn('/transport/status',service)
+        self.assertIn('TransportKey',service)
+        self.assertIn('CerebroBrowserTransport.ps1',launcher)
+        self.assertIn('ConvertFrom-SecureString',transport)
+        self.assertIn('ConvertTo-SecureString',transport)
+        self.assertIn('X-CEREBRO-Nonce',transport)
+        self.assertIn('cerebro-device-gateway-preprod',transport)
+        self.assertIn('REMOTE_ACTION_DENIED',transport)
+        self.assertIn('"fenix"',transport)
+        self.assertIn('"LAB"',transport)
+        self.assertNotIn('eGqmXGOmJdoKa3TRH8mvTDhs-yVLUi8CujxqHW-lnnw',transport)
+
+    def test_v14_extension_is_localhost_only(self):
+        ext=ROOT/"identity"/"chrome_extension_v1_4"
+        manifest=(ext/"manifest.json").read_text(encoding="utf-8")
+        worker=(ext/"service_worker.js").read_text(encoding="utf-8")
+        self.assertIn('"version": "1.4.0"',manifest)
+        self.assertIn('"http://127.0.0.1/*"',manifest)
+        self.assertNotIn('"https://*/*"',manifest)
+        self.assertIn('EXPECTED_SERVICE_VERSION = "1.4.0"',worker)
+        self.assertIn('OPEN_LOCAL_TEST_PAGE',worker)
+
+    def test_preprod_gateway_v5_is_scope_bound(self):
+        gateway=(ROOT/"identity"/"transport_preprod"/"cerebro-device-gateway-preprod-v5.ts").read_text(encoding="utf-8")
+        self.assertIn('/v1/agents/enroll',gateway)
+        self.assertIn('cerebro_device_pairings_preprod',gateway)
+        self.assertIn('.eq("company_id",agent.company_id)',gateway)
+        self.assertIn('.eq("environment",agent.environment)',gateway)
+        self.assertIn('.eq("version",agent.version)',gateway)
+        self.assertIn('transport_command_scope_mismatch',gateway)
 
 if __name__=="__main__":
     unittest.main()
