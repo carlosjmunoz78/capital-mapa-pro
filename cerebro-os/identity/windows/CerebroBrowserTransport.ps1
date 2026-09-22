@@ -97,6 +97,7 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
     $curl = (Get-Command "curl.exe" -ErrorAction SilentlyContinue).Source
     if ([string]::IsNullOrWhiteSpace($curl)) { throw "CURL_NOT_AVAILABLE" }
 
+    $configPath = $null
     try {
         $configLines = @(
             "silent",
@@ -112,19 +113,16 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
             $configLines += "header = `"$name`: $value`""
         }
         if ($null -ne $Body) {
-            $jsonBody = ($Body | ConvertTo-Json -Depth 10 -Compress)
-            # curl config receives the JSON inline over stdin; escape only config-string metacharacters.
-            $slash = [string][char]92
-            $curlJson = $jsonBody.Replace($slash, ($slash + $slash)).Replace('"', ($slash + '"'))
             $configLines += 'header = "Content-Type: application/json"'
-            $configLines += "data-binary = `"$curlJson`""
         }
         $configLines += "url = `"$Uri`""
         $configText = ($configLines -join [Environment]::NewLine) + [Environment]::NewLine
+        $configPath = Join-Path $RuntimeDir ("curl-config-" + [Guid]::NewGuid().ToString("N") + ".txt")
+        [System.IO.File]::WriteAllText($configPath, $configText, (New-Object System.Text.UTF8Encoding($false)))
 
         $psi = New-Object System.Diagnostics.ProcessStartInfo
         $psi.FileName = $curl
-        $psi.Arguments = "--config -"
+        $psi.Arguments = if ($null -ne $Body) { "--config `"$configPath`" --data-binary @-" } else { "--config `"$configPath`"" }
         $psi.UseShellExecute = $false
         $psi.CreateNoWindow = $true
         $psi.RedirectStandardInput = $true
@@ -138,7 +136,10 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
         try {
             $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
             $stderrTask = $proc.StandardError.ReadToEndAsync()
-            $proc.StandardInput.Write($configText)
+            if ($null -ne $Body) {
+                $jsonBody = ($Body | ConvertTo-Json -Depth 10 -Compress)
+                $proc.StandardInput.Write($jsonBody)
+            }
             $proc.StandardInput.Close()
             $proc.WaitForExit()
             $stdout = $stdoutTask.GetAwaiter().GetResult()
@@ -153,6 +154,7 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
         if ([string]::IsNullOrWhiteSpace($stdout)) { throw "CURL_EMPTY_RESPONSE" }
         return ($stdout | ConvertFrom-Json)
     } finally {
+        if ($configPath) { Remove-Item -LiteralPath $configPath -Force -ErrorAction SilentlyContinue }
     }
 }
 
