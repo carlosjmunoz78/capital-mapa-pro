@@ -55,6 +55,7 @@ function Get-DefaultState {
         lab_command_observed_url = ""
         lab_command_observed_title = ""
         lab_command_page_load_complete = $false
+        lab_command_local_write_verified = $false
     }
 }
 
@@ -123,7 +124,8 @@ function Read-State {
                 "extension_status","extension_id","extension_version","extension_last_seen_at",
                 "lab_command_id","lab_command_action","lab_command_status",
                 "lab_command_created_at","lab_command_completed_at","lab_command_evidence",
-                "lab_command_observed_url","lab_command_observed_title","lab_command_page_load_complete"
+                "lab_command_observed_url","lab_command_observed_title","lab_command_page_load_complete",
+                "lab_command_local_write_verified"
             )) {
                 if ($null -ne $raw.$key) { $state[$key] = $raw.$key }
             }
@@ -198,6 +200,7 @@ function Public-State([System.Collections.IDictionary]$State) {
         lab_command_observed_url = $State["lab_command_observed_url"]
         lab_command_observed_title = $State["lab_command_observed_title"]
         lab_command_page_load_complete = [bool]$State["lab_command_page_load_complete"]
+        lab_command_local_write_verified = [bool]$State["lab_command_local_write_verified"]
     }
 }
 
@@ -498,7 +501,7 @@ try {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LOCAL_EXECUTOR_NOT_READY"}'
                     continue
                 }
-                if ([string]::IsNullOrWhiteSpace($commandId) -or $action -notin @("OPEN_LOCAL_TEST_PAGE","READ_ONLY_PAGE_METADATA")) {
+                if ([string]::IsNullOrWhiteSpace($commandId) -or $action -notin @("OPEN_LOCAL_TEST_PAGE","READ_ONLY_PAGE_METADATA","WRITE_LOCAL_LAB_FORM")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"REMOTE_ACTION_DENIED"}'
                     continue
                 }
@@ -510,11 +513,15 @@ try {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LOCAL_COMMAND_BUSY"}'
                     continue
                 }
-                $state["lab_command_id"] = $commandId
-                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -ne "1.5.0") {
+                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -notin @("1.5.0","1.6.0")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_UPGRADE_REQUIRED"}'
                     continue
                 }
+                if ($action -eq "WRITE_LOCAL_LAB_FORM" -and [string]$state["extension_version"] -ne "1.6.0") {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"WRITE_PILOT_EXTENSION_UPGRADE_REQUIRED"}'
+                    continue
+                }
+                $state["lab_command_id"] = $commandId
                 $state["lab_command_action"] = $action
                 $state["lab_command_status"] = "QUEUED"
                 $state["lab_command_created_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
@@ -523,6 +530,7 @@ try {
                 $state["lab_command_observed_url"] = ""
                 $state["lab_command_observed_title"] = ""
                 $state["lab_command_page_load_complete"] = $false
+                $state["lab_command_local_write_verified"] = $false
                 Write-State $state
                 Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"REMOTE_COMMAND_ENQUEUED"}'
                 continue
@@ -531,6 +539,17 @@ try {
                 $form = Parse-Query $query
                 $commandId = [string]$form["command_id"]
                 $body = "<!doctype html><html><head><meta charset='utf-8'><title>CEREBRO LAB TEST</title></head><body><h1>CEREBRO LAB TEST</h1><p>Pagina local de prueba. Sin mutacion externa.</p><p>command_id=$(Html $commandId)</p></body></html>"
+                Send-Response $stream 200 "text/html; charset=utf-8" $body
+                continue
+            }
+            if ($path -eq "/lab/write-test") {
+                $form = Parse-Query $query
+                $commandId = [string]$form["command_id"]
+                if ($commandId -ne [string]$state["lab_command_id"] -or [string]$state["lab_command_action"] -ne "WRITE_LOCAL_LAB_FORM" -or [string]$state["lab_command_status"] -ne "QUEUED") {
+                    Send-Response $stream 404 "text/plain; charset=utf-8" "LAB_WRITE_NOT_QUEUED"
+                    continue
+                }
+                $body = "<!doctype html><html><head><meta charset='utf-8'><title>CEREBRO LAB WRITE TEST</title></head><body><h1>CEREBRO LAB WRITE TEST</h1><input id='cerebro-lab-marker' type='text' value='' autocomplete='off'><button id='cerebro-lab-apply' onclick=\"document.getElementById('cerebro-lab-output').textContent=(document.getElementById('cerebro-lab-marker').value==='LAB_WRITE_VERIFIED'?'LAB_WRITE_VERIFIED':'INVALID')\">Apply locally</button><p id='cerebro-lab-output'></p></body></html>"
                 Send-Response $stream 200 "text/html; charset=utf-8" $body
                 continue
             }
@@ -566,12 +585,18 @@ try {
                     continue
                 }
                 $action = [string]$state["lab_command_action"]
-                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -ne "1.5.0") {
+                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -notin @("1.5.0","1.6.0")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_REQUIRED"}'
+                    continue
+                }
+                if ($action -eq "WRITE_LOCAL_LAB_FORM" -and [string]$state["extension_version"] -ne "1.6.0") {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"WRITE_PILOT_EXTENSION_REQUIRED"}'
                     continue
                 }
                 $target = if ($action -eq "READ_ONLY_PAGE_METADATA") {
                     "https://example.com/"
+                } elseif ($action -eq "WRITE_LOCAL_LAB_FORM") {
+                    "http://127.0.0.1:" + $Port + "/lab/write-test?command_id=" + [Uri]::EscapeDataString([string]$state["lab_command_id"])
                 } else {
                     "http://127.0.0.1:" + $Port + "/lab/test?command_id=" + [Uri]::EscapeDataString([string]$state["lab_command_id"])
                 }
@@ -595,6 +620,7 @@ try {
                 $observedUrl = [string]$form["observed_url"]
                 $observedTitle = [string]$form["observed_title"]
                 $pageLoadComplete = [string]$form["page_load_complete"] -eq "true"
+                $localWriteVerified = [string]$form["local_write_verified"] -eq "true"
                 if ($extensionId -ne [string]$state["extension_id"] -or $commandId -ne [string]$state["lab_command_id"]) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"RESULT_SCOPE_MISMATCH"}'
                     continue
@@ -625,15 +651,26 @@ try {
                     $state["lab_command_observed_url"] = if ($readbackValid) { "https://example.com/" } else { "" }
                     $state["lab_command_observed_title"] = if ($readbackValid) { "Example Domain" } else { "" }
                     $state["lab_command_page_load_complete"] = [bool]$readbackValid
+                } elseif ($action -eq "WRITE_LOCAL_LAB_FORM") {
+                    $expectedWriteUrl = "http://127.0.0.1:" + $Port + "/lab/write-test?command_id=" + [Uri]::EscapeDataString($commandId)
+                    $writeValid = ($observedUrl -ceq $expectedWriteUrl -and $observedTitle -ceq "CEREBRO LAB WRITE TEST" -and $pageLoadComplete -and $localWriteVerified)
+                    if ($result -eq "COMPLETED" -and -not $writeValid) { $result = "FAILED" }
+                    $state["lab_command_observed_url"] = if ($writeValid) { $expectedWriteUrl } else { "" }
+                    $state["lab_command_observed_title"] = if ($writeValid) { "CEREBRO LAB WRITE TEST" } else { "" }
+                    $state["lab_command_page_load_complete"] = [bool]$writeValid
+                    $state["lab_command_local_write_verified"] = [bool]$writeValid
                 } else {
                     $state["lab_command_observed_url"] = ""
                     $state["lab_command_observed_title"] = ""
                     $state["lab_command_page_load_complete"] = $false
                 }
+                if ($action -ne "WRITE_LOCAL_LAB_FORM") { $state["lab_command_local_write_verified"] = $false }
                 $state["lab_command_status"] = $result
                 $state["lab_command_completed_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
                 $state["lab_command_evidence"] = if ($action -eq "READ_ONLY_PAGE_METADATA") {
                     if ($result -eq "COMPLETED") { "EXAMPLE_DOMAIN_METADATA_VERIFIED" } else { "PAGE_READBACK_FAILED" }
+                } elseif ($action -eq "WRITE_LOCAL_LAB_FORM") {
+                    if ($result -eq "COMPLETED") { "LOCAL_LAB_FORM_WRITE_VERIFIED" } else { "LOCAL_LAB_FORM_WRITE_FAILED" }
                 } else {
                     if ($result -eq "COMPLETED") { "LOCAL_TEST_PAGE_OPENED" } else { "LOCAL_TEST_PAGE_FAILED" }
                 }
@@ -658,7 +695,7 @@ try {
                 $extensionId = [string]$form["extension_id"]
                 $extensionVersion = [string]$form["extension_version"]
                 if ([string]::IsNullOrWhiteSpace($extensionVersion)) { $extensionVersion = "1.4.1" }
-                if ($extensionVersion -notin @("1.4.1","1.5.0")) {
+                if ($extensionVersion -notin @("1.4.1","1.5.0","1.6.0")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_VERSION_DENIED"}'
                     continue
                 }
