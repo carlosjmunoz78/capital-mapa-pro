@@ -112,20 +112,21 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
             if ($value.Contains([Environment]::NewLine)) { throw "CURL_HEADER_INVALID" }
             $configLines += "header = `"$name`: $value`""
         }
+        $curlArguments = "--config -"
         if ($null -ne $Body) {
             $bodyName = "curl-body-" + [Guid]::NewGuid().ToString("N") + ".json"
             $bodyPath = Join-Path $RuntimeDir $bodyName
             [System.IO.File]::WriteAllText($bodyPath, ($Body | ConvertTo-Json -Depth 10 -Compress), (New-Object System.Text.UTF8Encoding($false)))
             $configLines += 'header = "Content-Type: application/json"'
-            # Use only the basename in curl config; WorkingDirectory points at RuntimeDir.
-            $configLines += "data-binary = `"@$bodyName`""
+            # Keep Windows file paths out of curl config parsing; only the non-secret body path is passed in process args.
+            $curlArguments += " --data-binary `"@$bodyPath`""
         }
         $configLines += "url = `"$Uri`""
         $configText = ($configLines -join [Environment]::NewLine) + [Environment]::NewLine
 
         $psi = New-Object System.Diagnostics.ProcessStartInfo
         $psi.FileName = $curl
-        $psi.Arguments = "--config -"
+        $psi.Arguments = $curlArguments
         $psi.WorkingDirectory = $RuntimeDir
         $psi.UseShellExecute = $false
         $psi.CreateNoWindow = $true
