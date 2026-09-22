@@ -74,3 +74,25 @@ function executeLabFixture(documentRef, locationHref, expectedOrigin) {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = { LAB_SELECTORS, LAB_VALUES, verifyLabFixture, executeLabFixture };
 }
+
+// The service worker injects this file ONLY into the fixed localhost fixture.
+// The expected origin is provided by the service worker and validated here.
+if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (!message || message.type !== "CEREBRO_LAB_DOM_FIXTURE_SMOKE") return false;
+    const expectedOrigin = String(message.expectedOrigin || "");
+    if (!/^http:\/\/127\.0\.0\.1:([0-9]{4,5})$/.test(expectedOrigin)) {
+      sendResponse({status:"BLOCKED",decision:"INVALID_EXPECTED_ORIGIN"});
+      return false;
+    }
+    try {
+      sendResponse(executeLabFixture(document, location.href, expectedOrigin));
+    } catch (_) {
+      sendResponse({status:"FAILED",decision:"LAB_DOM_EXECUTOR_EXCEPTION",
+        fixture_verified:false,click_verified:false,type_verified:false,
+        select_verified:false,read_verified:false,
+        external_mutation_performed:false,secret_value_included:false});
+    }
+    return false;
+  });
+}
