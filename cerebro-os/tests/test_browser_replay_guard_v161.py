@@ -29,10 +29,15 @@ class ReplayGuardV161Tests(unittest.TestCase):
   inst=INSTALLER.read_text()
   for required in ('PAYLOAD_HASH_MISMATCH','SNAPSHOT','ROLLED_BACK','REQUIRES_INSTALLED_V160','prod_disabled','PREVIOUS_PATCH_PENDING_ACCEPTANCE'):
    self.assertIn(required,inst)
-  self.assertIn('for($attempt=1;$attempt -le 30;$attempt++)',inst)
+  self.assertIn('for($attempt=1;$attempt -le 45;$attempt++)',inst)
   self.assertIn('LOCAL_BRIDGE_VERIFY_TIMEOUT',inst)
-  self.assertIn('$candidate.checks.service_found',inst)
-  self.assertIn('$candidate.checks.paired',inst)
+  self.assertIn('Invoke-RestMethod -UseBasicParsing',inst)
+  self.assertIn('$candidate.company_id -eq "fenix"',inst)
+  self.assertIn('$candidate.environment -eq "LAB"',inst)
+  self.assertIn('[bool]$candidate.kill_switch_enabled',inst)
+  self.assertIn('$Report.checks.observed_port',inst)
+  self.assertNotIn('(& $verify',inst)
+  self.assertNotIn('$v.checks.extension_connected',inst)
   for forbidden in ('Stop-Process -Name chrome','Remove-Item -Recurse','<all_urls>'):
    self.assertNotIn(forbidden,inst)
  def test_zip_integrity_and_previous_artifacts_untouched(self):
