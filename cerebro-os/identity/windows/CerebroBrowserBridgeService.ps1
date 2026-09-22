@@ -87,7 +87,7 @@ function Apply-RuntimeExpiry([System.Collections.IDictionary]$State) {
     if ([string]$State["extension_status"] -eq "CONNECTED" -and -not (Test-ExtensionFresh $State)) {
         $State["extension_status"] = "STALE"
     }
-    if ([string]$State["lab_command_status"] -eq "QUEUED") {
+    if ([string]$State["lab_command_status"] -in @("QUEUED","DISPATCHED")) {
         $created = [int64]$State["lab_command_created_at"]
         if ($created -gt 0 -and ($now - $created) -gt 180) {
             $State["lab_command_status"] = "FAILED"
@@ -514,7 +514,7 @@ try {
                     Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"IDEMPOTENT_REPLAY_SUPPRESSED"}'
                     continue
                 }
-                if ([string]$state["lab_command_status"] -eq "QUEUED" -and [string]$state["lab_command_id"] -ne $commandId) {
+                if ([string]$state["lab_command_status"] -in @("QUEUED","DISPATCHED") -and [string]$state["lab_command_id"] -ne $commandId) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LOCAL_COMMAND_BUSY"}'
                     continue
                 }
@@ -578,6 +578,12 @@ try {
                 continue
             }
             if ($path -eq "/lab/queue-test") {
+                # Repeated GUI clicks must preserve the pending command ID; otherwise
+                # Chrome receipts target an obsolete ID and tabs reopen indefinitely.
+                if ([string]$state["lab_command_status"] -in @("QUEUED","DISPATCHED")) {
+                    Send-Response $stream 200 "text/html; charset=utf-8" (Render-Page $state "Ya existe una prueba LAB pendiente. No se ha creado otra.")
+                    continue
+                }
                 if (-not [bool]$state["paired"] -or [string]$state["environment"] -ne "LAB" -or -not (Test-ExtensionFresh $state)) {
                     Send-Response $stream 400 "text/html; charset=utf-8" (Render-Page $state "LAB no listo: requiere paired + LAB + extension CONNECTED.")
                     continue
@@ -604,11 +610,18 @@ try {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_SCOPE_MISMATCH"}'
                     continue
                 }
-                if ([string]$state["lab_command_status"] -ne "QUEUED") {
+                $currentCommandStatus = [string]$state["lab_command_status"]
+                if ($currentCommandStatus -notin @("QUEUED","DISPATCHED")) {
                     Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"NO_COMMAND"}'
                     continue
                 }
                 $action = [string]$state["lab_command_action"]
+                # v1.6.0 did not persist receipts. Suppress a second tab delivery
+                # while still accepting the first completion or bounded timeout.
+                if ($currentCommandStatus -eq "DISPATCHED") {
+                    Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"NO_COMMAND"}'
+                    continue
+                }
                 if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -notin @("1.5.0","1.6.0","1.6.1")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_REQUIRED"}'
                     continue
@@ -631,6 +644,10 @@ try {
                     company_id = [string]$state["company_id"]
                     selector = [string]$state["lab_command_selector"]
                     value = [string]$state["lab_command_value"]
+                }
+                if ($action -eq "OPEN_LOCAL_TEST_PAGE" -and [string]$state["extension_version"] -eq "1.6.0") {
+                    $state["lab_command_status"] = "DISPATCHED"
+                    Write-State $state
                 }
                 Send-Response $stream 200 "application/json; charset=utf-8" ($payload | ConvertTo-Json -Compress)
                 continue
@@ -702,7 +719,7 @@ try {
                     }
                     continue
                 }
-                if ($currentStatus -ne "QUEUED") {
+                if ($currentStatus -notin @("QUEUED","DISPATCHED")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"RESULT_NOT_QUEUED"}'
                     continue
                 }
