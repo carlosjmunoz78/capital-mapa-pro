@@ -525,8 +525,22 @@ try {
                         "OPERATOR_SELECT" { "#cerebro-select" }
                         "OPERATOR_READ" { "#cerebro-output" }
                     }
-                    if ([string]$state["extension_version"] -ne "1.6.0" -or $selector -cne $allowedSelector -or
-                        ($action -eq "OPERATOR_TYPE" -and ($value.Length -lt 1 -or $value.Length -gt 64 -or $value -cnotmatch '^[a-zA-Z0-9 _.-]+
+                    $invalidType = ($action -eq "OPERATOR_TYPE" -and
+                        ($value.Length -lt 1 -or $value.Length -gt 64 -or
+                         $value -cnotmatch "^[a-zA-Z0-9 _.-]+$"))
+                    $invalidSelect = ($action -eq "OPERATOR_SELECT" -and
+                        $value -cnotin @("alpha","beta"))
+                    $invalidEmpty = ($action -in @("OPERATOR_CLICK","OPERATOR_READ") -and
+                        $value.Length -ne 0)
+                    if ([string]$state["extension_version"] -ne "1.6.0" -or
+                        $selector -cne $allowedSelector -or $invalidType -or
+                        $invalidSelect -or $invalidEmpty) {
+                        Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"OPERATOR_FIXTURE_SCOPE_DENIED"}'
+                        continue
+                    }
+                }
+                if ($action -eq "READ_ONLY_PAGE_METADATA" -and
+                    [string]$state["extension_version"] -notin @("1.5.0","1.6.0")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_UPGRADE_REQUIRED"}'
                     continue
                 }
