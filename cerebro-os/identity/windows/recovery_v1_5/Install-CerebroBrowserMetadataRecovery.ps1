@@ -79,7 +79,7 @@ try {
     foreach ($searchRoot in ($roots | Select-Object -Unique)) {
       if (Test-Path -LiteralPath $searchRoot) {
         $candidates += @(Get-ChildItem -LiteralPath $searchRoot -Recurse -File -Filter "CerebroBrowserBridgeService.ps1" -ErrorAction SilentlyContinue |
-          Where-Object { $_.FullName -notlike "*\work\repo\*" -and (Test-Path (Join-Path $_.DirectoryName "CerebroBrowserTransport.ps1")) })
+          Where-Object { $_.FullName -notlike "*\work\repo\*" -and $_.FullName -notlike "*\recovery_v1_5\payload\*" -and (Test-Path (Join-Path $_.DirectoryName "CerebroBrowserTransport.ps1")) -and (Test-Path (Join-Path $_.DirectoryName "package_manifest_v1_4_1.json")) -and (Test-Path (Join-Path $_.DirectoryName "Start-CerebroBrowserBridge.ps1")) })
         if ($candidates.Count -gt 0) { break }
       }
     }
@@ -103,6 +103,11 @@ try {
     throw "EXISTING_EXTENSION_PATH_NOT_FOUND"
   }
   $Result.checks.existing_extension_found = $true
+  if (-not (Test-Path -LiteralPath (Join-Path $Target "Start-CerebroBrowserBridge.ps1")) -or
+      -not (Test-Path -LiteralPath (Join-Path $Target "Start-CerebroBrowserTransport.ps1")) -or
+      -not (Test-Path -LiteralPath (Join-Path $Target "Verify-CerebroBrowserBridge.ps1"))) {
+    throw "EXISTING_BRIDGE_LAUNCHERS_MISSING"
+  }
   $expected = Get-Content -Raw -LiteralPath (Join-Path $Root "payload-sha256.json") | ConvertFrom-Json
   foreach ($name in $Files) {
     $new = Join-Path $Payload $name

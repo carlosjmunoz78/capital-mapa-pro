@@ -37,6 +37,12 @@ class BrowserMetadataRecoveryV150Tests(unittest.TestCase):
         self.assertIn("PAYLOAD_HASH_MISMATCH", installer)
         self.assertIn("RELOAD_EXISTING_CHROME_EXTENSION_V150_AND_REMOTE_LAB_ROUNDTRIP", installer)
         self.assertIn("prod_enabled=$false", installer)
+        self.assertIn("package_manifest_v1_4_1.json", installer)
+        self.assertIn("EXISTING_BRIDGE_LAUNCHERS_MISSING", installer)
+        self.assertIn("Start-CerebroBrowserBridge.ps1", installer)
+        self.assertIn("Verify-CerebroBrowserBridge.ps1", installer)
+        self.assertIn(r"\payload\*", installer)
+
         self.assertNotIn("token=", installer.lower())
         self.assertNotIn("password=", installer.lower())
 
