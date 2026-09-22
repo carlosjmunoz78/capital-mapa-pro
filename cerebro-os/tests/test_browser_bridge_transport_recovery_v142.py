@@ -30,7 +30,9 @@ class RecoveryContractTests(unittest.TestCase):
         self.assertIn('$psi.Arguments = "--config -"', TRANSPORT)
         self.assertIn('$psi.RedirectStandardInput = $true', TRANSPORT)
         self.assertIn('$psi.Arguments = "--config -"', TRANSPORT)
-        self.assertIn('$psi.StandardInputEncoding = New-Object System.Text.UTF8Encoding($false)', TRANSPORT)
+        self.assertIn('$proc.StandardInput.BaseStream.Write($configBytes, 0, $configBytes.Length)', TRANSPORT)
+        self.assertIn('New-Object System.Text.UTF8Encoding($false)', TRANSPORT)
+        self.assertNotIn('StandardInputEncoding', TRANSPORT)
         self.assertIn('data-binary = `"@$bodyName`"', TRANSPORT)
         self.assertNotIn('-H "Authorization:', TRANSPORT)
 
