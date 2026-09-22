@@ -53,6 +53,7 @@ try {
             if (Test-Path -LiteralPath $searchRoot) {
                 $candidates += @(Get-ChildItem -LiteralPath $searchRoot -File -Recurse -Filter 'CerebroBrowserBridgeService.ps1' -ErrorAction SilentlyContinue |
                     Where-Object { $_.FullName -notlike '*\work\repo\*' -and (Test-Path -LiteralPath (Join-Path $_.DirectoryName 'CerebroBrowserTransport.ps1')) })
+                if ($candidates.Count -gt 0) { break }
             }
         }
         $found = @($candidates | Sort-Object LastWriteTime -Descending | Select-Object -First 1)
