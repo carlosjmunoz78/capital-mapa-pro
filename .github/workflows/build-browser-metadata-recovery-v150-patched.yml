@@ -1,0 +1,60 @@
+name: Build Browser Metadata Recovery V1.5.0 Patched
+on:
+  push:
+    branches:
+      - artifact/browser-metadata-recovery-v150-patched
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build scoped recovery ZIP
+        run: python cerebro-os/jobs/build_browser_metadata_recovery_v150.py
+      - name: Validate ZIP hash, allowlist and secrets exclusion
+        run: |
+          python - <<'PY'
+          import hashlib, json, zipfile
+          from pathlib import Path
+          p=Path(".cerebro-runtime/packages/CEREBRO_BROWSER_METADATA_RECOVERY_V1_5_0.zip")
+          assert p.exists()
+          with zipfile.ZipFile(p) as z:
+              expected={
+                  "INSTALL_AND_VERIFY.bat",
+                  "Install-CerebroBrowserMetadataRecovery.ps1",
+                  "ROLLBACK.bat",
+                  "README.txt",
+                  "payload/CerebroBrowserBridgeService.ps1",
+                  "payload/CerebroBrowserTransport.ps1",
+                  "payload/chrome_extension_v1_4_1/manifest.json",
+                  "payload/chrome_extension_v1_4_1/service_worker.js",
+                  "payload-sha256.json",
+              }
+              assert set(z.namelist())==expected
+              hashes=json.loads(z.read("payload-sha256.json"))
+              assert len(hashes)==4
+              for name,digest in hashes.items():
+                  assert hashlib.sha256(z.read("payload/"+name)).hexdigest()==digest
+              m=json.loads(z.read("payload/chrome_extension_v1_4_1/manifest.json"))
+              assert set(m["permissions"])=={"alarms"}
+              assert set(m["host_permissions"])=={"http://127.0.0.1/*","https://example.com/*"}
+              assert m["version"]=="1.5.0"
+              installer=z.read("Install-CerebroBrowserMetadataRecovery.ps1").decode()
+              assert "EXISTING_BRIDGE_LAUNCHERS_MISSING" in installer
+              assert "package_manifest_v1_4_1.json" in installer
+              transport=z.read("payload/CerebroBrowserTransport.ps1").decode()
+              assert "ACCESSBOOT_CAPABILITY_SNAPSHOT" in transport
+              assert "READ_ONLY_PAGE_METADATA" in transport
+              assert "EXAMPLE_DOMAIN_METADATA_VERIFIED" in transport
+              assert not any(x in z.namelist() for x in ("PAIRING_ONCE.txt","state.json","transport-1.4.1.json"))
+          print("PASS sha256",hashlib.sha256(p.read_bytes()).hexdigest())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CEREBRO_BROWSER_METADATA_RECOVERY_V1_5_0
+          path: .cerebro-runtime/packages/CEREBRO_BROWSER_METADATA_RECOVERY_V1_5_0.zip
+          if-no-files-found: error
