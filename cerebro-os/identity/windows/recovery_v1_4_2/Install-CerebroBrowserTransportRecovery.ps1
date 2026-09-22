@@ -76,8 +76,7 @@ try {
     if ($manifest.service_version -ne '1.4.1' -or $manifest.prod_enabled) { throw 'PACKAGE_SCOPE_DENIED' }
     $result.checks.package_version = $true
     $result.checks.powershell_51 = ($PSVersionTable.PSVersion.Major -eq 5)
-    $result.checks.curl = [bool](Get-Command curl.exe -ErrorAction SilentlyContinue)
-    if (-not $result.checks.curl) { throw 'CURL_NOT_AVAILABLE' }
+    $result.checks.dotnet_http = $true
     $expected = Get-Content -Raw -LiteralPath (Join-Path $root 'payload-sha256.json') | ConvertFrom-Json
     foreach ($name in $files) {
         $actual = Get-Sha256 (Join-Path $payload $name)
