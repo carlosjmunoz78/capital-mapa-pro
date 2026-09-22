@@ -1,0 +1,50 @@
+name: Build ACCESSBOOT Recovery V1.4.3
+on:
+  push:
+    branches:
+      - artifact/accessboot-recovery-v143-final
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build recovery ZIP
+        run: python cerebro-os/jobs/build_browser_bridge_accessboot_recovery_v143.py
+      - name: Validate recovery ZIP
+        run: |
+          python - <<'PY'
+          import hashlib, json, zipfile
+          from pathlib import Path
+          p=Path(".cerebro-runtime/packages/CEREBRO_BROWSER_BRIDGE_ACCESSBOOT_RECOVERY_V1_4_3.zip")
+          assert p.exists(), p
+          with zipfile.ZipFile(p) as z:
+              names=set(z.namelist())
+              expected={
+                  "INSTALL_AND_VERIFY.bat",
+                  "Install-CerebroBrowserTransportRecovery.ps1",
+                  "ROLLBACK.bat",
+                  "README.txt",
+                  "payload/CerebroBrowserTransport.ps1",
+                  "payload-sha256.json",
+              }
+              assert names==expected, (names,expected)
+              assert "PAIRING_ONCE.txt" not in names
+              payload=json.loads(z.read("payload-sha256.json"))
+              body=z.read("payload/CerebroBrowserTransport.ps1")
+              assert hashlib.sha256(body).hexdigest()==payload["CerebroBrowserTransport.ps1"]
+              text=body.decode("utf-8")
+              assert "ACCESSBOOT_CAPABILITY_SNAPSHOT" in text
+              assert "external_mutation_performed = $false" in text
+              assert "secret_value_included = $false" in text
+          print(hashlib.sha256(p.read_bytes()).hexdigest())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CEREBRO_BROWSER_BRIDGE_ACCESSBOOT_RECOVERY_V1_4_3
+          path: .cerebro-runtime/packages/CEREBRO_BROWSER_BRIDGE_ACCESSBOOT_RECOVERY_V1_4_3.zip
+          if-no-files-found: error
