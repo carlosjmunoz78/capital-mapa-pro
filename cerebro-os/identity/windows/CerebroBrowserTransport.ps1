@@ -117,7 +117,7 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
             [System.IO.File]::WriteAllText($bodyPath, ($Body | ConvertTo-Json -Depth 10 -Compress), (New-Object System.Text.UTF8Encoding($false)))
             $configLines += 'header = "Content-Type: application/json"'
             # curl config uses backslash escapes inside quoted values, including on Windows.
-            $curlBodyPath = $bodyPath.Replace('\', '\\').Replace('"', '\"')
+            $curlBodyPath = $bodyPath.Replace('\\', '/').Replace('"', '\\"')
             $configLines += "data-binary = `"@$curlBodyPath`""
         }
         $configLines += "url = `"$Uri`""
