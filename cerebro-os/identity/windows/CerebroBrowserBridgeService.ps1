@@ -532,7 +532,7 @@ try {
                         $value -cnotin @("alpha","beta"))
                     $invalidEmpty = ($action -in @("OPERATOR_CLICK","OPERATOR_READ") -and
                         $value.Length -ne 0)
-                    if ([string]$state["extension_version"] -notin @("1.6.0","1.6.1") -or
+                    if ([string]$state["extension_version"] -notin @("1.6.0","1.6.1","1.6.2") -or
                         $selector -cne $allowedSelector -or $invalidType -or
                         $invalidSelect -or $invalidEmpty) {
                         Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"OPERATOR_FIXTURE_SCOPE_DENIED"}'
@@ -540,7 +540,7 @@ try {
                     }
                 }
                 if ($action -eq "READ_ONLY_PAGE_METADATA" -and
-                    [string]$state["extension_version"] -notin @("1.5.0","1.6.0","1.6.1")) {
+                    [string]$state["extension_version"] -notin @("1.5.0","1.6.0","1.6.1","1.6.2")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_UPGRADE_REQUIRED"}'
                     continue
                 }
@@ -622,7 +622,7 @@ try {
                     Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"NO_COMMAND"}'
                     continue
                 }
-                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -notin @("1.5.0","1.6.0","1.6.1")) {
+                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -notin @("1.5.0","1.6.0","1.6.1","1.6.2")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_REQUIRED"}'
                     continue
                 }
@@ -660,7 +660,7 @@ try {
                 $observed = [string]$form["observed_value"]
                 $action = [string]$state["lab_command_action"]
                 if ($extensionId -ne [string]$state["extension_id"] -or $commandId -ne [string]$state["lab_command_id"] -or
-                    [string]$state["extension_version"] -notin @("1.6.0","1.6.1") -or
+                    [string]$state["extension_version"] -notin @("1.6.0","1.6.1","1.6.2") -or
                     $action -notin @("OPERATOR_CLICK","OPERATOR_TYPE","OPERATOR_SELECT","OPERATOR_READ")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"OPERATOR_RESULT_SCOPE_DENIED"}'
                     continue
@@ -765,7 +765,7 @@ try {
                 $extensionId = [string]$form["extension_id"]
                 $extensionVersion = [string]$form["extension_version"]
                 if ([string]::IsNullOrWhiteSpace($extensionVersion)) { $extensionVersion = "1.4.1" }
-                if ($extensionVersion -notin @("1.4.1","1.5.0","1.6.0","1.6.1")) {
+                if ($extensionVersion -notin @("1.4.1","1.5.0","1.6.0","1.6.1","1.6.2")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_VERSION_DENIED"}'
                     continue
                 }
