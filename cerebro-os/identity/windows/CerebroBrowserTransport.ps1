@@ -8,7 +8,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $TransportVersion = "1.4.1"
-$TransportPatch = "dotnet-http-ps51-p1"
+$TransportPatch = "accessboot-capability-snapshot-p1"
 $GatewayBase = "https://hnqlnvakzaywtafeiybt.supabase.co/functions/v1/cerebro-device-gateway-preprod"
 $BridgeBase = "http://127.0.0.1:$BridgePort"
 $Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
@@ -218,13 +218,57 @@ function Validate-Scope($Bridge, $Cred) {
     }
 }
 
-function Enqueue-Local($Command) {
-    $action = [string]$Command.payload.action
+function Execute-LocalCommand($Command) {
+    $action = ([string]$Command.payload.action).ToUpperInvariant()
+
+    if ($action -eq "ACCESSBOOT_CAPABILITY_SNAPSHOT") {
+        $h = Local-Get "/health"
+        $now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+        $seen = [int64]$h.extension_last_seen_at
+        $extensionFresh = ($seen -gt 0 -and ($now - $seen) -ge 0 -and ($now - $seen) -le 90)
+        $profiles = @()
+        foreach ($p in @($h.chrome_profiles)) {
+            if ($p) {
+                $profiles += [ordered]@{
+                    directory = [string]$p.profile_directory
+                    display_name = [string]$p.display_name
+                }
+            }
+        }
+        return [ordered]@{
+            direct = $true
+            result = [ordered]@{
+                status = "COMPLETED"
+                evidence_ref = "ACCESSBOOT_CAPABILITY_SNAPSHOT"
+                local_service_version = [string]$h.service_version
+                company_id = [string]$h.company_id
+                environment = [string]$h.environment
+                version = [string]$h.version
+                device_id = [string]$h.device_id
+                profile_id = [string]$h.profile_id
+                browser_family = [string]$h.browser_family
+                browser_discovery_status = [string]$h.browser_discovery_status
+                chrome_running = [bool]$h.chrome_running
+                chrome_profiles = $profiles
+                chrome_last_used_profile = [string]$h.chrome_last_used_profile
+                extension_connected = ([string]$h.extension_status -eq "CONNECTED")
+                extension_fresh = $extensionFresh
+                transport_online = ([bool]$h.cloud_transport_configured -and [string]$h.cloud_transport_status -eq "ONLINE")
+                paired = [bool]$h.paired
+                kill_switch_enabled = [bool]$h.kill_switch_enabled
+                external_mutation_performed = $false
+                secret_value_included = $false
+            }
+        }
+    }
+
     if ($action -ne "OPEN_LOCAL_TEST_PAGE") { throw "REMOTE_ACTION_DENIED" }
     $uri = $BridgeBase + "/cloud/enqueue?transport_key=" + [uri]::EscapeDataString($TransportKey) +
       "&command_id=" + [uri]::EscapeDataString([string]$Command.command_id) +
       "&action=" + [uri]::EscapeDataString($action)
-    return Invoke-RestMethod -UseBasicParsing -Uri $uri -Method Get -TimeoutSec 5
+    $enqueue = Invoke-RestMethod -UseBasicParsing -Uri $uri -Method Get -TimeoutSec 5
+    if ($enqueue.status -ne "GREEN") { throw "LOCAL_ENQUEUE_FAILED" }
+    return [ordered]@{direct=$false}
 }
 
 function Wait-LocalResult([string]$CommandId) {
@@ -291,23 +335,29 @@ try {
                 throw "REMOTE_SCOPE_MISMATCH"
             }
 
-            $enqueue = Enqueue-Local $cmd
-            if ($enqueue.status -ne "GREEN") { throw "LOCAL_ENQUEUE_FAILED" }
-            Log "LOCAL_ENQUEUE_OK"
-            $local = Wait-LocalResult ([string]$cmd.command_id)
-            Log "LOCAL_RESULT_OK"
-            $ok = [string]$local.lab_command_status -eq "COMPLETED"
+            $execution = Execute-LocalCommand $cmd
+            if ([bool]$execution.direct) {
+                Log "LOCAL_DIRECT_EXECUTION_OK"
+                $localResult = $execution.result
+            } else {
+                Log "LOCAL_ENQUEUE_OK"
+                $local = Wait-LocalResult ([string]$cmd.command_id)
+                Log "LOCAL_RESULT_OK"
+                $localResult = [ordered]@{
+                    status = [string]$local.lab_command_status
+                    evidence_ref = [string]$local.lab_command_evidence
+                    local_service_version = [string]$local.service_version
+                    external_mutation_performed = $false
+                    secret_value_included = $false
+                }
+            }
+            $ok = [string]$localResult.status -eq "COMPLETED"
 
             $resultPayload = [ordered]@{
                 device_id = $cred.device_id
                 command_id = [string]$cmd.command_id
                 semantic_verified = $ok
-                result = [ordered]@{
-                    status = [string]$local.lab_command_status
-                    evidence_ref = [string]$local.lab_command_evidence
-                    local_service_version = [string]$local.service_version
-                    external_mutation_performed = $false
-                }
+                result = $localResult
             }
             $stored = Gateway-Call "POST" "/v1/agents/result" $cred.token $resultPayload
             Log "REMOTE_RESULT_STORED"
