@@ -24,6 +24,7 @@ class V162PackageTests(unittest.TestCase):
   installer=INSTALL.read_text(encoding="utf-8")
   service=SERVICE.read_text(encoding="utf-8")
   for text in ['if($current.version -ne "1.6.1")','REQUIRES_INSTALLED_V161',
+    'recovery-v1.6.1.json',
     'recovery-v1.6.2.json','recovery-backup-v162','"1.6.2"',
     'LOCAL_BRIDGE_VERIFY_TIMEOUT','Restore $Report.target $Report.backup',
     'payload-sha256.json','[bool]$candidate.kill_switch_enabled']:
