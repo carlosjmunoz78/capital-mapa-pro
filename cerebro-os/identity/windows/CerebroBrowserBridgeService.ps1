@@ -549,7 +549,7 @@ try {
                     Send-Response $stream 404 "text/plain; charset=utf-8" "LAB_WRITE_NOT_QUEUED"
                     continue
                 }
-                $body = "<!doctype html><html><head><meta charset='utf-8'><title>CEREBRO LAB WRITE TEST</title></head><body><h1>CEREBRO LAB WRITE TEST</h1><input id='cerebro-lab-marker' type='text' value='' autocomplete='off'><button id='cerebro-lab-apply' onclick=\"document.getElementById('cerebro-lab-output').textContent=(document.getElementById('cerebro-lab-marker').value==='LAB_WRITE_VERIFIED'?'LAB_WRITE_VERIFIED':'INVALID')\">Apply locally</button><p id='cerebro-lab-output'></p></body></html>"
+                $body = "<!doctype html><html><head><meta charset='utf-8'><title>CEREBRO LAB WRITE TEST</title></head><body><h1>CEREBRO LAB WRITE TEST</h1><input id='cerebro-lab-marker' type='text' value='' autocomplete='off'><button id='cerebro-lab-apply' onclick=`"document.getElementById('cerebro-lab-output').textContent=(document.getElementById('cerebro-lab-marker').value==='LAB_WRITE_VERIFIED'?'LAB_WRITE_VERIFIED':'INVALID')`">Apply locally</button><p id='cerebro-lab-output'></p></body></html>"
                 Send-Response $stream 200 "text/html; charset=utf-8" $body
                 continue
             }
