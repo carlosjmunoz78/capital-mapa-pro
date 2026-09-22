@@ -32,7 +32,8 @@ jobs:
             'cerebro-os/identity/windows/CerebroBrowserTransport.ps1',
             'cerebro-os/identity/windows/Start-CerebroBrowserTransport.ps1',
             'cerebro-os/identity/windows/recovery_v1_4_2/Install-CerebroBrowserTransportRecovery.ps1',
-            'cerebro-os/identity/windows/recovery_v1_4_3/Install-CerebroBrowserTransportRecovery.ps1'
+            'cerebro-os/identity/windows/recovery_v1_4_3/Install-CerebroBrowserTransportRecovery.ps1',
+            'cerebro-os/identity/windows/recovery_v1_5/Install-CerebroBrowserMetadataRecovery.ps1'
           )
           foreach ($file in $files) {
             $tokens = $null; $errors = $null
