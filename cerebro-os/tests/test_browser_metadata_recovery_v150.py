@@ -23,7 +23,7 @@ class BrowserMetadataRecoveryV150Tests(unittest.TestCase):
                 names = set(z.namelist())
                 self.assertIn("INSTALL_AND_VERIFY.bat", names)
                 self.assertIn("ROLLBACK.bat", names)
-        self.assertIn(r"\payload\*", installer)
+                self.assertIn("payload/CerebroBrowserBridgeService.ps1", names)
                 self.assertIn("payload/CerebroBrowserTransport.ps1", names)
                 self.assertIn("payload/chrome_extension_v1_4_1/manifest.json", names)
                 self.assertIn("payload/chrome_extension_v1_4_1/service_worker.js", names)
@@ -41,7 +41,7 @@ class BrowserMetadataRecoveryV150Tests(unittest.TestCase):
         self.assertIn("EXISTING_BRIDGE_LAUNCHERS_MISSING", installer)
         self.assertIn("Start-CerebroBrowserBridge.ps1", installer)
         self.assertIn("Verify-CerebroBrowserBridge.ps1", installer)
-        self.assertIn("payload\\\\*", installer)
+        self.assertIn(r"\payload\*", installer)
 
         self.assertNotIn("token=", installer.lower())
         self.assertNotIn("password=", installer.lower())
