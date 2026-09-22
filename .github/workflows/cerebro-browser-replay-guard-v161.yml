@@ -1,0 +1,70 @@
+name: CEREBRO Browser Replay Guard v1.6.1
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/browser-v16-local-test-replay-guard]
+  pull_request:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - "cerebro-os/identity/chrome_extension_v1_6_1/**"
+      - "cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1"
+      - "cerebro-os/identity/windows/recovery_v1_6_1/**"
+      - "cerebro-os/jobs/build_browser_replay_guard_v161.py"
+      - "cerebro-os/tests/test_browser_replay_guard_v161.py"
+      - ".github/workflows/cerebro-browser-replay-guard-v161.yml"
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - name: Scope and replay tests
+        run: python -m unittest discover -s cerebro-os/tests -p "test_browser_replay_guard_v161.py" -v
+      - name: Existing v1.5 metadata and v1.6 operator contract
+        run: |
+          python -m unittest discover -s cerebro-os/tests -p "test_browser_operator_v16.py" -v
+          python -m unittest discover -s cerebro-os/tests -p "test_read_only_browser_allowlist_v0.py" -v
+      - name: Build immutable patch ZIP
+        run: python cerebro-os/jobs/build_browser_replay_guard_v161.py
+      - name: Verify patch archive contents
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile,json,hashlib
+          p=Path(".cerebro-runtime/packages/CEREBRO_BROWSER_REPLAY_GUARD_V1_6_1.zip")
+          with zipfile.ZipFile(p) as z:
+              for k,v in json.loads(z.read("payload-sha256.json")).items():
+                  assert hashlib.sha256(z.read("payload/"+k)).hexdigest()==v
+              manifest=json.loads(z.read("payload/chrome_extension_v1_4_1/manifest.json"))
+              assert manifest["version"]=="1.6.1"
+              assert set(manifest["host_permissions"])=={"http://127.0.0.1/*","https://example.com/*"}
+              assert "storage" in manifest["permissions"]
+              assert "ROLLBACK.bat" in z.namelist()
+          print("PATCH_SHA256",hashlib.sha256(p.read_bytes()).hexdigest())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CEREBRO_BROWSER_REPLAY_GUARD_V1_6_1
+          path: .cerebro-runtime/packages/CEREBRO_BROWSER_REPLAY_GUARD_V1_6_1.zip
+          if-no-files-found: error
+          retention-days: 7
+  windows:
+    runs-on: windows-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - name: PowerShell parse recovery script and service
+        shell: pwsh
+        run: |
+          $files=@('cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1','cerebro-os/identity/windows/recovery_v1_6_1/Install-CerebroBrowserReplayGuardV161.ps1')
+          foreach($file in $files) {
+            $tokens=$null;$errors=$null
+            [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file),[ref]$tokens,[ref]$errors)
+            if($errors.Count -gt 0){$errors | Out-String | Write-Error; exit 1}
+          }
+      - name: Scope and recovery tests
+        run: python -m unittest discover -s cerebro-os/tests -p "test_browser_replay_guard_v161.py" -v
