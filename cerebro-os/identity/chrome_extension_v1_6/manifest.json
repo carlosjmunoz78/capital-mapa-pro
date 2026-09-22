@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "CEREBRO Browser Bridge - LAB operator fixture",
+  "version": "1.6.0",
+  "description": "LAB-only deterministic operator fixture plus fixed example.com metadata pilot. No arbitrary sites, cookies or credentials.",
+  "permissions": [
+    "alarms",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "action": {
+    "default_title": "CEREBRO Browser Bridge LAB"
+  }
+}
