@@ -5,6 +5,10 @@ on:
     paths:
       - "cerebro-os/identity/chrome_extension_v1_6_2/**"
       - "cerebro-os/tests/test_browser_ledger_v162.cjs"
+      - "cerebro-os/tests/test_browser_replay_guard_v162.py"
+      - "cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1"
+      - "cerebro-os/identity/windows/recovery_v1_6_2/**"
+      - "cerebro-os/jobs/build_browser_replay_guard_v162.py"
       - ".github/workflows/cerebro-browser-ledger-v162.yml"
   push:
     branches: [fix/browser-v162-durable-multi-command-ledger]
@@ -18,6 +22,7 @@ jobs:
         with: {node-version: "22"}
       - run: node --check cerebro-os/identity/chrome_extension_v1_6_2/service_worker.js
       - run: node --test cerebro-os/tests/test_browser_ledger_v162.cjs
+      - run: python -m unittest discover -s cerebro-os/tests -p test_browser_replay_guard_v162.py -v
   windows:
     runs-on: windows-latest
     permissions: {contents: read}
@@ -27,3 +32,10 @@ jobs:
         with: {node-version: "22"}
       - run: node --check cerebro-os/identity/chrome_extension_v1_6_2/service_worker.js
       - run: node --test cerebro-os/tests/test_browser_ledger_v162.cjs
+      - run: python -m unittest discover -s cerebro-os/tests -p test_browser_replay_guard_v162.py -v
+      - name: Parse scoped Bridge and reversible installer in Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $files=@("cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1","cerebro-os/identity/windows/recovery_v1_6_2/Install-CerebroBrowserReplayGuardV162.ps1")
+          foreach($path in $files){$tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path),[ref]$tokens,[ref]$errors);if($errors.Count -gt 0){$errors | Format-List;exit 1}}
+    # PowerShell 5.1 parser checks are separate from runtime behavior tests.
