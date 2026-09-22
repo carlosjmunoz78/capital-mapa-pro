@@ -49,7 +49,7 @@ try {
  $prior=if(Test-Path $Record){Get-Content -Raw -LiteralPath $Record | ConvertFrom-Json}else{$null}
  if($prior -and $prior.status -eq "PARTIAL"){throw "PREVIOUS_PATCH_PENDING_ACCEPTANCE"}
  $candidate=if($TargetDirectory){$TargetDirectory}else{
-   $previousRecord=Join-Path $Runtime "recovery-v1.6.0.json"
+   $previousRecord=Join-Path $Runtime "recovery-v1.6.1.json"
    if(Test-Path $previousRecord){
      $p=Get-Content -Raw -LiteralPath $previousRecord | ConvertFrom-Json
      [string]$p.target
