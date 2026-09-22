@@ -29,7 +29,7 @@ class RecoveryContractTests(unittest.TestCase):
         self.assertNotIn('-PairCode', LAUNCHER)
         self.assertIn('$psi.Arguments = "--config -"', TRANSPORT)
         self.assertIn('$psi.RedirectStandardInput = $true', TRANSPORT)
-        self.assertIn("$bodyPath.Replace('\\\\', '/')", TRANSPORT)
+        self.assertIn('$bodyPath.Replace([char]92, [char]47)', TRANSPORT)
         self.assertNotIn('-H "Authorization:', TRANSPORT)
 
     def test_launcher_observes_pid_exit_and_both_streams(self):
