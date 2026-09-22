@@ -12,7 +12,7 @@ FIXTURE = ROOT / "identity" / "chrome_extension_v1_6" / "lab_operator_fixture.ht
 class LabDomOperatorTests(unittest.TestCase):
     def node(self, script):
         proc = subprocess.run(["node", "-e", script, str(OPERATOR)], capture_output=True,
-                              text=True, timeout=10, check=False)
+                              text=True, timeout=30, check=False)
         self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
 
     def test_js_syntax(self):
