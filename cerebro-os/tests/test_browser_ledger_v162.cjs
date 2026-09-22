@@ -6,9 +6,9 @@ const vm = require("node:vm");
 const path = require("node:path");
 const worker = fs.readFileSync(path.join(__dirname,"../identity/chrome_extension_v1_6_2/service_worker.js"),"utf8");
 function command(id) { return {decision:"LAB_COMMAND_AVAILABLE",environment:"LAB",company_id:"fenix",external_mutation_allowed:false,action:"OPEN_LOCAL_TEST_PAGE",command_id:id,target_url:"http://127.0.0.1:8765/lab/test?command_id="+id}; }
-async function harness() {
+async function harness(initialSaved={}) {
   let current=command("A"), failedReceipt=false, alarm=null, n=0;
-  const saved={}, opened=[], receipts=[], warnings=[];
+  const saved={...initialSaved}, opened=[], receipts=[], warnings=[];
   const chrome={
     runtime:{id:"a".repeat(32),onInstalled:{addListener(){}},onStartup:{addListener(){}}},
     alarms:{onAlarm:{addListener(fn){alarm=fn}},create(){}},
@@ -65,5 +65,22 @@ test("CLAIMED ambiguous command fails closed rather than repeating effect",async
   ledger["fenix:LAB:A"]={phase:"CLAIMED",success:false,created_at:Date.now()};
   h.clearTabs();h.setCommand(command("A"));await h.cycle();
   assert.equal(h.opened.length,0);
+  assert.ok(h.warnings.some(w=>w[0]==="CEREBRO_LOCAL_COMMAND_AMBIGUOUS_NO_REPLAY"));
+});
+
+test("v1.6.1 terminal receipt survives v1.6.2 in-place upgrade and prevents replay",async()=>{
+  const h=await harness({cerebro_local_test_receipt_v161:{command_id:"A",success:true}});
+  assert.equal(h.opened.length,0,"upgrade replayed completed v1.6.1 command");
+  const ledger=h.saved.cerebro_local_test_receipt_ledger_v162;
+  assert.equal(ledger["fenix:LAB:A"].phase,"TERMINAL");
+  assert.equal(ledger["fenix:LAB:A"].migrated_from,"v1.6.1");
+  assert.equal(h.receipts.length,1);
+  assert.equal(h.receipts[0].id,"A");
+});
+test("v1.6.1 ambiguous claim survives upgrade but cannot auto-reexecute",async()=>{
+  const h=await harness({cerebro_local_test_receipt_v161:{command_id:"A",success:false}});
+  assert.equal(h.opened.length,0);
+  assert.equal(h.receipts.length,0);
+  assert.equal(h.saved.cerebro_local_test_receipt_ledger_v162["fenix:LAB:A"].phase,"CLAIMED");
   assert.ok(h.warnings.some(w=>w[0]==="CEREBRO_LOCAL_COMMAND_AMBIGUOUS_NO_REPLAY"));
 });
