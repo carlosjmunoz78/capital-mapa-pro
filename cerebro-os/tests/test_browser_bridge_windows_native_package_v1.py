@@ -147,7 +147,7 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertIn('$requestStream.Write($bytes, 0, $bytes.Length)',transport)
         self.assertIn('Authorization = "Bearer $Token"',transport)
         self.assertIn('Invoke-CurlJson -Method "POST" -Uri ($GatewayBase + "/v1/agents/enroll")',transport)
-        self.assertIn('$TransportPatch = "curl-config-path-p2"',transport)
+        self.assertIn('$TransportPatch = "dotnet-http-ps51-p1"',transport)
         self.assertNotIn('System.Diagnostics.ProcessStartInfo',transport)
         self.assertNotIn('-H "Authorization: Bearer',transport)
 
