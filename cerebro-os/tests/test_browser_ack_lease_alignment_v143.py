@@ -20,7 +20,6 @@ class AckLeaseContractTests(unittest.TestCase):
         self.assertIn('while ($deadline.Elapsed.TotalSeconds -lt 170)', new_t)
         self.assertIn('const leaseUntil = new Date(now.getTime() + 240*1000)', new_g)
         self.assertIn('$TransportVersion = "1.4.1"', new_t)
-        self.assertIn('"environment":"PREPROD"', new_g.replace(" ", "")) if False else None
         for required in ('"LAB"','prod_allowed:false','transport_replay_detected','transport_result_conflict'):
             self.assertIn(required, new_g)
         for required in ('Validate-Scope $bridge $cred','New-Nonce','external_mutation_performed = $false','secret_value_included = $false'):
@@ -45,7 +44,7 @@ class AckLeaseContractTests(unittest.TestCase):
         new_t=NEW_TRANSPORT.read_text(encoding="utf-8")
         new_g=NEW_GATEWAY.read_text(encoding="utf-8")
         self.assertIn('cerebro-device-gateway-preprod',new_t)
-        self.assertIn('environment !== "LAB"',new_g)
+        self.assertIn('["LAB","PREPROD"].includes(environment)',new_g)
         self.assertIn('one_time_enrollment:true',new_g)
         self.assertIn('prod_allowed:false',new_g)
 
