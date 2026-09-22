@@ -27,13 +27,13 @@ class RecoveryContractTests(unittest.TestCase):
         self.assertIn('transport-local-key-1.4.1.txt', LAUNCHER)
         self.assertNotIn('-TransportKey', LAUNCHER)
         self.assertNotIn('-PairCode', LAUNCHER)
-        self.assertIn('$psi.Arguments = "--config -"', TRANSPORT)
+        self.assertIn('$curlArguments = "--config -"', TRANSPORT)
         self.assertIn('$psi.RedirectStandardInput = $true', TRANSPORT)
-        self.assertIn('$psi.Arguments = "--config -"', TRANSPORT)
+        self.assertIn('$psi.Arguments = $curlArguments', TRANSPORT)
         self.assertIn('$proc.StandardInput.BaseStream.Write($configBytes, 0, $configBytes.Length)', TRANSPORT)
         self.assertIn('New-Object System.Text.UTF8Encoding($false)', TRANSPORT)
         self.assertNotIn('StandardInputEncoding', TRANSPORT)
-        self.assertIn('data-binary = `"@$bodyName`"', TRANSPORT)
+        self.assertIn('$curlArguments += " --data-binary `"@$bodyPath`""', TRANSPORT)
         self.assertNotIn('-H "Authorization:', TRANSPORT)
 
     def test_launcher_observes_pid_exit_and_both_streams(self):
