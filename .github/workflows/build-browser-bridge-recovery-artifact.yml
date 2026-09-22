@@ -1,0 +1,38 @@
+name: Build Browser Bridge Recovery Final
+
+on:
+  push:
+    branches:
+      - artifact/browser-bridge-recovery-v142-final
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build final recovery ZIP
+        run: |
+          python cerebro-os/jobs/build_browser_bridge_transport_recovery_v142.py
+          python - <<'PY'
+          import hashlib, json, pathlib, zipfile
+          p=pathlib.Path('.cerebro-runtime/packages/CEREBRO_BROWSER_BRIDGE_TRANSPORT_RECOVERY_V1_4_2.zip')
+          assert p.exists()
+          with zipfile.ZipFile(p) as z:
+              names=z.namelist()
+          assert 'PAIRING_ONCE.txt' not in names
+          assert not any('chrome_extension' in n for n in names)
+          assert not any(any(x in n.lower() for x in ('token','credential','pairing')) for n in names)
+          print(json.dumps({'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'names':names},indent=2))
+          PY
+      - name: Upload final recovery ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: CEREBRO_BROWSER_BRIDGE_TRANSPORT_RECOVERY_V1_4_2
+          path: .cerebro-runtime/packages/CEREBRO_BROWSER_BRIDGE_TRANSPORT_RECOVERY_V1_4_2.zip
+          if-no-files-found: error
