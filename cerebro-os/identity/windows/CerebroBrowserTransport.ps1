@@ -112,11 +112,12 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
             $configLines += "header = `"$name`: $value`""
         }
         if ($null -ne $Body) {
-            $bodyPath = Join-Path $RuntimeDir ("curl-body-" + [Guid]::NewGuid().ToString("N") + ".json")
-            [System.IO.File]::WriteAllText($bodyPath, ($Body | ConvertTo-Json -Depth 10 -Compress), (New-Object System.Text.UTF8Encoding($false)))
+            $jsonBody = ($Body | ConvertTo-Json -Depth 10 -Compress)
+            # curl config receives the JSON inline over stdin; escape only config-string metacharacters.
+            $slash = [string][char]92
+            $curlJson = $jsonBody.Replace($slash, ($slash + $slash)).Replace('"', ($slash + '"'))
             $configLines += 'header = "Content-Type: application/json"'
-            $curlBodyPath = $bodyPath.Replace('\', '/').Replace('"', '\\"')
-            $configLines += "data-binary = `"@$curlBodyPath`""
+            $configLines += "data-binary = `"$curlJson`""
         }
         $configLines += "url = `"$Uri`""
         $configText = ($configLines -join [Environment]::NewLine) + [Environment]::NewLine
