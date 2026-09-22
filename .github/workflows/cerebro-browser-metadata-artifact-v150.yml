@@ -1,0 +1,44 @@
+name: CEREBRO Browser Metadata Recovery Artifact V1.5.0
+
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - "cerebro-os/identity/windows/recovery_v1_5/**"
+      - "cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1"
+      - "cerebro-os/identity/windows/CerebroBrowserTransport.ps1"
+      - "cerebro-os/identity/chrome_extension_v1_5/**"
+      - "cerebro-os/jobs/build_browser_metadata_recovery_v150.py"
+      - ".github/workflows/cerebro-browser-metadata-artifact-v150.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build deterministic zero-secret recovery ZIP
+        run: python3 cerebro-os/jobs/build_browser_metadata_recovery_v150.py
+      - name: Verify ZIP contains no runtime credentials
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+          p=Path(".cerebro-runtime/packages/CEREBRO_BROWSER_METADATA_RECOVERY_V1_5_0.zip")
+          assert p.is_file()
+          with zipfile.ZipFile(p) as z:
+              names=set(z.namelist())
+              assert "payload-sha256.json" in names
+              forbidden=("credential","pairing-code","token_dpapi","state-1.4.1.json")
+              for n in names:
+                  assert not any(x in n.lower() for x in forbidden), n
+          print(p)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CEREBRO_BROWSER_METADATA_RECOVERY_V1_5_0
+          path: .cerebro-runtime/packages/CEREBRO_BROWSER_METADATA_RECOVERY_V1_5_0.zip
+          if-no-files-found: error
+          retention-days: 14
