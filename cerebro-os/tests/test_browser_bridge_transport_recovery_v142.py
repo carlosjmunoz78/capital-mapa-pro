@@ -45,7 +45,7 @@ class RecoveryContractTests(unittest.TestCase):
         self.assertLess(TRANSPORT.index('Save-Credential $token $Bridge'), TRANSPORT.index('Remove-Item -LiteralPath $PairingFile'))
 
     def test_installer_is_scoped_and_has_rollback(self):
-        for marker in ('Get-FileHash -Algorithm SHA256', 'Restore-Files', 'Stop-TransportWorkers',
+        for marker in ('function Get-Sha256', 'Restore-Files', 'Stop-TransportWorkers',
                        'Start-CerebroBrowserTransport.ps1', 'Verify-CerebroBrowserBridge.ps1'):
             self.assertIn(marker, INSTALLER)
         self.assertNotIn('Stop-Process -Name chrome', INSTALLER)
