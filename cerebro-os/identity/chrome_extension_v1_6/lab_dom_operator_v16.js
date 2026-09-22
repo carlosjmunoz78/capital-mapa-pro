@@ -19,7 +19,7 @@ function verifyLabFixture(url, expectedOrigin) {
     const parsed = new URL(url);
     const origin = new URL(expectedOrigin);
     return origin.hostname === "127.0.0.1"
-      && /^\\d+$/.test(origin.port)
+      && /^\d+$/.test(origin.port)
       && parsed.origin === origin.origin
       && parsed.pathname === "/lab/operator-fixture"
       && parsed.search === ""
