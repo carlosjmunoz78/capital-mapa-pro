@@ -16,7 +16,7 @@ function Save-Result {
 }
 function Health([int]$port) {
     try {
-        return Invoke-RestMethod -UseBasicParsing -Uri "http://127.0.0.1:$port/health" -Method Get -TimeoutSec 2
+        return Invoke-RestMethod -UseBasicParsing -Uri "http://127.0.0.1:$port/health" -Method Get -TimeoutSec 1
     } catch { return $null }
 }
 function In-Scope($h) {
