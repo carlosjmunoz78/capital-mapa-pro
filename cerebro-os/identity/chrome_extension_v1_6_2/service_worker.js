@@ -83,6 +83,23 @@ async function execute(port, extensionId, cmd) {
     const scope = [cmd.company_id, cmd.environment, cmd.command_id].join(":");
     const persisted = (await chrome.storage.local.get(key))[key];
     const ledger = persisted && typeof persisted === "object" && !Array.isArray(persisted) ? persisted : {};
+    // Preserve the most recent v1.6.1 receipt across the in-place upgrade.
+    // The old false marker might be an interrupted claim: treat as ambiguous,
+    // NEVER assume it is safe to open the old tab again.
+    const legacyKey = "cerebro_local_test_receipt_v161";
+    const legacy = (await chrome.storage.local.get(legacyKey))[legacyKey];
+    if (legacy && typeof legacy.command_id === "string" && legacy.command_id.length > 0) {
+      const legacyScope = [cmd.company_id, cmd.environment, legacy.command_id].join(":");
+      if (!ledger[legacyScope] && Object.keys(ledger).length < 128) {
+        ledger[legacyScope] = {
+          phase: legacy.success === true ? "TERMINAL" : "CLAIMED",
+          success: legacy.success === true,
+          created_at: Date.now(),
+          migrated_from: "v1.6.1"
+        };
+        await chrome.storage.local.set({[key]:ledger});
+      }
+    }
     const previous = ledger[scope];
     if (previous) {
       // CLAIMED could mean the worker crashed between reserve and effect;
