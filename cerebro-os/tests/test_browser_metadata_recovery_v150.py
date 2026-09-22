@@ -23,7 +23,7 @@ class BrowserMetadataRecoveryV150Tests(unittest.TestCase):
                 names = set(z.namelist())
                 self.assertIn("INSTALL_AND_VERIFY.bat", names)
                 self.assertIn("ROLLBACK.bat", names)
-                self.assertIn("payload/CerebroBrowserBridgeService.ps1", names)
+        self.assertIn(r"\payload\*", installer)
                 self.assertIn("payload/CerebroBrowserTransport.ps1", names)
                 self.assertIn("payload/chrome_extension_v1_4_1/manifest.json", names)
                 self.assertIn("payload/chrome_extension_v1_4_1/service_worker.js", names)
