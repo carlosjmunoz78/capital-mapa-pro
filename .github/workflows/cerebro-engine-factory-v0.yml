@@ -18,6 +18,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  windows-browser-transport:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Parse Browser Bridge recovery scripts in Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $files = @(
+            'cerebro-os/identity/windows/CerebroBrowserTransport.ps1',
+            'cerebro-os/identity/windows/Start-CerebroBrowserTransport.ps1',
+            'cerebro-os/identity/windows/recovery_v1_4_2/Install-CerebroBrowserTransportRecovery.ps1'
+          )
+          foreach ($file in $files) {
+            $tokens = $null; $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($file, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) { throw "$file parse failed: $errors" }
+          }
+      - name: Test Windows transport and recovery
+        run: python -m unittest discover -s cerebro-os/tests -p "test_browser_bridge*" -v
   verify:
     runs-on: ubuntu-latest
     steps:

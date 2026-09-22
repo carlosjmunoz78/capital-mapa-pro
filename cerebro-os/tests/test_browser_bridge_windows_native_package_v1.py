@@ -140,15 +140,15 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertNotIn('"https://*/*"',manifest)
 
 
-    def test_v141_gateway_transport_uses_curl_without_bearer_on_process_command_line(self):
+    def test_v141_gateway_transport_keeps_bearer_out_of_process_command_line(self):
         transport=(WIN/"CerebroBrowserTransport.ps1").read_text(encoding="utf-8")
         self.assertIn('function Invoke-CurlJson',transport)
-        self.assertIn('Get-Command "curl.exe"',transport)
-        self.assertIn('$psi.Arguments = "--config -"',transport)
-        self.assertIn('$psi.RedirectStandardInput = $true',transport)
+        self.assertIn('[System.Net.HttpWebRequest]::Create($Uri)',transport)
+        self.assertIn('$requestStream.Write($bytes, 0, $bytes.Length)',transport)
         self.assertIn('Authorization = "Bearer $Token"',transport)
         self.assertIn('Invoke-CurlJson -Method "POST" -Uri ($GatewayBase + "/v1/agents/enroll")',transport)
-        self.assertIn('$TransportPatch = "curl-fallback-p1"',transport)
+        self.assertIn('$TransportPatch = "dotnet-http-ps51-p1"',transport)
+        self.assertNotIn('System.Diagnostics.ProcessStartInfo',transport)
         self.assertNotIn('-H "Authorization: Bearer',transport)
 
     def test_preprod_gateway_v5_is_scope_bound(self):

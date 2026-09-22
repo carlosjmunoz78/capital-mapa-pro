@@ -16,6 +16,7 @@
   "required_files": [
     "START_CEREBRO_BROWSER_BRIDGE.bat",
     "Start-CerebroBrowserBridge.ps1",
+    "Start-CerebroBrowserTransport.ps1",
     "CerebroBrowserBridgeService.ps1",
     "CerebroBrowserTransport.ps1",
     "VERIFY_CEREBRO_BROWSER_BRIDGE.bat",
