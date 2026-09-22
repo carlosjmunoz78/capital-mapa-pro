@@ -95,12 +95,29 @@ try {
  foreach($name in $Managed){Copy-Item -LiteralPath (Join-Path (Join-Path $Root "payload") $name) -Destination (Join-Path $Target $name) -Force}
  $Report.stage="START"
  Launch $Target
- Start-Sleep -Seconds 3
  $Report.stage="VERIFY"
  $verify=Join-Path $Target "Verify-CerebroBrowserBridge.ps1"
  if(-not(Test-Path -LiteralPath $verify)){throw "VERIFY_LAUNCHER_MISSING"}
- $v=& $verify | ConvertFrom-Json
- if(-not $v.checks.service_found -or -not $v.checks.lab_scope -or -not $v.checks.prod_disabled){throw "LOCAL_BRIDGE_VERIFY_FAILED"}
+ # The launcher may start the Bridge and transport asynchronously.
+ # Probe only the expected loopback ports; a disabled extension is expected
+ # and MUST NOT trigger rollback of an otherwise healthy service.
+ $v=$null
+ for($attempt=1;$attempt -le 30;$attempt++){
+   Start-Sleep -Seconds 1
+   $candidate=$null
+   try { $candidate=(& $verify | Out-String | ConvertFrom-Json) } catch {}
+   if($candidate -and $candidate.checks.service_found -and
+       $candidate.checks.service_version -and $candidate.checks.paired -and
+       $candidate.checks.lab_scope -and $candidate.checks.prod_disabled){
+     $v=$candidate
+     $Report.checks.verify_attempts=$attempt
+     break
+   }
+ }
+ if(-not $v){
+   $Report.checks.verify_attempts=30
+   throw "LOCAL_BRIDGE_VERIFY_TIMEOUT"
+ }
  $Report.checks.local_bridge=$true
  $Report.status="PARTIAL";$Report.next_gate="RELOAD_EXISTING_CHROME_EXTENSION_161_AND_VERIFY_RECEIPT"
  Save-Report
