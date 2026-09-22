@@ -8,7 +8,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $TransportVersion = "1.4.1"
-$TransportPatch = "accessboot-capability-snapshot-p1"
+$TransportPatch = "read-only-metadata-pilot-p1"
 $GatewayBase = "https://hnqlnvakzaywtafeiybt.supabase.co/functions/v1/cerebro-device-gateway-preprod"
 $BridgeBase = "http://127.0.0.1:$BridgePort"
 $Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
@@ -262,7 +262,7 @@ function Execute-LocalCommand($Command) {
         }
     }
 
-    if ($action -ne "OPEN_LOCAL_TEST_PAGE") { throw "REMOTE_ACTION_DENIED" }
+    if ($action -notin @("OPEN_LOCAL_TEST_PAGE","READ_ONLY_PAGE_METADATA")) { throw "REMOTE_ACTION_DENIED" }
     $uri = $BridgeBase + "/cloud/enqueue?transport_key=" + [uri]::EscapeDataString($TransportKey) +
       "&command_id=" + [uri]::EscapeDataString([string]$Command.command_id) +
       "&action=" + [uri]::EscapeDataString($action)
@@ -349,9 +349,20 @@ try {
                     local_service_version = [string]$local.service_version
                     external_mutation_performed = $false
                     secret_value_included = $false
+                    observed_url = [string]$local.lab_command_observed_url
+                    observed_title = [string]$local.lab_command_observed_title
+                    page_load_complete = [bool]$local.lab_command_page_load_complete
+                    page_content_included = $false
                 }
             }
             $ok = [string]$localResult.status -eq "COMPLETED"
+            if ([string]$cmd.payload.action -eq "READ_ONLY_PAGE_METADATA") {
+                $ok = $ok -and
+                    [string]$localResult.evidence_ref -ceq "EXAMPLE_DOMAIN_METADATA_VERIFIED" -and
+                    [string]$localResult.observed_url -ceq "https://example.com/" -and
+                    [string]$localResult.observed_title -ceq "Example Domain" -and
+                    [bool]$localResult.page_load_complete
+            }
 
             $resultPayload = [ordered]@{
                 device_id = $cred.device_id

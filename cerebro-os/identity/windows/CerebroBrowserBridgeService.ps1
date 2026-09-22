@@ -44,6 +44,7 @@ function Get-DefaultState {
         browser_discovery_status = "NOT_RUN"
         extension_status = "NOT_CONNECTED"
         extension_id = ""
+        extension_version = ""
         extension_last_seen_at = 0
         lab_command_id = ""
         lab_command_action = ""
@@ -51,6 +52,9 @@ function Get-DefaultState {
         lab_command_created_at = 0
         lab_command_completed_at = 0
         lab_command_evidence = ""
+        lab_command_observed_url = ""
+        lab_command_observed_title = ""
+        lab_command_page_load_complete = $false
     }
 }
 
@@ -116,9 +120,10 @@ function Read-State {
                 "cloud_transport_configured","cloud_transport_status",
                 "chrome_running","chrome_user_data_dir","chrome_profiles",
                 "chrome_last_used_profile","browser_discovery_status",
-                "extension_status","extension_id","extension_last_seen_at",
+                "extension_status","extension_id","extension_version","extension_last_seen_at",
                 "lab_command_id","lab_command_action","lab_command_status",
-                "lab_command_created_at","lab_command_completed_at","lab_command_evidence"
+                "lab_command_created_at","lab_command_completed_at","lab_command_evidence",
+                "lab_command_observed_url","lab_command_observed_title","lab_command_page_load_complete"
             )) {
                 if ($null -ne $raw.$key) { $state[$key] = $raw.$key }
             }
@@ -182,6 +187,7 @@ function Public-State([System.Collections.IDictionary]$State) {
         browser_discovery_status = $State["browser_discovery_status"]
         extension_status = $State["extension_status"]
         extension_id = $State["extension_id"]
+        extension_version = $State["extension_version"]
         extension_last_seen_at = [int64]$State["extension_last_seen_at"]
         lab_command_id = $State["lab_command_id"]
         lab_command_action = $State["lab_command_action"]
@@ -189,6 +195,9 @@ function Public-State([System.Collections.IDictionary]$State) {
         lab_command_created_at = [int64]$State["lab_command_created_at"]
         lab_command_completed_at = [int64]$State["lab_command_completed_at"]
         lab_command_evidence = $State["lab_command_evidence"]
+        lab_command_observed_url = $State["lab_command_observed_url"]
+        lab_command_observed_title = $State["lab_command_observed_title"]
+        lab_command_page_load_complete = [bool]$State["lab_command_page_load_complete"]
     }
 }
 
@@ -489,7 +498,7 @@ try {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LOCAL_EXECUTOR_NOT_READY"}'
                     continue
                 }
-                if ([string]::IsNullOrWhiteSpace($commandId) -or $action -ne "OPEN_LOCAL_TEST_PAGE") {
+                if ([string]::IsNullOrWhiteSpace($commandId) -or $action -notin @("OPEN_LOCAL_TEST_PAGE","READ_ONLY_PAGE_METADATA")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"REMOTE_ACTION_DENIED"}'
                     continue
                 }
@@ -502,11 +511,18 @@ try {
                     continue
                 }
                 $state["lab_command_id"] = $commandId
+                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -ne "1.5.0") {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_UPGRADE_REQUIRED"}'
+                    continue
+                }
                 $state["lab_command_action"] = $action
                 $state["lab_command_status"] = "QUEUED"
                 $state["lab_command_created_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
                 $state["lab_command_completed_at"] = 0
                 $state["lab_command_evidence"] = ""
+                $state["lab_command_observed_url"] = ""
+                $state["lab_command_observed_title"] = ""
+                $state["lab_command_page_load_complete"] = $false
                 Write-State $state
                 Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"REMOTE_COMMAND_ENQUEUED"}'
                 continue
@@ -549,7 +565,16 @@ try {
                     Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"NO_COMMAND"}'
                     continue
                 }
-                $target = "http://127.0.0.1:" + $Port + "/lab/test?command_id=" + [Uri]::EscapeDataString([string]$state["lab_command_id"])
+                $action = [string]$state["lab_command_action"]
+                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -ne "1.5.0") {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_REQUIRED"}'
+                    continue
+                }
+                $target = if ($action -eq "READ_ONLY_PAGE_METADATA") {
+                    "https://example.com/"
+                } else {
+                    "http://127.0.0.1:" + $Port + "/lab/test?command_id=" + [Uri]::EscapeDataString([string]$state["lab_command_id"])
+                }
                 $payload = [ordered]@{
                     status = "GREEN"
                     decision = "LAB_COMMAND_AVAILABLE"
@@ -567,6 +592,9 @@ try {
                 $extensionId = [string]$form["extension_id"]
                 $commandId = [string]$form["command_id"]
                 $result = ([string]$form["result"]).ToUpperInvariant()
+                $observedUrl = [string]$form["observed_url"]
+                $observedTitle = [string]$form["observed_title"]
+                $pageLoadComplete = [string]$form["page_load_complete"] -eq "true"
                 if ($extensionId -ne [string]$state["extension_id"] -or $commandId -ne [string]$state["lab_command_id"]) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"RESULT_SCOPE_MISMATCH"}'
                     continue
@@ -588,9 +616,27 @@ try {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"RESULT_NOT_QUEUED"}'
                     continue
                 }
+                $action = [string]$state["lab_command_action"]
+                if ($action -eq "READ_ONLY_PAGE_METADATA") {
+                    $readbackValid = ($observedUrl -ceq "https://example.com/" -and
+                                      $observedTitle -ceq "Example Domain" -and
+                                      $pageLoadComplete)
+                    if ($result -eq "COMPLETED" -and -not $readbackValid) { $result = "FAILED" }
+                    $state["lab_command_observed_url"] = if ($readbackValid) { "https://example.com/" } else { "" }
+                    $state["lab_command_observed_title"] = if ($readbackValid) { "Example Domain" } else { "" }
+                    $state["lab_command_page_load_complete"] = [bool]$readbackValid
+                } else {
+                    $state["lab_command_observed_url"] = ""
+                    $state["lab_command_observed_title"] = ""
+                    $state["lab_command_page_load_complete"] = $false
+                }
                 $state["lab_command_status"] = $result
                 $state["lab_command_completed_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
-                $state["lab_command_evidence"] = if ($result -eq "COMPLETED") { "LOCAL_TEST_PAGE_OPENED" } else { "LOCAL_TEST_PAGE_FAILED" }
+                $state["lab_command_evidence"] = if ($action -eq "READ_ONLY_PAGE_METADATA") {
+                    if ($result -eq "COMPLETED") { "EXAMPLE_DOMAIN_METADATA_VERIFIED" } else { "PAGE_READBACK_FAILED" }
+                } else {
+                    if ($result -eq "COMPLETED") { "LOCAL_TEST_PAGE_OPENED" } else { "LOCAL_TEST_PAGE_FAILED" }
+                }
                 Write-State $state
                 $payload = [ordered]@{
                     status = if ($result -eq "COMPLETED") { "GREEN" } else { "BLOCKED" }
@@ -610,6 +656,12 @@ try {
                 }
                 $form = Parse-Query $query
                 $extensionId = [string]$form["extension_id"]
+                $extensionVersion = [string]$form["extension_version"]
+                if ([string]::IsNullOrWhiteSpace($extensionVersion)) { $extensionVersion = "1.4.1" }
+                if ($extensionVersion -notin @("1.4.1","1.5.0")) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_VERSION_DENIED"}'
+                    continue
+                }
                 if ([string]::IsNullOrWhiteSpace($extensionId) -or $extensionId.Length -gt 128) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_ID_REQUIRED"}'
                     continue
@@ -622,6 +674,7 @@ try {
                 }
                 $state["extension_status"] = "CONNECTED"
                 $state["extension_id"] = $extensionId
+                $state["extension_version"] = $extensionVersion
                 $state["extension_last_seen_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
                 Write-State $state
                 $payload = [ordered]@{
