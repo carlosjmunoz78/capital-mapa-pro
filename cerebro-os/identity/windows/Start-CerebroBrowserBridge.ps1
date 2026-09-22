@@ -157,11 +157,13 @@ try {
     Write-LauncherLog ("FENIX LAB pilot bootstrap pending: " + $_.Exception.Message)
 }
 
-$TransportStdout = Join-Path $RuntimeDir "transport.stdout.log"
-$TransportStderr = Join-Path $RuntimeDir "transport.stderr.log"
-$TransportArgs = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $Transport + '" -BridgePort ' + $Port + ' -TransportKey "' + $TransportKey + '" -PairingFile "' + $PairingFile + '"'
-Start-Process -FilePath $PowerShellExe -ArgumentList $TransportArgs -WindowStyle Hidden -RedirectStandardOutput $TransportStdout -RedirectStandardError $TransportStderr | Out-Null
-Write-LauncherLog "Cloud transport worker ensured for port $Port"
+$TransportLauncher = Join-Path $ScriptDir "Start-CerebroBrowserTransport.ps1"
+if (Test-Path -LiteralPath $TransportLauncher) {
+    & $TransportLauncher -TransportScript $Transport -PairingFile $PairingFile | Out-Null
+    Write-LauncherLog "Cloud transport launcher invoked for port $Port"
+} else {
+    Write-LauncherLog "Cloud transport launcher missing; start it from the recovery package"
+}
 
 Write-LauncherLog "READY on http://127.0.0.1:$Port/"
 Start-Process "http://127.0.0.1:$Port/"

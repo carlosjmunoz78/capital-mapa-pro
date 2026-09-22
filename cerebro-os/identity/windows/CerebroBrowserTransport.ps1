@@ -3,27 +3,27 @@ param(
     [ValidateRange(1024,65535)]
     [int]$BridgePort,
     [Parameter(Mandatory = $true)]
-    [string]$TransportKey,
-    [Parameter(Mandatory = $true)]
     [string]$PairingFile
 )
 
 $ErrorActionPreference = "Stop"
 $TransportVersion = "1.4.1"
-$TransportPatch = "curl-fallback-p1"
+$TransportPatch = "curl-config-path-p2"
 $GatewayBase = "https://hnqlnvakzaywtafeiybt.supabase.co/functions/v1/cerebro-device-gateway-preprod"
 $BridgeBase = "http://127.0.0.1:$BridgePort"
 $Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
 $RuntimeDir = Join-Path $Base "CEREBRO\browser-bridge"
 $CredentialPath = Join-Path $RuntimeDir "transport-$TransportVersion.json"
 $LogPath = Join-Path $RuntimeDir "transport-$TransportVersion.log"
+$TransportKeyPath = Join-Path $RuntimeDir "transport-local-key-$TransportVersion.txt"
 
-$createdNew = $false
-$mutex = New-Object System.Threading.Mutex($true, "Local\CEREBROBrowserTransportV141", [ref]$createdNew)
-if (-not $createdNew) { exit 0 }
-
-function Log([string]$Message) {
-    Add-Content -LiteralPath $LogPath -Value ("$(Get-Date -Format o) " + $Message) -Encoding UTF8
+function Log([string]$Stage, [string]$Message = "", [string]$ExceptionType = "", [int]$ExitCode = -1, [string]$FailedStage = "") {
+    $entry = [ordered]@{at=(Get-Date -Format o); stage=$Stage; pid=$PID}
+    if ($Message) { $entry.exception_message = $Message }
+    if ($ExceptionType) { $entry.exception_type = $ExceptionType }
+    if ($ExitCode -ge 0) { $entry.exit_code = $ExitCode }
+    if ($FailedStage) { $entry.failed_stage = $FailedStage }
+    Add-Content -LiteralPath $LogPath -Value ($entry | ConvertTo-Json -Compress -Depth 3) -Encoding UTF8
 }
 
 function Local-Get([string]$Path) {
@@ -102,7 +102,7 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
         $configLines = @(
             "silent",
             "show-error",
-            "fail-with-body",
+            "fail",
             "connect-timeout = 10",
             "max-time = $TimeoutSec",
             "request = `"$Method`""
@@ -114,9 +114,11 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
         }
         if ($null -ne $Body) {
             $bodyPath = Join-Path $RuntimeDir ("curl-body-" + [Guid]::NewGuid().ToString("N") + ".json")
-            ($Body | ConvertTo-Json -Depth 10 -Compress) | Set-Content -LiteralPath $bodyPath -Encoding UTF8
+            [System.IO.File]::WriteAllText($bodyPath, ($Body | ConvertTo-Json -Depth 10 -Compress), (New-Object System.Text.UTF8Encoding($false)))
             $configLines += 'header = "Content-Type: application/json"'
-            $configLines += "data-binary = `"@$bodyPath`""
+            # curl config uses backslash escapes inside quoted values, including on Windows.
+            $curlBodyPath = $bodyPath.Replace('\', '\\').Replace('"', '\"')
+            $configLines += "data-binary = `"@$curlBodyPath`""
         }
         $configLines += "url = `"$Uri`""
         $configText = ($configLines -join [Environment]::NewLine) + [Environment]::NewLine
@@ -132,16 +134,22 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
 
         $proc = New-Object System.Diagnostics.Process
         $proc.StartInfo = $psi
+        Log "CURL_PROCESS_START"
         if (-not $proc.Start()) { throw "CURL_START_FAILED" }
-        $proc.StandardInput.Write($configText)
-        $proc.StandardInput.Close()
-        $stdout = $proc.StandardOutput.ReadToEnd()
-        $stderr = $proc.StandardError.ReadToEnd()
-        $proc.WaitForExit()
+        try {
+            $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
+            $stderrTask = $proc.StandardError.ReadToEndAsync()
+            $proc.StandardInput.Write($configText)
+            $proc.StandardInput.Close()
+            $proc.WaitForExit()
+            $stdout = $stdoutTask.GetAwaiter().GetResult()
+            $stderr = $stderrTask.GetAwaiter().GetResult()
+            $curlExitCode = $proc.ExitCode
+            Log "CURL_PROCESS_EXIT" "" "" $curlExitCode
+        } finally { $proc.Dispose() }
 
-        if ($proc.ExitCode -ne 0) {
-            $safe = if ([string]::IsNullOrWhiteSpace($stderr)) { "curl_exit_$($proc.ExitCode)" } else { ($stderr -replace '[\r\n]+',' ').Trim() }
-            throw ("CURL_GATEWAY_FAILED " + $safe)
+        if ($curlExitCode -ne 0) {
+            throw ("CURL_GATEWAY_FAILED exit_code=$curlExitCode")
         }
         if ([string]::IsNullOrWhiteSpace($stdout)) { throw "CURL_EMPTY_RESPONSE" }
         return ($stdout | ConvertFrom-Json)
@@ -159,14 +167,17 @@ function Gateway-Call([string]$Method, [string]$Path, [string]$Token, [object]$B
 }
 
 function Ensure-Enrolled($Bridge) {
+    Log "CREDENTIAL_CHECK_START"
     $cred = Read-Credential
-    if ($cred) { return $cred }
+    if ($cred) { Log "CREDENTIAL_FOUND"; return $cred }
 
+    Log "PAIRING_REQUIRED"
     if (-not (Test-Path $PairingFile)) { throw "PAIRING_FILE_MISSING" }
     $pairCode = (Get-Content -Raw -LiteralPath $PairingFile -Encoding UTF8).Trim()
     if ($pairCode.Length -lt 24) { throw "PAIRING_CODE_INVALID" }
 
     Set-LocalTransportStatus "ENROLLING"
+    Log "ENROLLMENT_START"
     $token = New-Token
     $payload = [ordered]@{
         device_id = [string]$Bridge.device_id
@@ -179,15 +190,19 @@ function Ensure-Enrolled($Bridge) {
     }
 
     $response = Invoke-CurlJson -Method "POST" -Uri ($GatewayBase + "/v1/agents/enroll") -Body $payload -TimeoutSec 30
+    Log "ENROLLMENT_RESPONSE_RECEIVED"
     if ($response.decision -ne "ENROLLED") { throw "ENROLLMENT_FAILED" }
 
+    Log "ENROLLMENT_OK"
     Save-Credential $token $Bridge
+    Log "CREDENTIAL_SAVED"
     Remove-Item -LiteralPath $PairingFile -Force -ErrorAction SilentlyContinue
-    Log "ENROLLED device=$($Bridge.device_id) scope=$($Bridge.company_id)/$($Bridge.environment)/$($Bridge.version)"
+    if (-not (Test-Path $PairingFile)) { Log "PAIRING_FILE_REMOVED" }
     return Read-Credential
 }
 
 function Validate-Scope($Bridge, $Cred) {
+    if ([string]$Bridge.service -ne 'CEREBRO Browser Bridge') { throw "BRIDGE_IDENTITY_MISMATCH" }
     if ([string]$Bridge.service_version -ne $TransportVersion) { throw "BRIDGE_VERSION_MISMATCH" }
     if (-not [bool]$Bridge.paired) { throw "BRIDGE_NOT_PAIRED" }
     if ([string]$Bridge.company_id -ne "fenix" -or [string]$Bridge.environment -ne "LAB" -or [string]$Bridge.version -ne "v0") { throw "BRIDGE_SCOPE_DENIED" }
@@ -220,22 +235,44 @@ function Wait-LocalResult([string]$CommandId) {
 }
 
 New-Item -ItemType Directory -Path $RuntimeDir -Force | Out-Null
-
+$mutex = $null
+$stage = "BOOT_START"
 try {
+    Log "BOOT_START"
+    if ($BridgePort -lt 8765 -or $BridgePort -gt 8785) { throw "BRIDGE_PORT_OUT_OF_RANGE" }
+    if (-not (Test-Path -LiteralPath $TransportKeyPath)) { throw "TRANSPORT_KEY_FILE_MISSING" }
+    $TransportKey = (Get-Content -Raw -LiteralPath $TransportKeyPath -Encoding UTF8).Trim()
+    if ($TransportKey -notmatch '^[a-fA-F0-9]{32}$') { throw "TRANSPORT_KEY_INVALID" }
+    Log "ARGS_VALIDATED"
+    $createdNew = $false
+    $mutex = New-Object System.Threading.Mutex($true, "Local\CEREBROBrowserTransportV141", [ref]$createdNew)
+    if (-not $createdNew) { Log "WORKER_EXIT" "duplicate worker"; $mutex.Dispose(); $mutex = $null; exit 0 }
+    Log "MUTEX_ACQUIRED"
+    $stage = "BRIDGE_CONNECT_START"
+    Log $stage
     $bridge = Local-Get "/health"
+    Log "BRIDGE_CONNECT_OK"
     Validate-Scope $bridge $null
+    Log "SCOPE_VALIDATE_OK"
+    $stage = "CREDENTIAL_CHECK_START"
     $cred = Ensure-Enrolled $bridge
     Validate-Scope $bridge $cred
 
+    $stage = "RECONNECT_START"
+    Log $stage
     $reconnect = Gateway-Call "POST" "/v1/agents/reconnect" $cred.token ([ordered]@{device_id=$cred.device_id})
+    if ($reconnect.status -ne "ONLINE") { throw "RECONNECT_FAILED" }
+    Log "RECONNECT_OK"
     Set-LocalTransportStatus "ONLINE"
-    Log "ONLINE queued=$($reconnect.queued_commands)"
+    Log "TRANSPORT_ONLINE"
 
     while ($true) {
         try {
             $bridge = Local-Get "/health"
             Validate-Scope $bridge $cred
+            Log "POLL_START"
             $poll = Gateway-Call "GET" ("/v1/agents/poll?device_id=" + [uri]::EscapeDataString($cred.device_id)) $cred.token
+            Log "POLL_OK"
             $commands = @($poll.commands)
             if ($commands.Count -eq 0) {
                 Set-LocalTransportStatus "ONLINE"
@@ -244,13 +281,16 @@ try {
             }
 
             $cmd = $commands[0]
+            Log "COMMAND_RECEIVED"
             if ([string]$cmd.company_id -ne $cred.company_id -or [string]$cmd.environment -ne $cred.environment -or [string]$cmd.version -ne $cred.version -or [string]$cmd.device_id -ne $cred.device_id) {
                 throw "REMOTE_SCOPE_MISMATCH"
             }
 
             $enqueue = Enqueue-Local $cmd
             if ($enqueue.status -ne "GREEN") { throw "LOCAL_ENQUEUE_FAILED" }
+            Log "LOCAL_ENQUEUE_OK"
             $local = Wait-LocalResult ([string]$cmd.command_id)
+            Log "LOCAL_RESULT_OK"
             $ok = [string]$local.lab_command_status -eq "COMPLETED"
 
             $resultPayload = [ordered]@{
@@ -265,18 +305,19 @@ try {
                 }
             }
             $stored = Gateway-Call "POST" "/v1/agents/result" $cred.token $resultPayload
-            Log "RESULT command=$($cmd.command_id) decision=$($stored.decision) semantic_verified=$ok"
+            Log "REMOTE_RESULT_STORED"
             Set-LocalTransportStatus "ONLINE"
         } catch {
-            Log ("LOOP_ERROR " + $_.Exception.Message)
+            Log "LOOP_ERROR" $_.Exception.Message $_.Exception.GetType().FullName
             Set-LocalTransportStatus "ERROR"
             Start-Sleep -Seconds 15
         }
     }
 } catch {
-    Log ("FATAL " + $_.Exception.Message)
+    Log "FATAL" $_.Exception.Message $_.Exception.GetType().FullName -1 $stage
     Set-LocalTransportStatus "ERROR"
     exit 1
 } finally {
-    if ($mutex) { $mutex.ReleaseMutex() | Out-Null; $mutex.Dispose() }
+    Log "WORKER_EXIT"
+    if ($mutex -and $createdNew) { $mutex.ReleaseMutex() | Out-Null; $mutex.Dispose() }
 }

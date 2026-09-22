@@ -148,7 +148,7 @@ class BrowserBridgeWindowsNativePackageV1Tests(unittest.TestCase):
         self.assertIn('$psi.RedirectStandardInput = $true',transport)
         self.assertIn('Authorization = "Bearer $Token"',transport)
         self.assertIn('Invoke-CurlJson -Method "POST" -Uri ($GatewayBase + "/v1/agents/enroll")',transport)
-        self.assertIn('$TransportPatch = "curl-fallback-p1"',transport)
+        self.assertIn('$TransportPatch = "curl-config-path-p2"',transport)
         self.assertNotIn('-H "Authorization: Bearer',transport)
 
     def test_preprod_gateway_v5_is_scope_bound(self):
