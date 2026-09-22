@@ -2,7 +2,7 @@ name: CEREBRO Browser Replay Guard v1.6.1
 on:
   workflow_dispatch:
   push:
-    branches: [fix/browser-v16-local-test-replay-guard]
+    branches: [cerebro-engine-factory-v0, fix/browser-v161-ack-safety-release]
   pull_request:
     branches: [cerebro-engine-factory-v0]
     paths:
