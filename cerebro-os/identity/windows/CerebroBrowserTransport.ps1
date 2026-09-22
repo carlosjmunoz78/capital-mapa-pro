@@ -97,7 +97,7 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
     $curl = (Get-Command "curl.exe" -ErrorAction SilentlyContinue).Source
     if ([string]::IsNullOrWhiteSpace($curl)) { throw "CURL_NOT_AVAILABLE" }
 
-    $configPath = $null
+    $bodyPath = $null
     try {
         $configLines = @(
             "silent",
@@ -113,21 +113,26 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
             $configLines += "header = `"$name`: $value`""
         }
         if ($null -ne $Body) {
+            $bodyName = "curl-body-" + [Guid]::NewGuid().ToString("N") + ".json"
+            $bodyPath = Join-Path $RuntimeDir $bodyName
+            [System.IO.File]::WriteAllText($bodyPath, ($Body | ConvertTo-Json -Depth 10 -Compress), (New-Object System.Text.UTF8Encoding($false)))
             $configLines += 'header = "Content-Type: application/json"'
+            # Use only the basename in curl config; WorkingDirectory points at RuntimeDir.
+            $configLines += "data-binary = `"@$bodyName`""
         }
         $configLines += "url = `"$Uri`""
         $configText = ($configLines -join [Environment]::NewLine) + [Environment]::NewLine
-        $configPath = Join-Path $RuntimeDir ("curl-config-" + [Guid]::NewGuid().ToString("N") + ".txt")
-        [System.IO.File]::WriteAllText($configPath, $configText, (New-Object System.Text.UTF8Encoding($false)))
 
         $psi = New-Object System.Diagnostics.ProcessStartInfo
         $psi.FileName = $curl
-        $psi.Arguments = if ($null -ne $Body) { "--config `"$configPath`" --data-binary @-" } else { "--config `"$configPath`"" }
+        $psi.Arguments = "--config -"
+        $psi.WorkingDirectory = $RuntimeDir
         $psi.UseShellExecute = $false
         $psi.CreateNoWindow = $true
         $psi.RedirectStandardInput = $true
         $psi.RedirectStandardOutput = $true
         $psi.RedirectStandardError = $true
+        $psi.StandardInputEncoding = New-Object System.Text.UTF8Encoding($false)
 
         $proc = New-Object System.Diagnostics.Process
         $proc.StartInfo = $psi
@@ -136,10 +141,7 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
         try {
             $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
             $stderrTask = $proc.StandardError.ReadToEndAsync()
-            if ($null -ne $Body) {
-                $jsonBody = ($Body | ConvertTo-Json -Depth 10 -Compress)
-                $proc.StandardInput.Write($jsonBody)
-            }
+            $proc.StandardInput.Write($configText)
             $proc.StandardInput.Close()
             $proc.WaitForExit()
             $stdout = $stdoutTask.GetAwaiter().GetResult()
@@ -154,7 +156,7 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
         if ([string]::IsNullOrWhiteSpace($stdout)) { throw "CURL_EMPTY_RESPONSE" }
         return ($stdout | ConvertFrom-Json)
     } finally {
-        if ($configPath) { Remove-Item -LiteralPath $configPath -Force -ErrorAction SilentlyContinue }
+        if ($bodyPath) { Remove-Item -LiteralPath $bodyPath -Force -ErrorAction SilentlyContinue }
     }
 }
 
