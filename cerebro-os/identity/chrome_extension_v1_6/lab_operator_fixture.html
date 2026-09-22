@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>CEREBRO OPERATOR LAB</title></head>
+<body>
+  <h1>CEREBRO OPERATOR LAB</h1>
+  <p>Deterministic local-only test fixture. No network calls, real data, or submissions.</p>
+  <label for="cerebro-lab-name">Nombre</label>
+  <input id="cerebro-lab-name" type="text" autocomplete="off" value="">
+  <label for="cerebro-lab-role">Rol</label>
+  <select id="cerebro-lab-role"><option value="">Seleccionar</option><option value="AUDITOR">Auditor</option></select>
+  <button id="cerebro-lab-toggle" type="button" aria-pressed="false">Activar</button>
+  <output id="cerebro-lab-output">WAITING</output>
+  <script>
+    const name = document.querySelector("#cerebro-lab-name");
+    const role = document.querySelector("#cerebro-lab-role");
+    const toggle = document.querySelector("#cerebro-lab-toggle");
+    const output = document.querySelector("#cerebro-lab-output");
+    toggle.addEventListener("click", () => {
+      toggle.setAttribute("aria-pressed", "true");
+      output.textContent = name.value + " / " + role.value + " / ON";
+    });
+  </script>
+</body></html>
