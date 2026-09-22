@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "CEREBRO Browser Bridge - LAB metadata pilot",
+  "version": "1.5.0",
+  "description": "LAB-only localhost test and fixed example.com title/URL readback. No page content, forms, cookies or arbitrary tabs.",
+  "permissions": [
+    "alarms"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "https://example.com/*"
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "action": {
+    "default_title": "CEREBRO Browser Bridge LAB"
+  }
+}
