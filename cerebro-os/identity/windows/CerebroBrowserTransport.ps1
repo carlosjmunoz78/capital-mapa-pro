@@ -8,7 +8,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $TransportVersion = "1.4.1"
-$TransportPatch = "curl-config-path-p2"
+$TransportPatch = "dotnet-http-ps51-p1"
 $GatewayBase = "https://hnqlnvakzaywtafeiybt.supabase.co/functions/v1/cerebro-device-gateway-preprod"
 $BridgeBase = "http://127.0.0.1:$BridgePort"
 $Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
