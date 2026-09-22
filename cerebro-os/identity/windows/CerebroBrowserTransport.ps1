@@ -10,6 +10,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $TransportVersion = "1.4.1"
+$TransportPatch = "curl-fallback-p1"
 $GatewayBase = "https://hnqlnvakzaywtafeiybt.supabase.co/functions/v1/cerebro-device-gateway-preprod"
 $BridgeBase = "http://127.0.0.1:$BridgePort"
 $Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
@@ -92,23 +93,69 @@ function Save-Credential([string]$Token, $Bridge) {
 
 function New-Nonce { return ([Guid]::NewGuid().ToString("N") + [Guid]::NewGuid().ToString("N")) }
 
+function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{}, [object]$Body = $null, [int]$TimeoutSec = 30) {
+    $curl = (Get-Command "curl.exe" -ErrorAction SilentlyContinue).Source
+    if ([string]::IsNullOrWhiteSpace($curl)) { throw "CURL_NOT_AVAILABLE" }
+
+    $bodyPath = $null
+    try {
+        $configLines = @(
+            "silent",
+            "show-error",
+            "fail-with-body",
+            "connect-timeout = 10",
+            "max-time = $TimeoutSec",
+            "request = `"$Method`""
+        )
+        foreach ($name in $Headers.Keys) {
+            $value = [string]$Headers[$name]
+            if ($value.Contains([Environment]::NewLine)) { throw "CURL_HEADER_INVALID" }
+            $configLines += "header = `"$name`: $value`""
+        }
+        if ($null -ne $Body) {
+            $bodyPath = Join-Path $RuntimeDir ("curl-body-" + [Guid]::NewGuid().ToString("N") + ".json")
+            ($Body | ConvertTo-Json -Depth 10 -Compress) | Set-Content -LiteralPath $bodyPath -Encoding UTF8
+            $configLines += 'header = "Content-Type: application/json"'
+            $configLines += "data-binary = `"@$bodyPath`""
+        }
+        $configLines += "url = `"$Uri`""
+        $configText = ($configLines -join [Environment]::NewLine) + [Environment]::NewLine
+
+        $psi = New-Object System.Diagnostics.ProcessStartInfo
+        $psi.FileName = $curl
+        $psi.Arguments = "--config -"
+        $psi.UseShellExecute = $false
+        $psi.CreateNoWindow = $true
+        $psi.RedirectStandardInput = $true
+        $psi.RedirectStandardOutput = $true
+        $psi.RedirectStandardError = $true
+
+        $proc = New-Object System.Diagnostics.Process
+        $proc.StartInfo = $psi
+        if (-not $proc.Start()) { throw "CURL_START_FAILED" }
+        $proc.StandardInput.Write($configText)
+        $proc.StandardInput.Close()
+        $stdout = $proc.StandardOutput.ReadToEnd()
+        $stderr = $proc.StandardError.ReadToEnd()
+        $proc.WaitForExit()
+
+        if ($proc.ExitCode -ne 0) {
+            $safe = if ([string]::IsNullOrWhiteSpace($stderr)) { "curl_exit_$($proc.ExitCode)" } else { ($stderr -replace '[\r\n]+',' ').Trim() }
+            throw ("CURL_GATEWAY_FAILED " + $safe)
+        }
+        if ([string]::IsNullOrWhiteSpace($stdout)) { throw "CURL_EMPTY_RESPONSE" }
+        return ($stdout | ConvertFrom-Json)
+    } finally {
+        if ($bodyPath) { Remove-Item -LiteralPath $bodyPath -Force -ErrorAction SilentlyContinue }
+    }
+}
+
 function Gateway-Call([string]$Method, [string]$Path, [string]$Token, [object]$Body = $null) {
     $headers = @{
         Authorization = "Bearer $Token"
         "X-CEREBRO-Nonce" = New-Nonce
     }
-    $args = @{
-        UseBasicParsing = $true
-        Uri = ($GatewayBase + $Path)
-        Method = $Method
-        Headers = $headers
-        TimeoutSec = 15
-    }
-    if ($null -ne $Body) {
-        $args["ContentType"] = "application/json"
-        $args["Body"] = ($Body | ConvertTo-Json -Depth 10 -Compress)
-    }
-    return Invoke-RestMethod @args
+    return Invoke-CurlJson -Method $Method -Uri ($GatewayBase + $Path) -Headers $headers -Body $Body -TimeoutSec 30
 }
 
 function Ensure-Enrolled($Bridge) {
@@ -126,12 +173,12 @@ function Ensure-Enrolled($Bridge) {
         company_id = [string]$Bridge.company_id
         environment = [string]$Bridge.environment
         version = [string]$Bridge.version
-        agent_version = "browser-transport-ps-$TransportVersion"
+        agent_version = "browser-transport-ps-$TransportVersion-$TransportPatch"
         pair_code = $pairCode
         token_sha256 = Sha256 $token
     }
 
-    $response = Invoke-RestMethod -UseBasicParsing -Uri ($GatewayBase + "/v1/agents/enroll") -Method Post -ContentType "application/json" -Body ($payload | ConvertTo-Json -Compress) -TimeoutSec 15
+    $response = Invoke-CurlJson -Method "POST" -Uri ($GatewayBase + "/v1/agents/enroll") -Body $payload -TimeoutSec 30
     if ($response.decision -ne "ENROLLED") { throw "ENROLLMENT_FAILED" }
 
     Save-Credential $token $Bridge
