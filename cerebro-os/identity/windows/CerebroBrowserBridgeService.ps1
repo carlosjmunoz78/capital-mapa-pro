@@ -55,6 +55,9 @@ function Get-DefaultState {
         lab_command_observed_url = ""
         lab_command_observed_title = ""
         lab_command_page_load_complete = $false
+        lab_command_selector = ""
+        lab_command_value = ""
+        lab_command_observed_value = ""
     }
 }
 
@@ -123,7 +126,8 @@ function Read-State {
                 "extension_status","extension_id","extension_version","extension_last_seen_at",
                 "lab_command_id","lab_command_action","lab_command_status",
                 "lab_command_created_at","lab_command_completed_at","lab_command_evidence",
-                "lab_command_observed_url","lab_command_observed_title","lab_command_page_load_complete"
+                "lab_command_observed_url","lab_command_observed_title","lab_command_page_load_complete",
+                "lab_command_selector","lab_command_value","lab_command_observed_value"
             )) {
                 if ($null -ne $raw.$key) { $state[$key] = $raw.$key }
             }
@@ -198,6 +202,7 @@ function Public-State([System.Collections.IDictionary]$State) {
         lab_command_observed_url = $State["lab_command_observed_url"]
         lab_command_observed_title = $State["lab_command_observed_title"]
         lab_command_page_load_complete = [bool]$State["lab_command_page_load_complete"]
+        lab_command_observed_value = $State["lab_command_observed_value"]
     }
 }
 
@@ -490,6 +495,9 @@ try {
                 $providedKey = [string]$form["transport_key"]
                 $commandId = [string]$form["command_id"]
                 $action = ([string]$form["action"]).ToUpperInvariant()
+                $operatorActions = @("OPERATOR_CLICK","OPERATOR_TYPE","OPERATOR_SELECT","OPERATOR_READ")
+                $selector = [string]$form["selector"]
+                $value = [string]$form["value"]
                 if ([string]::IsNullOrWhiteSpace($TransportKey) -or $providedKey -ne $TransportKey) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"TRANSPORT_KEY_MISMATCH"}'
                     continue
@@ -498,7 +506,7 @@ try {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LOCAL_EXECUTOR_NOT_READY"}'
                     continue
                 }
-                if ([string]::IsNullOrWhiteSpace($commandId) -or $action -notin @("OPEN_LOCAL_TEST_PAGE","READ_ONLY_PAGE_METADATA")) {
+                if ([string]::IsNullOrWhiteSpace($commandId) -or $action -notin (@("OPEN_LOCAL_TEST_PAGE","READ_ONLY_PAGE_METADATA") + $operatorActions)) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"REMOTE_ACTION_DENIED"}'
                     continue
                 }
@@ -510,12 +518,37 @@ try {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LOCAL_COMMAND_BUSY"}'
                     continue
                 }
-                $state["lab_command_id"] = $commandId
-                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -ne "1.5.0") {
+                if ($action -in $operatorActions) {
+                    $allowedSelector = switch ($action) {
+                        "OPERATOR_CLICK" { "#cerebro-button" }
+                        "OPERATOR_TYPE" { "#cerebro-input" }
+                        "OPERATOR_SELECT" { "#cerebro-select" }
+                        "OPERATOR_READ" { "#cerebro-output" }
+                    }
+                    $invalidType = ($action -eq "OPERATOR_TYPE" -and
+                        ($value.Length -lt 1 -or $value.Length -gt 64 -or
+                         $value -cnotmatch "^[a-zA-Z0-9 _.-]+$"))
+                    $invalidSelect = ($action -eq "OPERATOR_SELECT" -and
+                        $value -cnotin @("alpha","beta"))
+                    $invalidEmpty = ($action -in @("OPERATOR_CLICK","OPERATOR_READ") -and
+                        $value.Length -ne 0)
+                    if ([string]$state["extension_version"] -ne "1.6.0" -or
+                        $selector -cne $allowedSelector -or $invalidType -or
+                        $invalidSelect -or $invalidEmpty) {
+                        Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"OPERATOR_FIXTURE_SCOPE_DENIED"}'
+                        continue
+                    }
+                }
+                if ($action -eq "READ_ONLY_PAGE_METADATA" -and
+                    [string]$state["extension_version"] -notin @("1.5.0","1.6.0")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_UPGRADE_REQUIRED"}'
                     continue
                 }
+                $state["lab_command_id"] = $commandId
                 $state["lab_command_action"] = $action
+                $state["lab_command_selector"] = if ($action -in $operatorActions) { $selector } else { "" }
+                $state["lab_command_value"] = if ($action -in $operatorActions) { $value } else { "" }
+                $state["lab_command_observed_value"] = ""
                 $state["lab_command_status"] = "QUEUED"
                 $state["lab_command_created_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
                 $state["lab_command_completed_at"] = 0
@@ -525,6 +558,16 @@ try {
                 $state["lab_command_page_load_complete"] = $false
                 Write-State $state
                 Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"REMOTE_COMMAND_ENQUEUED"}'
+                continue
+            }
+            if ($path -eq "/lab/operator-fixture") {
+                if ([string]$state["environment"] -ne "LAB" -or -not [bool]$state["paired"]) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LAB_ONLY"}'
+                    continue
+                }
+                $fixture = '<!doctype html><html><head><meta charset="utf-8"><title>CEREBRO Operator LAB Fixture</title></head><body><h1>CEREBRO Operator LAB Fixture</h1><input id="cerebro-input" maxlength="64"><select id="cerebro-select"><option value="alpha">alpha</option><option value="beta">beta</option></select><button id="cerebro-button" onclick="document.querySelector('' #cerebro-output'').textContent=''CLICKED''">Click</button><output id="cerebro-output">READY</output></body></html>'
+                $fixture = $fixture.Replace("' #cerebro-output'", "'#cerebro-output'")
+                Send-Response $stream 200 "text/html; charset=utf-8" $fixture
                 continue
             }
             if ($path -eq "/lab/test") {
@@ -566,11 +609,13 @@ try {
                     continue
                 }
                 $action = [string]$state["lab_command_action"]
-                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -ne "1.5.0") {
+                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -notin @("1.5.0","1.6.0")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_REQUIRED"}'
                     continue
                 }
-                $target = if ($action -eq "READ_ONLY_PAGE_METADATA") {
+                $target = if ($action -in @("OPERATOR_CLICK","OPERATOR_TYPE","OPERATOR_SELECT","OPERATOR_READ")) {
+                    "http://127.0.0.1:" + $Port + "/lab/operator-fixture"
+                } elseif ($action -eq "READ_ONLY_PAGE_METADATA") {
                     "https://example.com/"
                 } else {
                     "http://127.0.0.1:" + $Port + "/lab/test?command_id=" + [Uri]::EscapeDataString([string]$state["lab_command_id"])
@@ -583,8 +628,53 @@ try {
                     target_url = $target
                     external_mutation_allowed = $false
                     environment = "LAB"
+                    company_id = [string]$state["company_id"]
+                    selector = [string]$state["lab_command_selector"]
+                    value = [string]$state["lab_command_value"]
                 }
                 Send-Response $stream 200 "application/json; charset=utf-8" ($payload | ConvertTo-Json -Compress)
+                continue
+            }
+            if ($path -eq "/extension/operator-result") {
+                $form = Parse-Query $query
+                $extensionId = [string]$form["extension_id"]
+                $commandId = [string]$form["command_id"]
+                $result = ([string]$form["result"]).ToUpperInvariant()
+                $observed = [string]$form["observed_value"]
+                $action = [string]$state["lab_command_action"]
+                if ($extensionId -ne [string]$state["extension_id"] -or $commandId -ne [string]$state["lab_command_id"] -or
+                    [string]$state["extension_version"] -ne "1.6.0" -or
+                    $action -notin @("OPERATOR_CLICK","OPERATOR_TYPE","OPERATOR_SELECT","OPERATOR_READ")) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"OPERATOR_RESULT_SCOPE_DENIED"}'
+                    continue
+                }
+                if ([string]$state["lab_command_status"] -in @("COMPLETED","FAILED")) {
+                    Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"IDEMPOTENT_REPLAY_SUPPRESSED"}'
+                    continue
+                }
+                if ([string]$state["lab_command_status"] -ne "QUEUED" -or $observed.Length -gt 64 -or $result -notin @("COMPLETED","FAILED")) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"OPERATOR_RESULT_INVALID"}'
+                    continue
+                }
+                $semanticValid = switch ($action) {
+                    "OPERATOR_CLICK" { $observed -ceq "CLICKED" }
+                    "OPERATOR_TYPE" { $observed -ceq [string]$state["lab_command_value"] }
+                    "OPERATOR_SELECT" { $observed -ceq [string]$state["lab_command_value"] }
+                    "OPERATOR_READ" { $observed -cin @("READY","CLICKED") }
+                    default { $false }
+                }
+                $ok = $result -eq "COMPLETED" -and $semanticValid -and [string]$form["evidence"] -ceq "LAB_OPERATOR_FIXTURE_VERIFIED"
+                $state["lab_command_status"] = if ($ok) { "COMPLETED" } else { "FAILED" }
+                $state["lab_command_observed_value"] = if ($ok) { $observed } else { "" }
+                $state["lab_command_evidence"] = if ($ok) { "LAB_OPERATOR_FIXTURE_VERIFIED" } else { "LAB_OPERATOR_FIXTURE_FAILED" }
+                $state["lab_command_completed_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+                Write-State $state
+                Send-Response $stream 200 "application/json; charset=utf-8" (@{
+                    status = if ($ok) { "GREEN" } else { "BLOCKED" }
+                    decision = "OPERATOR_RECEIPT_RECORDED"
+                    semantic_verified = [bool]$ok
+                    external_mutation_performed = $false
+                } | ConvertTo-Json -Compress)
                 continue
             }
             if ($path -eq "/extension/result") {
@@ -658,7 +748,7 @@ try {
                 $extensionId = [string]$form["extension_id"]
                 $extensionVersion = [string]$form["extension_version"]
                 if ([string]::IsNullOrWhiteSpace($extensionVersion)) { $extensionVersion = "1.4.1" }
-                if ($extensionVersion -notin @("1.4.1","1.5.0")) {
+                if ($extensionVersion -notin @("1.4.1","1.5.0","1.6.0")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_VERSION_DENIED"}'
                     continue
                 }

@@ -262,10 +262,14 @@ function Execute-LocalCommand($Command) {
         }
     }
 
-    if ($action -notin @("OPEN_LOCAL_TEST_PAGE","READ_ONLY_PAGE_METADATA")) { throw "REMOTE_ACTION_DENIED" }
+    if ($action -notin @("OPEN_LOCAL_TEST_PAGE","READ_ONLY_PAGE_METADATA","OPERATOR_CLICK","OPERATOR_TYPE","OPERATOR_SELECT","OPERATOR_READ")) { throw "REMOTE_ACTION_DENIED" }
     $uri = $BridgeBase + "/cloud/enqueue?transport_key=" + [uri]::EscapeDataString($TransportKey) +
       "&command_id=" + [uri]::EscapeDataString([string]$Command.command_id) +
       "&action=" + [uri]::EscapeDataString($action)
+    if ($action -like "OPERATOR_*") {
+        $uri += "&selector=" + [uri]::EscapeDataString([string]$Command.payload.selector) +
+            "&value=" + [uri]::EscapeDataString([string]$Command.payload.value)
+    }
     $enqueue = Invoke-RestMethod -UseBasicParsing -Uri $uri -Method Get -TimeoutSec 5
     if ($enqueue.status -ne "GREEN") { throw "LOCAL_ENQUEUE_FAILED" }
     return [ordered]@{direct=$false}
@@ -353,6 +357,7 @@ try {
                     observed_title = [string]$local.lab_command_observed_title
                     page_load_complete = [bool]$local.lab_command_page_load_complete
                     page_content_included = $false
+                    observed_value = [string]$local.lab_command_observed_value
                 }
             }
             $ok = [string]$localResult.status -eq "COMPLETED"
@@ -364,6 +369,16 @@ try {
                     [bool]$localResult.page_load_complete
             }
 
+            if ([string]$cmd.payload.action -like "OPERATOR_*") {
+                $operatorAction = [string]$cmd.payload.action
+                $observed = [string]$localResult.observed_value
+                $expected = [string]$cmd.payload.value
+                $ok = $ok -and [string]$localResult.evidence_ref -ceq "LAB_OPERATOR_FIXTURE_VERIFIED" -and
+                    (($operatorAction -eq "OPERATOR_CLICK" -and $observed -ceq "CLICKED") -or
+                     ($operatorAction -eq "OPERATOR_TYPE" -and $observed -ceq $expected -and $observed.Length -gt 0 -and $observed.Length -le 64) -or
+                     ($operatorAction -eq "OPERATOR_SELECT" -and $observed -ceq $expected -and $observed -cin @("alpha","beta")) -or
+                     ($operatorAction -eq "OPERATOR_READ" -and $observed -cin @("READY","CLICKED")))
+            }
             $resultPayload = [ordered]@{
                 device_id = $cred.device_id
                 command_id = [string]$cmd.command_id
