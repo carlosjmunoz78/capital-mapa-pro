@@ -71,24 +71,11 @@ async function execute(port, extensionId, cmd) {
     const url = "http://127.0.0.1:" + port + "/lab/test?command_id=" +
       encodeURIComponent(cmd.command_id);
     if (cmd.target_url !== url) return;
-    // Persist the command ID BEFORE opening a tab. An unacknowledged receipt
-    // must never create additional tabs on later Chrome service-worker wakes.
-    const key = "cerebro_local_test_last_receipt_v16";
-    const previous = (await chrome.storage.local.get(key))[key];
-    if (previous && previous.command_id === cmd.command_id) {
-      await report(port, extensionId, cmd, previous.success === true, {});
-      return;
-    }
-    await chrome.storage.local.set({[key]: {command_id: cmd.command_id, success: false}});
     let success = false;
     try {
-      const matching = await chrome.tabs.query({url:"http://127.0.0.1:" + port + "/*"});
-      if (!matching.some(tab => tab.url === url)) {
-        await chrome.tabs.create({url, active:false});
-      }
+      await chrome.tabs.create({url, active:false});
       success = true;
     } catch (_) {}
-    await chrome.storage.local.set({[key]: {command_id: cmd.command_id, success}});
     await report(port, extensionId, cmd, success, {});
     return;
   }
