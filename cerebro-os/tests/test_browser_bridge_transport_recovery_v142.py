@@ -40,7 +40,7 @@ class RecoveryContractTests(unittest.TestCase):
             self.assertIn(marker, LAUNCHER)
 
     def test_worker_logs_stages_and_preserves_one_time_pairing(self):
-        for marker in ('BOOT_START', 'ARGS_VALIDATED', 'MUTEX_ACQUIRED', 'CURL_PROCESS_EXIT',
+        for marker in ('BOOT_START', 'ARGS_VALIDATED', 'MUTEX_ACQUIRED', 'HTTP_REQUEST_EXIT',
                        'CREDENTIAL_SAVED', 'PAIRING_FILE_REMOVED', 'WORKER_EXIT',
                        'ConvertFrom-SecureString', 'ConvertTo-SecureString'):
             self.assertIn(marker, TRANSPORT)
