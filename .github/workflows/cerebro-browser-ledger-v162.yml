@@ -38,7 +38,10 @@ jobs:
         run: |
           $files=@("cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1","cerebro-os/identity/windows/recovery_v1_6_2/Install-CerebroBrowserReplayGuardV162.ps1")
           foreach($path in $files){$tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path),[ref]$tokens,[ref]$errors);if($errors.Count -gt 0){$errors | Format-List;exit 1}}
-    # PowerShell 5.1 parser checks are separate from runtime behavior tests.
+      - name: Exercise Windows PowerShell 5.1 installer, snapshot and rollback against local mock
+        shell: powershell
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File cerebro-os/tests/test_browser_v162_windows_install_rollback.ps1
+    # Offline health server only; the real PC and production are never touched.
 
   package:
     needs: [linux, windows]
