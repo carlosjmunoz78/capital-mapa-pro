@@ -1,0 +1,63 @@
+name: CEREBRO Browser Ledger v1.6.2 LAB
+on:
+  pull_request:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - "cerebro-os/identity/chrome_extension_v1_6_2/**"
+      - "cerebro-os/tests/test_browser_ledger_v162.cjs"
+      - "cerebro-os/tests/test_browser_replay_guard_v162.py"
+      - "cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1"
+      - "cerebro-os/identity/windows/recovery_v1_6_2/**"
+      - "cerebro-os/jobs/build_browser_replay_guard_v162.py"
+      - ".github/workflows/cerebro-browser-ledger-v162.yml"
+  push:
+    branches: [fix/browser-v162-durable-multi-command-ledger]
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: node --check cerebro-os/identity/chrome_extension_v1_6_2/service_worker.js
+      - run: node --test cerebro-os/tests/test_browser_ledger_v162.cjs
+      - run: python -m unittest discover -s cerebro-os/tests -p test_browser_replay_guard_v162.py -v
+  windows:
+    runs-on: windows-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: node --check cerebro-os/identity/chrome_extension_v1_6_2/service_worker.js
+      - run: node --test cerebro-os/tests/test_browser_ledger_v162.cjs
+      - run: python -m unittest discover -s cerebro-os/tests -p test_browser_replay_guard_v162.py -v
+      - name: Parse scoped Bridge and reversible installer in Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $files=@("cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1","cerebro-os/identity/windows/recovery_v1_6_2/Install-CerebroBrowserReplayGuardV162.ps1")
+          foreach($path in $files){$tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path),[ref]$tokens,[ref]$errors);if($errors.Count -gt 0){$errors | Format-List;exit 1}}
+      - name: Exercise Windows PowerShell 5.1 installer, snapshot and rollback against local mock
+        shell: powershell
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File cerebro-os/tests/test_browser_v162_windows_install_rollback.ps1
+    # Offline health server only; the real PC and production are never touched.
+
+  package:
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build integrity-checked rollback package
+        run: python cerebro-os/jobs/build_browser_replay_guard_v162.py
+      - name: Independently verify inner release ZIP digest
+        run: |
+          sha256sum .cerebro-runtime/packages/CEREBRO_BROWSER_REPLAY_GUARD_V1_6_2.zip
+          python -m unittest discover -s cerebro-os/tests -p test_browser_replay_guard_v162.py -v
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CEREBRO_BROWSER_REPLAY_GUARD_V1_6_2
+          path: .cerebro-runtime/packages/CEREBRO_BROWSER_REPLAY_GUARD_V1_6_2.zip
+          retention-days: 7
+          if-no-files-found: error
