@@ -29,6 +29,10 @@ class ReplayGuardV161Tests(unittest.TestCase):
   inst=INSTALLER.read_text()
   for required in ('PAYLOAD_HASH_MISMATCH','SNAPSHOT','ROLLED_BACK','REQUIRES_INSTALLED_V160','prod_disabled','PREVIOUS_PATCH_PENDING_ACCEPTANCE'):
    self.assertIn(required,inst)
+  self.assertIn('for($attempt=1;$attempt -le 30;$attempt++)',inst)
+  self.assertIn('LOCAL_BRIDGE_VERIFY_TIMEOUT',inst)
+  self.assertIn('$candidate.checks.service_found',inst)
+  self.assertIn('$candidate.checks.paired',inst)
   for forbidden in ('Stop-Process -Name chrome','Remove-Item -Recurse','<all_urls>'):
    self.assertNotIn(forbidden,inst)
  def test_zip_integrity_and_previous_artifacts_untouched(self):
