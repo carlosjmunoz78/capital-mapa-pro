@@ -1,0 +1,57 @@
+name: Build Browser Metadata Recovery V1.5.0
+on:
+  push:
+    branches:
+      - artifact/browser-metadata-v150-final
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Parse Windows PowerShell scripts
+        shell: powershell
+        run: |
+          $files = @(
+            'cerebro-os/identity/windows/CerebroBrowserBridgeService.ps1',
+            'cerebro-os/identity/windows/CerebroBrowserTransport.ps1',
+            'cerebro-os/identity/windows/recovery_v1_5/Install-CerebroBrowserMetadataRecovery.ps1'
+          )
+          foreach ($file in $files) {
+            $tokens=$null; $errors=$null
+            [System.Management.Automation.Language.Parser]::ParseFile($file,[ref]$tokens,[ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) { throw "$file parse failed: $errors" }
+          }
+      - name: Regression and metadata pilot tests
+        run: python -m unittest discover -s cerebro-os/tests -p "test_browser*py" -v
+      - name: Build deterministic rollback package
+        shell: pwsh
+        run: |
+          python cerebro-os/jobs/build_browser_metadata_recovery_v150.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $out = '.cerebro-runtime/packages/CEREBRO_BROWSER_METADATA_RECOVERY_V1_5_0.zip'
+          if (-not (Test-Path $out)) { throw 'Package missing' }
+          $archive = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $out))
+          try {
+            $names = @($archive.Entries | ForEach-Object FullName)
+            foreach ($name in @('INSTALL_AND_VERIFY.bat','ROLLBACK.bat','README.txt','payload-sha256.json',
+                'payload/CerebroBrowserBridgeService.ps1',
+                'payload/CerebroBrowserTransport.ps1',
+                'payload/chrome_extension_v1_4_1/manifest.json',
+                'payload/chrome_extension_v1_4_1/service_worker.js')) {
+              if ($name -notin $names) { throw "Missing $name" }
+            }
+            if (@($names | Where-Object { $_ -match 'PAIRING|token|credential' }).Count -gt 0) { throw 'Sensitive payload name found' }
+          } finally { $archive.Dispose() }
+          Get-FileHash $out -Algorithm SHA256 | Format-List
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CEREBRO_BROWSER_METADATA_RECOVERY_V1_5_0
+          path: .cerebro-runtime/packages/CEREBRO_BROWSER_METADATA_RECOVERY_V1_5_0.zip
+          retention-days: 90
