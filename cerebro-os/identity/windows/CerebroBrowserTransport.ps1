@@ -97,7 +97,6 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
     $curl = (Get-Command "curl.exe" -ErrorAction SilentlyContinue).Source
     if ([string]::IsNullOrWhiteSpace($curl)) { throw "CURL_NOT_AVAILABLE" }
 
-    $bodyPath = $null
     try {
         $configLines = @(
             "silent",
@@ -154,7 +153,6 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
         if ([string]::IsNullOrWhiteSpace($stdout)) { throw "CURL_EMPTY_RESPONSE" }
         return ($stdout | ConvertFrom-Json)
     } finally {
-        if ($bodyPath) { Remove-Item -LiteralPath $bodyPath -Force -ErrorAction SilentlyContinue }
     }
 }
 
