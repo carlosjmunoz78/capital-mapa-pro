@@ -19,7 +19,7 @@ class AccessbootCapabilitySnapshotV143Tests(unittest.TestCase):
         self.assertIn('transport_online', TRANSPORT)
         self.assertIn('chrome_profiles', TRANSPORT)
         self.assertIn('REMOTE_ACTION_DENIED', TRANSPORT)
-        snapshot = TRANSPORT.split('if ($action -eq "ACCESSBOOT_CAPABILITY_SNAPSHOT")', 1)[1].split('if ($action -ne "OPEN_LOCAL_TEST_PAGE")', 1)[0]
+        snapshot = TRANSPORT.split('if ($action -eq "ACCESSBOOT_CAPABILITY_SNAPSHOT")', 1)[1].split('if ($action -notin @("OPEN_LOCAL_TEST_PAGE","READ_ONLY_PAGE_METADATA"))', 1)[0]
         for forbidden in ('password', 'token', 'cookie', 'credential_value', 'chrome_user_data_dir', 'extension_id'):
             self.assertNotIn(forbidden, snapshot.lower())
 
