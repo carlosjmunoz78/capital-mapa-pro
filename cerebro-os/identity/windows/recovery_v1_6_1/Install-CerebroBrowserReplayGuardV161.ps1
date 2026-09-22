@@ -96,26 +96,40 @@ try {
  $Report.stage="START"
  Launch $Target
  $Report.stage="VERIFY"
- $verify=Join-Path $Target "Verify-CerebroBrowserBridge.ps1"
- if(-not(Test-Path -LiteralPath $verify)){throw "VERIFY_LAUNCHER_MISSING"}
- # The launcher may start the Bridge and transport asynchronously.
- # Probe only the expected loopback ports; a disabled extension is expected
- # and MUST NOT trigger rollback of an otherwise healthy service.
- $v=$null
- for($attempt=1;$attempt -le 30;$attempt++){
-   Start-Sleep -Seconds 1
-   $candidate=$null
-   try { $candidate=(& $verify | Out-String | ConvertFrom-Json) } catch {}
-   if($candidate -and $candidate.checks.service_found -and
-       $candidate.checks.service_version -and $candidate.checks.paired -and
-       $candidate.checks.lab_scope -and $candidate.checks.prod_disabled){
-     $v=$candidate
+ # IMPORTANT: Verify-CerebroBrowserBridge.ps1 intentionally exits 2 while Chrome
+ # is disabled; do not invoke it from the installer or use extension/transport
+ # health as a prerequisite for a safe file upgrade.
+ # Start-CerebroBrowserBridge.ps1 can take >10 seconds to bootstrap transport.
+ # Only the exact trusted Fenix LAB bridge is an installation health gate.
+ $health=$null
+ $observedPort=$null
+ for($attempt=1;$attempt -le 45;$attempt++){
+   foreach($port in @(8765)+@(8766..8785)){
+     # First port should respond immediately once launched. Avoid scanning the
+     # full range on every second when the expected listener is not yet ready.
+     if($port -ne 8765 -and $attempt % 5 -ne 0){continue}
+     try {
+       $candidate=Invoke-RestMethod -UseBasicParsing -Uri ("http://127.0.0.1:"+$port+"/health") -Method Get -TimeoutSec 1
+       if($candidate.status -eq "GREEN" -and $candidate.service -eq "CEREBRO Browser Bridge" -and
+          $candidate.service_version -eq "1.4.1" -and $candidate.company_id -eq "fenix" -and
+          $candidate.environment -eq "LAB" -and $candidate.version -eq "v0" -and
+          [bool]$candidate.paired -and [bool]$candidate.kill_switch_enabled){
+         $health=$candidate;$observedPort=$port
+         break
+       }
+     }catch {}
+   }
+   if($health){
      $Report.checks.verify_attempts=$attempt
+     $Report.checks.observed_port=$observedPort
+     $Report.checks.transport_at_install=[string]$health.cloud_transport_status
+     $Report.checks.extension_at_install=[string]$health.extension_status
      break
    }
+   Start-Sleep -Seconds 1
  }
- if(-not $v){
-   $Report.checks.verify_attempts=30
+ if(-not $health){
+   $Report.checks.verify_attempts=45
    throw "LOCAL_BRIDGE_VERIFY_TIMEOUT"
  }
  $Report.checks.local_bridge=$true
