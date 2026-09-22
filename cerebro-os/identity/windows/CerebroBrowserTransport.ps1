@@ -94,72 +94,73 @@ function Save-Credential([string]$Token, $Bridge) {
 function New-Nonce { return ([Guid]::NewGuid().ToString("N") + [Guid]::NewGuid().ToString("N")) }
 
 function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{}, [object]$Body = $null, [int]$TimeoutSec = 30) {
-    $curl = (Get-Command "curl.exe" -ErrorAction SilentlyContinue).Source
-    if ([string]::IsNullOrWhiteSpace($curl)) { throw "CURL_NOT_AVAILABLE" }
-
-    $bodyPath = $null
-    try {
-        $configLines = @(
-            "silent",
-            "show-error",
-            "fail",
-            "connect-timeout = 10",
-            "max-time = $TimeoutSec",
-            "request = `"$Method`""
-        )
-        foreach ($name in $Headers.Keys) {
-            $value = [string]$Headers[$name]
-            if ($value.Contains([Environment]::NewLine)) { throw "CURL_HEADER_INVALID" }
-            $configLines += "header = `"$name`: $value`""
-        }
-        $curlArguments = "--config -"
-        if ($null -ne $Body) {
-            $bodyName = "curl-body-" + [Guid]::NewGuid().ToString("N") + ".json"
-            $bodyPath = Join-Path $RuntimeDir $bodyName
-            [System.IO.File]::WriteAllText($bodyPath, ($Body | ConvertTo-Json -Depth 10 -Compress), (New-Object System.Text.UTF8Encoding($false)))
-            $configLines += 'header = "Content-Type: application/json"'
-            # Keep Windows file paths out of curl config parsing; only the non-secret body path is passed in process args.
-            $curlArguments += " --data-binary `"@$bodyPath`""
-        }
-        $configLines += "url = `"$Uri`""
-        $configText = ($configLines -join [Environment]::NewLine) + [Environment]::NewLine
-
-        $psi = New-Object System.Diagnostics.ProcessStartInfo
-        $psi.FileName = $curl
-        $psi.Arguments = $curlArguments
-        $psi.WorkingDirectory = $RuntimeDir
-        $psi.UseShellExecute = $false
-        $psi.CreateNoWindow = $true
-        $psi.RedirectStandardInput = $true
-        $psi.RedirectStandardOutput = $true
-        $psi.RedirectStandardError = $true
-
-        $proc = New-Object System.Diagnostics.Process
-        $proc.StartInfo = $psi
-        Log "CURL_PROCESS_START"
-        if (-not $proc.Start()) { throw "CURL_START_FAILED" }
+    # PowerShell 5.1-safe transport: use .NET HttpWebRequest directly.
+    # This avoids curl config/stdin/path parsing while keeping bearer values out of process arguments.
+    if ($Uri.StartsWith("https://")) {
         try {
-            $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
-            $stderrTask = $proc.StandardError.ReadToEndAsync()
-            $configBytes = (New-Object System.Text.UTF8Encoding($false)).GetBytes($configText)
-            $proc.StandardInput.BaseStream.Write($configBytes, 0, $configBytes.Length)
-            $proc.StandardInput.BaseStream.Flush()
-            $proc.StandardInput.Close()
-            $proc.WaitForExit()
-            $stdout = $stdoutTask.GetAwaiter().GetResult()
-            $stderr = $stderrTask.GetAwaiter().GetResult()
-            $curlExitCode = $proc.ExitCode
-            Log "CURL_PROCESS_EXIT" "" "" $curlExitCode
-        } finally { $proc.Dispose() }
-
-        if ($curlExitCode -ne 0) {
-            throw ("CURL_GATEWAY_FAILED exit_code=$curlExitCode")
-        }
-        if ([string]::IsNullOrWhiteSpace($stdout)) { throw "CURL_EMPTY_RESPONSE" }
-        return ($stdout | ConvertFrom-Json)
-    } finally {
-        if ($bodyPath) { Remove-Item -LiteralPath $bodyPath -Force -ErrorAction SilentlyContinue }
+            [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor [System.Net.SecurityProtocolType]::Tls12
+        } catch {}
     }
+
+    $request = [System.Net.HttpWebRequest]::Create($Uri)
+    $request.Method = $Method
+    $request.Timeout = $TimeoutSec * 1000
+    $request.ReadWriteTimeout = $TimeoutSec * 1000
+    $request.UserAgent = "CEREBRO-BrowserTransport/$TransportVersion"
+    $request.Accept = "application/json"
+
+    foreach ($name in $Headers.Keys) {
+        $value = [string]$Headers[$name]
+        if ($value.Contains([Environment]::NewLine)) { throw "HTTP_HEADER_INVALID" }
+        switch ($name.ToLowerInvariant()) {
+            "content-type" { $request.ContentType = $value }
+            "accept" { $request.Accept = $value }
+            "user-agent" { $request.UserAgent = $value }
+            default { $request.Headers[$name] = $value }
+        }
+    }
+
+    if ($null -ne $Body) {
+        $json = $Body | ConvertTo-Json -Depth 10 -Compress
+        $bytes = (New-Object System.Text.UTF8Encoding($false)).GetBytes($json)
+        $request.ContentType = "application/json"
+        $request.ContentLength = $bytes.Length
+        $requestStream = $request.GetRequestStream()
+        try {
+            $requestStream.Write($bytes, 0, $bytes.Length)
+            $requestStream.Flush()
+        } finally {
+            $requestStream.Dispose()
+        }
+    }
+
+    Log "HTTP_REQUEST_START"
+    $response = $null
+    try {
+        $response = $request.GetResponse()
+        $statusCode = [int]$response.StatusCode
+        Log "HTTP_REQUEST_EXIT" "" "" $statusCode
+        $responseStream = $response.GetResponseStream()
+        try {
+            $reader = New-Object System.IO.StreamReader($responseStream, (New-Object System.Text.UTF8Encoding($false)), $true)
+            try { $text = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        } finally {
+            if ($responseStream) { $responseStream.Dispose() }
+        }
+    } catch [System.Net.WebException] {
+        $statusCode = -1
+        if ($_.Exception.Response) {
+            try { $statusCode = [int]$_.Exception.Response.StatusCode } catch {}
+            try { $_.Exception.Response.Dispose() } catch {}
+        }
+        Log "HTTP_REQUEST_EXIT" "" "" $statusCode
+        throw ("HTTP_GATEWAY_FAILED status_code=$statusCode")
+    } finally {
+        if ($response) { $response.Dispose() }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($text)) { throw "HTTP_EMPTY_RESPONSE" }
+    return ($text | ConvertFrom-Json)
 }
 
 function Gateway-Call([string]$Method, [string]$Path, [string]$Token, [object]$Body = $null) {
