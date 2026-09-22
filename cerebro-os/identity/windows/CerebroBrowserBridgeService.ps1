@@ -44,6 +44,7 @@ function Get-DefaultState {
         browser_discovery_status = "NOT_RUN"
         extension_status = "NOT_CONNECTED"
         extension_id = ""
+        extension_version = ""
         extension_last_seen_at = 0
         lab_command_id = ""
         lab_command_action = ""
@@ -51,6 +52,9 @@ function Get-DefaultState {
         lab_command_created_at = 0
         lab_command_completed_at = 0
         lab_command_evidence = ""
+        lab_command_observed_url = ""
+        lab_command_observed_title = ""
+        lab_command_page_load_complete = $false
     }
 }
 
@@ -116,9 +120,10 @@ function Read-State {
                 "cloud_transport_configured","cloud_transport_status",
                 "chrome_running","chrome_user_data_dir","chrome_profiles",
                 "chrome_last_used_profile","browser_discovery_status",
-                "extension_status","extension_id","extension_last_seen_at",
+                "extension_status","extension_id","extension_version","extension_last_seen_at",
                 "lab_command_id","lab_command_action","lab_command_status",
-                "lab_command_created_at","lab_command_completed_at","lab_command_evidence"
+                "lab_command_created_at","lab_command_completed_at","lab_command_evidence",
+                "lab_command_observed_url","lab_command_observed_title","lab_command_page_load_complete"
             )) {
                 if ($null -ne $raw.$key) { $state[$key] = $raw.$key }
             }
@@ -182,6 +187,7 @@ function Public-State([System.Collections.IDictionary]$State) {
         browser_discovery_status = $State["browser_discovery_status"]
         extension_status = $State["extension_status"]
         extension_id = $State["extension_id"]
+        extension_version = $State["extension_version"]
         extension_last_seen_at = [int64]$State["extension_last_seen_at"]
         lab_command_id = $State["lab_command_id"]
         lab_command_action = $State["lab_command_action"]
@@ -189,6 +195,9 @@ function Public-State([System.Collections.IDictionary]$State) {
         lab_command_created_at = [int64]$State["lab_command_created_at"]
         lab_command_completed_at = [int64]$State["lab_command_completed_at"]
         lab_command_evidence = $State["lab_command_evidence"]
+        lab_command_observed_url = $State["lab_command_observed_url"]
+        lab_command_observed_title = $State["lab_command_observed_title"]
+        lab_command_page_load_complete = [bool]$State["lab_command_page_load_complete"]
     }
 }
 
@@ -610,6 +619,12 @@ try {
                 }
                 $form = Parse-Query $query
                 $extensionId = [string]$form["extension_id"]
+                $extensionVersion = [string]$form["extension_version"]
+                if ([string]::IsNullOrWhiteSpace($extensionVersion)) { $extensionVersion = "1.4.1" }
+                if ($extensionVersion -notin @("1.4.1","1.5.0")) {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_VERSION_DENIED"}'
+                    continue
+                }
                 if ([string]::IsNullOrWhiteSpace($extensionId) -or $extensionId.Length -gt 128) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_ID_REQUIRED"}'
                     continue
@@ -622,6 +637,7 @@ try {
                 }
                 $state["extension_status"] = "CONNECTED"
                 $state["extension_id"] = $extensionId
+                $state["extension_version"] = $extensionVersion
                 $state["extension_last_seen_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
                 Write-State $state
                 $payload = [ordered]@{
