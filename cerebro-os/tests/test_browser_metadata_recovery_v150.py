@@ -47,8 +47,10 @@ class BrowserMetadataRecoveryV150Tests(unittest.TestCase):
         self.assertIn('const ALLOWED_URL = "https://example.com/";', worker)
         self.assertIn("READ_ONLY_PAGE_METADATA", worker)
         self.assertIn("Example Domain", worker)
-        self.assertNotIn("cookies", manifest.lower())
-        self.assertNotIn("<all_urls>", manifest)
+        manifest_data = json.loads(manifest)
+        self.assertNotIn("cookies", manifest_data["permissions"])
+        self.assertNotIn("<all_urls>", manifest_data["host_permissions"])
+        self.assertEqual(set(manifest_data["host_permissions"]), {"http://127.0.0.1/*", "https://example.com/*"})
         self.assertIn("READ_ONLY_PAGE_METADATA", transport)
         self.assertIn("EXAMPLE_DOMAIN_METADATA_VERIFIED", transport)
 
