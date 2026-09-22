@@ -24,6 +24,14 @@ class ReplayGuardV161Tests(unittest.TestCase):
   self.assertEqual(old["host_permissions"],new["host_permissions"])
   self.assertNotIn("<all_urls>",new["host_permissions"])
   source=SERVICE.read_text(encoding="utf-8")
+  # The local server cannot overwrite an unacknowledged command when a user
+  # clicks "Encolar prueba" repeatedly. Legacy v1.6.0 receives one dispatch;
+  # durable v1.6.1 retries only receipt submission.
+  self.assertIn('if ([string]$state["lab_command_status"] -in @("QUEUED","DISPATCHED"))',source)
+  self.assertIn('if ($currentCommandStatus -eq "DISPATCHED")',source)
+  self.assertIn('$state["lab_command_status"] = "DISPATCHED"',source)
+  self.assertIn('if ($currentStatus -notin @("QUEUED","DISPATCHED"))',source)
+  self.assertIn('if ([string]$State["lab_command_status"] -in @("QUEUED","DISPATCHED"))',source)
   self.assertIn('("1.4.1","1.5.0","1.6.0","1.6.1")',source)
   self.assertIn('("1.6.0","1.6.1")',source)
   inst=INSTALLER.read_text()
