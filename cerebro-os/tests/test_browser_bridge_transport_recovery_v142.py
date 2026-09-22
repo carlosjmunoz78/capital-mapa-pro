@@ -29,8 +29,9 @@ class RecoveryContractTests(unittest.TestCase):
         self.assertNotIn('-PairCode', LAUNCHER)
         self.assertIn('$psi.Arguments = "--config -"', TRANSPORT)
         self.assertIn('$psi.RedirectStandardInput = $true', TRANSPORT)
-        self.assertIn('--data-binary @-', TRANSPORT)
-        self.assertIn('[System.IO.File]::WriteAllText($configPath', TRANSPORT)
+        self.assertIn('$psi.Arguments = "--config -"', TRANSPORT)
+        self.assertIn('$psi.StandardInputEncoding = New-Object System.Text.UTF8Encoding($false)', TRANSPORT)
+        self.assertIn('data-binary = `"@$bodyName`"', TRANSPORT)
         self.assertNotIn('-H "Authorization:', TRANSPORT)
 
     def test_launcher_observes_pid_exit_and_both_streams(self):
