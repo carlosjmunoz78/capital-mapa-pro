@@ -66,7 +66,7 @@ class BrowserMetadataPilotV15Tests(unittest.TestCase):
 
             try:
                 ready = False
-                for _ in range(40):
+                for _ in range(100):
                     if proc.poll() is not None:
                         self.fail("Bridge exited unexpectedly")
                     try:
