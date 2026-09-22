@@ -1,0 +1,29 @@
+name: CEREBRO Browser Ledger v1.6.2 LAB
+on:
+  pull_request:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - "cerebro-os/identity/chrome_extension_v1_6_2/**"
+      - "cerebro-os/tests/test_browser_ledger_v162.cjs"
+      - ".github/workflows/cerebro-browser-ledger-v162.yml"
+  push:
+    branches: [fix/browser-v162-durable-multi-command-ledger]
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: node --check cerebro-os/identity/chrome_extension_v1_6_2/service_worker.js
+      - run: node --test cerebro-os/tests/test_browser_ledger_v162.cjs
+  windows:
+    runs-on: windows-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: node --check cerebro-os/identity/chrome_extension_v1_6_2/service_worker.js
+      - run: node --test cerebro-os/tests/test_browser_ledger_v162.cjs
