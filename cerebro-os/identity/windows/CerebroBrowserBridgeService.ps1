@@ -55,6 +55,11 @@ function Get-DefaultState {
         lab_command_observed_url = ""
         lab_command_observed_title = ""
         lab_command_page_load_complete = $false
+        lab_command_fixture_verified = $false
+        lab_command_click_verified = $false
+        lab_command_type_verified = $false
+        lab_command_select_verified = $false
+        lab_command_read_verified = $false
     }
 }
 
@@ -198,6 +203,11 @@ function Public-State([System.Collections.IDictionary]$State) {
         lab_command_observed_url = $State["lab_command_observed_url"]
         lab_command_observed_title = $State["lab_command_observed_title"]
         lab_command_page_load_complete = [bool]$State["lab_command_page_load_complete"]
+        lab_command_fixture_verified = [bool]$State["lab_command_fixture_verified"]
+        lab_command_click_verified = [bool]$State["lab_command_click_verified"]
+        lab_command_type_verified = [bool]$State["lab_command_type_verified"]
+        lab_command_select_verified = [bool]$State["lab_command_select_verified"]
+        lab_command_read_verified = [bool]$State["lab_command_read_verified"]
     }
 }
 
@@ -498,7 +508,7 @@ try {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LOCAL_EXECUTOR_NOT_READY"}'
                     continue
                 }
-                if ([string]::IsNullOrWhiteSpace($commandId) -or $action -notin @("OPEN_LOCAL_TEST_PAGE","READ_ONLY_PAGE_METADATA")) {
+                if ([string]::IsNullOrWhiteSpace($commandId) -or $action -notin @("OPEN_LOCAL_TEST_PAGE","READ_ONLY_PAGE_METADATA","LAB_DOM_FIXTURE_SMOKE")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"REMOTE_ACTION_DENIED"}'
                     continue
                 }
@@ -510,8 +520,12 @@ try {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LOCAL_COMMAND_BUSY"}'
                     continue
                 }
+                if ($action -eq "LAB_DOM_FIXTURE_SMOKE" -and [string]$state["extension_version"] -ne "1.6.0") {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LAB_DOM_EXTENSION_UPGRADE_REQUIRED"}'
+                    continue
+                }
                 $state["lab_command_id"] = $commandId
-                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -ne "1.5.0") {
+                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -notin @("1.5.0","1.6.0")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_UPGRADE_REQUIRED"}'
                     continue
                 }
@@ -523,8 +537,19 @@ try {
                 $state["lab_command_observed_url"] = ""
                 $state["lab_command_observed_title"] = ""
                 $state["lab_command_page_load_complete"] = $false
+                foreach ($key in @("lab_command_fixture_verified","lab_command_click_verified","lab_command_type_verified","lab_command_select_verified","lab_command_read_verified")) { $state[$key] = $false }
                 Write-State $state
                 Send-Response $stream 200 "application/json; charset=utf-8" '{"status":"GREEN","decision":"REMOTE_COMMAND_ENQUEUED"}'
+                continue
+            }
+            if ($path -eq "/lab/operator-fixture") {
+                $fixturePath = Join-Path $PSScriptRoot "lab_operator_fixture.html"
+                if (-not (Test-Path -LiteralPath $fixturePath)) {
+                    Send-Response $stream 404 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"FIXTURE_NOT_INSTALLED"}'
+                    continue
+                }
+                $fixtureHtml = Get-Content -Raw -LiteralPath $fixturePath -Encoding UTF8
+                Send-Response $stream 200 "text/html; charset=utf-8" $fixtureHtml
                 continue
             }
             if ($path -eq "/lab/test") {
@@ -566,12 +591,18 @@ try {
                     continue
                 }
                 $action = [string]$state["lab_command_action"]
-                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -ne "1.5.0") {
+                if ($action -eq "READ_ONLY_PAGE_METADATA" -and [string]$state["extension_version"] -notin @("1.5.0","1.6.0")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_REQUIRED"}'
+                    continue
+                }
+                if ($action -eq "LAB_DOM_FIXTURE_SMOKE" -and [string]$state["extension_version"] -ne "1.6.0") {
+                    Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"LAB_DOM_EXTENSION_REQUIRED"}'
                     continue
                 }
                 $target = if ($action -eq "READ_ONLY_PAGE_METADATA") {
                     "https://example.com/"
+                } elseif ($action -eq "LAB_DOM_FIXTURE_SMOKE") {
+                    "http://127.0.0.1:" + $Port + "/lab/operator-fixture"
                 } else {
                     "http://127.0.0.1:" + $Port + "/lab/test?command_id=" + [Uri]::EscapeDataString([string]$state["lab_command_id"])
                 }
@@ -595,6 +626,11 @@ try {
                 $observedUrl = [string]$form["observed_url"]
                 $observedTitle = [string]$form["observed_title"]
                 $pageLoadComplete = [string]$form["page_load_complete"] -eq "true"
+                $fixtureVerified = [string]$form["fixture_verified"] -ceq "true"
+                $clickVerified = [string]$form["click_verified"] -ceq "true"
+                $typeVerified = [string]$form["type_verified"] -ceq "true"
+                $selectVerified = [string]$form["select_verified"] -ceq "true"
+                $readVerified = [string]$form["read_verified"] -ceq "true"
                 if ($extensionId -ne [string]$state["extension_id"] -or $commandId -ne [string]$state["lab_command_id"]) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"RESULT_SCOPE_MISMATCH"}'
                     continue
@@ -617,7 +653,15 @@ try {
                     continue
                 }
                 $action = [string]$state["lab_command_action"]
-                if ($action -eq "READ_ONLY_PAGE_METADATA") {
+                if ($action -eq "LAB_DOM_FIXTURE_SMOKE") {
+                    $fixtureValid = ($fixtureVerified -and $clickVerified -and $typeVerified -and $selectVerified -and $readVerified -and
+                                      [string]$state["extension_version"] -ceq "1.6.0")
+                    if ($result -eq "COMPLETED" -and -not $fixtureValid) { $result = "FAILED" }
+                    foreach ($key in @("lab_command_fixture_verified","lab_command_click_verified","lab_command_type_verified","lab_command_select_verified","lab_command_read_verified")) { $state[$key] = [bool]$fixtureValid }
+                    $state["lab_command_observed_url"] = ""
+                    $state["lab_command_observed_title"] = ""
+                    $state["lab_command_page_load_complete"] = $false
+                } elseif ($action -eq "READ_ONLY_PAGE_METADATA") {
                     $readbackValid = ($observedUrl -ceq "https://example.com/" -and
                                       $observedTitle -ceq "Example Domain" -and
                                       $pageLoadComplete)
@@ -632,7 +676,9 @@ try {
                 }
                 $state["lab_command_status"] = $result
                 $state["lab_command_completed_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
-                $state["lab_command_evidence"] = if ($action -eq "READ_ONLY_PAGE_METADATA") {
+                $state["lab_command_evidence"] = if ($action -eq "LAB_DOM_FIXTURE_SMOKE") {
+                    if ($result -eq "COMPLETED") { "LAB_DOM_OPERATIONS_VERIFIED" } else { "LAB_DOM_READBACK_FAILED" }
+                } elseif ($action -eq "READ_ONLY_PAGE_METADATA") {
                     if ($result -eq "COMPLETED") { "EXAMPLE_DOMAIN_METADATA_VERIFIED" } else { "PAGE_READBACK_FAILED" }
                 } else {
                     if ($result -eq "COMPLETED") { "LOCAL_TEST_PAGE_OPENED" } else { "LOCAL_TEST_PAGE_FAILED" }
@@ -658,7 +704,7 @@ try {
                 $extensionId = [string]$form["extension_id"]
                 $extensionVersion = [string]$form["extension_version"]
                 if ([string]::IsNullOrWhiteSpace($extensionVersion)) { $extensionVersion = "1.4.1" }
-                if ($extensionVersion -notin @("1.4.1","1.5.0")) {
+                if ($extensionVersion -notin @("1.4.1","1.5.0","1.6.0")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_VERSION_DENIED"}'
                     continue
                 }
