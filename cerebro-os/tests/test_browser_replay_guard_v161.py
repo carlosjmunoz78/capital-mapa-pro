@@ -32,8 +32,8 @@ class ReplayGuardV161Tests(unittest.TestCase):
   self.assertIn('$state["lab_command_status"] = "DISPATCHED"',source)
   self.assertIn('if ($currentStatus -notin @("QUEUED","DISPATCHED"))',source)
   self.assertIn('if ([string]$State["lab_command_status"] -in @("QUEUED","DISPATCHED"))',source)
-  self.assertIn('("1.4.1","1.5.0","1.6.0","1.6.1")',source)
-  self.assertIn('("1.6.0","1.6.1")',source)
+  self.assertIn('("1.4.1","1.5.0","1.6.0","1.6.1","1.6.2")',source)
+  self.assertIn('("1.6.0","1.6.1","1.6.2")',source)
   inst=INSTALLER.read_text()
   for required in ('PAYLOAD_HASH_MISMATCH','SNAPSHOT','ROLLED_BACK','REQUIRES_INSTALLED_V160','prod_disabled','PREVIOUS_PATCH_PENDING_ACCEPTANCE'):
    self.assertIn(required,inst)
