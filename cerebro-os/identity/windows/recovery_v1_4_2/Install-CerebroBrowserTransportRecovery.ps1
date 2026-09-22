@@ -1,7 +1,6 @@
 param([switch]$Rollback, [string]$TargetDirectory = '')
 
 $ErrorActionPreference = 'Stop'
-Import-Module Microsoft.PowerShell.Utility -ErrorAction Stop
 $root = $PSScriptRoot
 $payload = Join-Path $root 'payload'
 $base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
@@ -10,6 +9,17 @@ New-Item -ItemType Directory -Path $runtime -Force | Out-Null
 $statePath = Join-Path $runtime 'recovery-v1.4.2.json'
 $files = @('CerebroBrowserTransport.ps1','Start-CerebroBrowserTransport.ps1','Start-CerebroBrowserBridge.ps1','package_manifest_v1_4_1.json')
 $result = [ordered]@{record_type='cerebro_browser_transport_recovery';status='ERROR';stage='START';target='';backup='';checks=[ordered]@{};files=@();launcher=$null;acceptance=$null;error=''}
+
+function Get-Sha256([string]$Path) {
+    $stream = [System.IO.File]::OpenRead($Path)
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return (($sha.ComputeHash($stream) | ForEach-Object { $_.ToString('x2') }) -join '')
+    } finally {
+        $sha.Dispose()
+        $stream.Dispose()
+    }
+}
 
 function Save-State {
     $result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $statePath -Encoding UTF8
@@ -70,7 +80,7 @@ try {
     if (-not $result.checks.curl) { throw 'CURL_NOT_AVAILABLE' }
     $expected = Get-Content -Raw -LiteralPath (Join-Path $root 'payload-sha256.json') | ConvertFrom-Json
     foreach ($name in $files) {
-        $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $payload $name)).Hash.ToLowerInvariant()
+        $actual = Get-Sha256 (Join-Path $payload $name)
         if ($actual -ne [string]$expected.$name) { throw "PAYLOAD_HASH_MISMATCH $name" }
     }
     $result.stage = 'SNAPSHOT'
@@ -81,7 +91,7 @@ try {
         $old = Join-Path $target $name
         if (Test-Path -LiteralPath $old) {
             Copy-Item -LiteralPath $old -Destination (Join-Path $backup $name) -Force
-            $result.files += [ordered]@{name=$name;previous_sha256=(Get-FileHash -Algorithm SHA256 -LiteralPath $old).Hash}
+            $result.files += [ordered]@{name=$name;previous_sha256=Get-Sha256 $old}
         } else { $result.files += [ordered]@{name=$name;previous_sha256=$null} }
     }
     Save-State | Out-Null
