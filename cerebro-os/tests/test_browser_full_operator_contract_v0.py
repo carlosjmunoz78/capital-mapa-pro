@@ -81,13 +81,17 @@ class FullOperatorContractTests(unittest.TestCase):
         self.assertFalse(result["dispatch_allowed"])
 
     def test_deny_unsafe_origins(self):
-        for origin in ("http://example.com/", "https://example.com.evil/",
-                       "https://user:pass@example.com/", "https://example.com/path",
+        for origin in ("http://example.com/", "https://user:pass@example.com/", "https://example.com/path",
                        "https://example.com/?q=1", "https://example.com:443/"):
             with self.subTest(origin=origin):
                 result = self.plan(self.request(origin=origin,
                     approved_origins=(origin,)), frozenset({"READ_PAGE"}))
                 self.assertIn("ORIGIN_APPROVAL_REQUIRED", result["blockers"])
+
+    def test_lookalike_origin_is_not_equal_to_approved_origin(self):
+        result = self.plan(self.request(origin="https://example.com.evil/"),
+                           frozenset({"READ_PAGE"}))
+        self.assertIn("ORIGIN_APPROVAL_REQUIRED", result["blockers"])
 
 
 if __name__ == "__main__":
