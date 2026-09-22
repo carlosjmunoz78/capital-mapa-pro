@@ -1,0 +1,33 @@
+name: CEREBRO Browser Metadata Package
+
+on:
+  push:
+    branches:
+      - build/browser-metadata-v150-artifact
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test metadata pilot and recovery
+        run: |
+          python -m unittest cerebro-os/tests/test_browser_bridge_metadata_pilot_v15.py
+      - name: Build zero-secret recovery ZIP
+        run: |
+          python cerebro-os/jobs/build_browser_metadata_recovery_v150.py | tee build-result.json
+          test -f .cerebro-runtime/packages/CEREBRO_BROWSER_METADATA_RECOVERY_V1_5_0.zip
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: CEREBRO_BROWSER_METADATA_RECOVERY_V1_5_0
+          path: .cerebro-runtime/packages/CEREBRO_BROWSER_METADATA_RECOVERY_V1_5_0.zip
+          if-no-files-found: error
+          retention-days: 7
