@@ -1,0 +1,45 @@
+name: CEREBRO Browser Operator v1.6 Package
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/browser-operator-service-transport-v16
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Focused protocol and package tests
+        run: |
+          cd cerebro-os
+          python -m unittest discover -s tests -p 'test_browser_operator*v16*.py' -v
+          python -m unittest discover -s tests -p 'test_read_only_browser_allowlist_v0.py' -v
+      - name: Build fixed-scope recovery package
+        run: python cerebro-os/jobs/build_browser_operator_recovery_v160.py
+      - name: Verify ZIP integrity
+        run: |
+          python - <<'PY'
+          import json, pathlib, zipfile, hashlib
+          p=pathlib.Path(".cerebro-runtime/packages/CEREBRO_BROWSER_OPERATOR_RECOVERY_V1_6_0.zip")
+          with zipfile.ZipFile(p) as z:
+              hashes=json.loads(z.read("payload-sha256.json"))
+              for name, digest in hashes.items():
+                  assert hashlib.sha256(z.read("payload/"+name)).hexdigest()==digest
+              manifest=json.loads(z.read("payload/chrome_extension_v1_4_1/manifest.json"))
+              assert manifest["version"]=="1.6.0"
+              assert sorted(manifest["host_permissions"])==sorted(["http://127.0.0.1/*","https://example.com/*"])
+              for name in ("INSTALL_AND_VERIFY.bat","ROLLBACK.bat","Install-CerebroBrowserOperatorRecovery.ps1","README.txt"):
+                  assert name in z.namelist()
+          print("V1.6_PACKAGE_SHA256",hashlib.sha256(p.read_bytes()).hexdigest())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CEREBRO_BROWSER_OPERATOR_RECOVERY_V1_6_0
+          path: .cerebro-runtime/packages/CEREBRO_BROWSER_OPERATOR_RECOVERY_V1_6_0.zip
+          if-no-files-found: error
+          retention-days: 7
