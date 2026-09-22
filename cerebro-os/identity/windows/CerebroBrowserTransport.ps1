@@ -132,7 +132,6 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
         $psi.RedirectStandardInput = $true
         $psi.RedirectStandardOutput = $true
         $psi.RedirectStandardError = $true
-        $psi.StandardInputEncoding = New-Object System.Text.UTF8Encoding($false)
 
         $proc = New-Object System.Diagnostics.Process
         $proc.StartInfo = $psi
@@ -141,7 +140,9 @@ function Invoke-CurlJson([string]$Method, [string]$Uri, [hashtable]$Headers = @{
         try {
             $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
             $stderrTask = $proc.StandardError.ReadToEndAsync()
-            $proc.StandardInput.Write($configText)
+            $configBytes = (New-Object System.Text.UTF8Encoding($false)).GetBytes($configText)
+            $proc.StandardInput.BaseStream.Write($configBytes, 0, $configBytes.Length)
+            $proc.StandardInput.BaseStream.Flush()
             $proc.StandardInput.Close()
             $proc.WaitForExit()
             $stdout = $stdoutTask.GetAwaiter().GetResult()
