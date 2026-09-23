@@ -1,0 +1,105 @@
+name: CEREBRO ACCESSBOOT Windows Operator V0
+on:
+  push:
+    branches: [feat/accessboot-windows-operator-v0]
+  pull_request:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - "cerebro-os/identity/windows/accessboot_v0/**"
+      - "cerebro-os/identity/chrome_extension_v1_7_0/**"
+      - "cerebro-os/tests/test_accessboot_windows_operator_v0.py"
+      - ".github/workflows/cerebro-accessboot-windows-operator-v0.yml"
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cross-version, replay and backup contracts
+        run: python -m unittest cerebro-os/tests/test_accessboot_windows_operator_v0.py -v
+  windows-powershell:
+    runs-on: windows-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse all ACCESSBOOT PowerShell 5.1 and legacy launchers
+        shell: powershell
+        run: |
+          $files=@(
+            "cerebro-os/identity/windows/Start-CerebroBrowserBridge.ps1",
+            "cerebro-os/identity/windows/Start-CerebroBrowserTransport.ps1",
+            "cerebro-os/identity/windows/accessboot_v0/Install-CerebroAccessbootV0.ps1",
+            "cerebro-os/identity/windows/accessboot_v0/payload/CerebroBrowserBridgeService.ps1",
+            "cerebro-os/identity/windows/accessboot_v0/payload/CerebroBrowserTransport.ps1"
+          )
+          foreach($f in $files){
+            $tokens=$null;$errors=$null
+            [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $f),[ref]$tokens,[ref]$errors)
+            if($errors.Count){$errors|Format-List;throw "POWERSHELL_PARSE_FAILED:$f"}
+          }
+      - name: Execute bounded Windows 5.1 filesystem, ledger and redirect tests
+        shell: powershell
+        run: |
+          $script=Get-Content -Raw "cerebro-os/identity/windows/accessboot_v0/payload/CerebroBrowserTransport.ps1"
+          $begin=$script.IndexOf('$DirectLedgerPath =')
+          $end=$script.IndexOf('function Execute-LocalCommand($Command) {')
+          if($begin -lt 0 -or $end -le $begin){throw "ACCESSBOOT_TEST_HELPERS_MISSING"}
+          $RuntimeDir=Join-Path $env:RUNNER_TEMP 'accessboot-fixture-runtime'
+          New-Item -ItemType Directory -Force -Path $RuntimeDir | Out-Null
+          Invoke-Expression $script.Substring($begin,$end-$begin)
+          $root=Join-Path $env:RUNNER_TEMP 'accessboot-fixture-documents'
+          New-Item -ItemType Directory -Force -Path (Join-Path $root 'good')|Out-Null
+          Assert-NoReparsePath $root 'good'
+          $junction=Join-Path $root 'junction'
+          $outside=Join-Path $env:RUNNER_TEMP 'accessboot-fixture-outside'
+          New-Item -ItemType Directory -Force -Path $outside|Out-Null
+          cmd /c "mklink /J `"$junction`" `"$outside`"" | Out-Null
+          if(-not(Test-Path $junction)){throw 'JUNCTION_FIXTURE_MISSING'}
+          $blocked=$false
+          try{Assert-NoReparsePath $root 'junction\unsafe'}catch{if($_.Exception.Message -match 'REPARSE'){$blocked=$true}else{throw}}
+          if(-not $blocked){throw 'JUNCTION_ESCAPE_NOT_BLOCKED'}
+          if(-not(Test-BrowserReceipt 'https://www.youtube.com/' 'https://consent.youtube.com/')){throw 'CONSENT_REDIRECT_BLOCKED'}
+          if(Test-BrowserReceipt 'https://www.youtube.com/' 'https://example.org/'){throw 'CROSS_ORIGIN_REDIRECT_ALLOWED'}
+          if(Test-BrowserReceipt 'https://www.youtube.com/' 'http://www.youtube.com/'){throw 'INSECURE_REDIRECT_ALLOWED'}
+          $ledger=@{'fixture-command'=[ordered]@{phase='CLAIMED';fingerprint='fixture'}}
+          Write-DirectLedger $ledger
+          $loaded=Read-DirectLedger
+          if($loaded['fixture-command'].phase -ne 'CLAIMED'){throw 'LEDGER_DURABILITY_FAILED'}
+          Write-Host 'WINDOWS_ACCESSBOOT_HELPER_TESTS_PASSED'
+      - name: Full cross-version static regression on Windows
+        run: python -m unittest cerebro-os/tests/test_accessboot_windows_operator_v0.py -v
+  package:
+    needs: [contract,windows-powershell]
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create file-level manifest and build ZIP
+        env:
+          BUILD_SHA: ${{ github.sha }}
+          BUILD_RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          p=pathlib.Path("cerebro-os/identity/windows/accessboot_v0")
+          names=[
+            "payload/CerebroBrowserBridgeService.ps1",
+            "payload/CerebroBrowserTransport.ps1",
+            "payload/chrome_extension_v1_4_1/manifest.json",
+            "payload/chrome_extension_v1_4_1/service_worker.js",
+          ]
+          files=[{"path":n,"sha256":hashlib.sha256((p/n).read_bytes()).hexdigest(),"bytes":(p/n).stat().st_size} for n in names]
+          (p/"manifest-sha256.json").write_text(json.dumps({"package":"CEREBRO_ACCESSBOOT_WINDOWS_OPERATOR_V0","build_sha":os.environ["BUILD_SHA"],"run_id":os.environ["BUILD_RUN_ID"],"files":files},indent=2)+"\n")
+          PY
+          cd cerebro-os/identity/windows
+          zip -r "$GITHUB_WORKSPACE/CEREBRO_ACCESSBOOT_WINDOWS_OPERATOR_V0.zip" accessboot_v0
+          cd "$GITHUB_WORKSPACE"
+          sha256sum CEREBRO_ACCESSBOOT_WINDOWS_OPERATOR_V0.zip > release-checksums.txt
+          cat release-checksums.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CEREBRO_ACCESSBOOT_WINDOWS_OPERATOR_V0
+          path: |
+            CEREBRO_ACCESSBOOT_WINDOWS_OPERATOR_V0.zip
+            release-checksums.txt
+          retention-days: 7
