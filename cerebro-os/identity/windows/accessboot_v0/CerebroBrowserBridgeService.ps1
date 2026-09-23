@@ -8,7 +8,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ServiceName = "CEREBRO Browser Bridge"
-$ServiceVersion = "1.5.0"
+$ServiceVersion = "1.4.1"
 $HostAddress = [System.Net.IPAddress]::Loopback
 
 $Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
@@ -545,7 +545,7 @@ try {
                         $value -cnotin @("alpha","beta"))
                     $invalidEmpty = ($action -in @("OPERATOR_CLICK","OPERATOR_READ") -and
                         $value.Length -ne 0)
-                    if ([string]$state["extension_version"] -notin @("1.6.0","1.6.1","1.6.2") -or
+                    if ([string]$state["extension_version"] -notin @("1.6.0","1.6.1","1.6.2","1.7.0") -or
                         $selector -cne $allowedSelector -or $invalidType -or
                         $invalidSelect -or $invalidEmpty) {
                         Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"OPERATOR_FIXTURE_SCOPE_DENIED"}'
@@ -553,7 +553,7 @@ try {
                     }
                 }
                 if ($action -eq "READ_ONLY_PAGE_METADATA" -and
-                    [string]$state["extension_version"] -notin @("1.5.0","1.6.0","1.6.1","1.6.2")) {
+                    [string]$state["extension_version"] -notin @("1.5.0","1.6.0","1.6.1","1.6.2","1.7.0")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"METADATA_EXTENSION_UPGRADE_REQUIRED"}'
                     continue
                 }
@@ -789,7 +789,7 @@ try {
                 $extensionId = [string]$form["extension_id"]
                 $extensionVersion = [string]$form["extension_version"]
                 if ([string]::IsNullOrWhiteSpace($extensionVersion)) { $extensionVersion = "1.4.1" }
-                if ($extensionVersion -notin @("1.4.1","1.5.0","1.6.0","1.6.1","1.6.2")) {
+                if ($extensionVersion -notin @("1.4.1","1.5.0","1.6.0","1.6.1","1.6.2","1.7.0")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"EXTENSION_VERSION_DENIED"}'
                     continue
                 }
