@@ -7,8 +7,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$TransportVersion = "1.5.0"
-$TransportPatch = "accessboot-fs-browser-v0"
+$TransportVersion = "1.4.1"
+$TransportPatch = "accessboot-fs-browser-v0.1"
 $GatewayBase = "https://hnqlnvakzaywtafeiybt.supabase.co/functions/v1/cerebro-device-gateway-preprod"
 $BridgeBase = "http://127.0.0.1:$BridgePort"
 $Base = if ($env:LOCALAPPDATA) { $env:LOCALAPPDATA } else { $HOME }
@@ -218,6 +218,50 @@ function Validate-Scope($Bridge, $Cred) {
     }
 }
 
+$DirectLedgerPath = Join-Path $RuntimeDir "accessboot-direct-ledger-v0.json"
+
+function Read-DirectLedger {
+    if (-not (Test-Path -LiteralPath $DirectLedgerPath)) { return @{} }
+    try {
+        $raw = Get-Content -Raw -LiteralPath $DirectLedgerPath -Encoding UTF8 | ConvertFrom-Json
+        $map = @{}
+        foreach ($p in $raw.PSObject.Properties) { $map[$p.Name] = $p.Value }
+        return $map
+    } catch { throw "DIRECT_LEDGER_INVALID" }
+}
+
+function Write-DirectLedger([hashtable]$Ledger) {
+    $tmp = "$DirectLedgerPath.tmp"
+    ($Ledger | ConvertTo-Json -Depth 8) | Set-Content -LiteralPath $tmp -Encoding UTF8
+    Move-Item -LiteralPath $tmp -Destination $DirectLedgerPath -Force
+}
+
+function Assert-NoReparsePath([string]$Root,[string]$Relative) {
+    $rootItem = Get-Item -LiteralPath $Root -Force
+    if (($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw "FS_REPARSE_ROOT_DENIED" }
+    $cursor = $Root
+    foreach ($segment in ($Relative -split '[\\/]')) {
+        if ([string]::IsNullOrWhiteSpace($segment)) { throw "FS_PATH_INVALID" }
+        $cursor = Join-Path $cursor $segment
+        if (Test-Path -LiteralPath $cursor) {
+            $item = Get-Item -LiteralPath $cursor -Force
+            if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw "FS_REPARSE_POINT_DENIED" }
+        }
+    }
+}
+
+function Test-BrowserReceipt([string]$Requested,[string]$Observed) {
+    $req=$null;$obs=$null
+    if (-not [Uri]::TryCreate($Requested,[UriKind]::Absolute,[ref]$req)) { return $false }
+    if (-not [Uri]::TryCreate($Observed,[UriKind]::Absolute,[ref]$obs)) { return $false }
+    if ($req.Scheme -cne "https" -or $obs.Scheme -cne "https") { return $false }
+    if ($obs.UserInfo.Length -gt 0 -or $obs.Port -notin @(-1,443)) { return $false }
+    $rh=$req.DnsSafeHost.ToLowerInvariant(); $oh=$obs.DnsSafeHost.ToLowerInvariant()
+    if ($rh -eq $oh) { return $true }
+    if ($rh -eq "www.youtube.com" -and $oh -in @("youtube.com","www.youtube.com","consent.youtube.com")) { return $true }
+    return $false
+}
+
 function Execute-LocalCommand($Command) {
     $action = ([string]$Command.payload.action).ToUpperInvariant()
 
@@ -264,6 +308,8 @@ function Execute-LocalCommand($Command) {
 
     if ($action -eq "FS_CREATE_DIRECTORY") {
         $relative = [string]$Command.payload.relative_path
+        $commandId = [string]$Command.command_id
+        if ([string]::IsNullOrWhiteSpace($commandId) -or $commandId.Length -gt 160) { throw "COMMAND_ID_INVALID" }
         if ([string]::IsNullOrWhiteSpace($relative) -or $relative.Length -gt 120) { throw "FS_PATH_INVALID" }
         if ($relative -match '(^[\\/]|^[A-Za-z]:|\.\.|[<>:"|?*]|[\\/]{2,})') { throw "FS_PATH_DENIED" }
         $documents = [Environment]::GetFolderPath("MyDocuments")
@@ -271,18 +317,37 @@ function Execute-LocalCommand($Command) {
         $root = [IO.Path]::GetFullPath($documents).TrimEnd('\\')
         $target = [IO.Path]::GetFullPath((Join-Path $root $relative))
         if (-not $target.StartsWith($root + "\\",[StringComparison]::OrdinalIgnoreCase)) { throw "FS_SCOPE_DENIED" }
+        Assert-NoReparsePath $root $relative
+        $fingerprint = Sha256 ("FS_CREATE_DIRECTORY|" + $relative)
+        $ledger = Read-DirectLedger
+        if ($ledger.ContainsKey($commandId)) {
+            $prior = $ledger[$commandId]
+            if ([string]$prior.fingerprint -ne $fingerprint) { throw "COMMAND_ID_PAYLOAD_CONFLICT" }
+            if ([string]$prior.phase -eq "TERMINAL") {
+                return [ordered]@{direct=$true;result=$prior.result}
+            }
+        } else {
+            $ledger[$commandId] = [ordered]@{phase="CLAIMED";fingerprint=$fingerprint;relative_path=$relative;claimed_at=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()}
+            Write-DirectLedger $ledger
+        }
+        Assert-NoReparsePath $root $relative
         if (Test-Path -LiteralPath $target) {
             if (-not (Test-Path -LiteralPath $target -PathType Container)) { throw "FS_TARGET_CONFLICT" }
             $created = $false
         } else {
-            New-Item -ItemType Directory -LiteralPath $target -Force | Out-Null
+            New-Item -ItemType Directory -LiteralPath $target | Out-Null
             $created = $true
         }
+        Assert-NoReparsePath $root $relative
         if (-not (Test-Path -LiteralPath $target -PathType Container)) { throw "FS_READBACK_FAILED" }
-        return [ordered]@{direct=$true;result=[ordered]@{
+        $result = [ordered]@{
             status="COMPLETED"; evidence_ref="DIRECTORY_EXISTS_VERIFIED"; relative_path=$relative;
             created=$created; external_mutation_performed=$created; secret_value_included=$false
-        }}
+        }
+        $ledger = Read-DirectLedger
+        $ledger[$commandId] = [ordered]@{phase="TERMINAL";fingerprint=$fingerprint;relative_path=$relative;completed_at=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds();result=$result}
+        Write-DirectLedger $ledger
+        return [ordered]@{direct=$true;result=$result}
     }
 
     if ($action -notin @("OPEN_LOCAL_TEST_PAGE","READ_ONLY_PAGE_METADATA","BROWSER_OPEN_URL","OPERATOR_CLICK","OPERATOR_TYPE","OPERATOR_SELECT","OPERATOR_READ")) { throw "REMOTE_ACTION_DENIED" }
@@ -393,7 +458,7 @@ try {
             }
             if ([string]$cmd.payload.action -eq "BROWSER_OPEN_URL") {
                 $ok = $ok -and [string]$localResult.evidence_ref -ceq "BROWSER_URL_OPENED_VERIFIED" -and
-                    [string]$localResult.observed_url -ceq [string]$cmd.payload.url -and [bool]$localResult.page_load_complete
+                    (Test-BrowserReceipt ([string]$cmd.payload.url) ([string]$localResult.observed_url)) -and [bool]$localResult.page_load_complete
             }
 
             if ([string]$cmd.payload.action -eq "READ_ONLY_PAGE_METADATA") {
