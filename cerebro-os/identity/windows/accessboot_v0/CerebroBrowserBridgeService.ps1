@@ -675,7 +675,7 @@ try {
                 $observed = [string]$form["observed_value"]
                 $action = [string]$state["lab_command_action"]
                 if ($extensionId -ne [string]$state["extension_id"] -or $commandId -ne [string]$state["lab_command_id"] -or
-                    [string]$state["extension_version"] -notin @("1.6.0","1.6.1","1.6.2") -or
+                    [string]$state["extension_version"] -notin @("1.6.0","1.6.1","1.6.2","1.7.0") -or
                     $action -notin @("OPERATOR_CLICK","OPERATOR_TYPE","OPERATOR_SELECT","OPERATOR_READ")) {
                     Send-Response $stream 400 "application/json; charset=utf-8" '{"status":"BLOCKED","decision":"OPERATOR_RESULT_SCOPE_DENIED"}'
                     continue
@@ -741,7 +741,19 @@ try {
                 $action = [string]$state["lab_command_action"]
                 if ($action -eq "BROWSER_OPEN_URL") {
                     $expectedUrl = [string]$state["lab_command_value"]
-                    $readbackValid = ($observedUrl -ceq $expectedUrl -and $pageLoadComplete)
+                    $expected = $null; $actual = $null
+                    $allowedRedirect = $false
+                    if ([Uri]::TryCreate($expectedUrl,[UriKind]::Absolute,[ref]$expected) -and
+                        [Uri]::TryCreate($observedUrl,[UriKind]::Absolute,[ref]$actual) -and
+                        $actual.Scheme -ceq "https" -and $actual.UserInfo.Length -eq 0 -and
+                        $actual.Port -in @(-1,443)) {
+                        $requestedHost = $expected.DnsSafeHost.ToLowerInvariant()
+                        $actualHost = $actual.DnsSafeHost.ToLowerInvariant()
+                        $allowedRedirect = ($requestedHost -eq $actualHost -or
+                            ($requestedHost -eq "www.youtube.com" -and
+                             $actualHost -in @("youtube.com","www.youtube.com","consent.youtube.com")))
+                    }
+                    $readbackValid = ($allowedRedirect -and $pageLoadComplete)
                     if ($result -eq "COMPLETED" -and -not $readbackValid) { $result = "FAILED" }
                     $state["lab_command_observed_url"] = if ($readbackValid) { $observedUrl } else { "" }
                     $state["lab_command_observed_title"] = if ($readbackValid) { $observedTitle } else { "" }
