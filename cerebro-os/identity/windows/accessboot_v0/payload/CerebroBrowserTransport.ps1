@@ -310,7 +310,7 @@ function Execute-LocalCommand($Command) {
         $relative = [string]$Command.payload.relative_path
         $commandId = [string]$Command.command_id
         if ([string]::IsNullOrWhiteSpace($commandId) -or $commandId.Length -gt 160) { throw "COMMAND_ID_INVALID" }
-        if ([string]::IsNullOrWhiteSpace($relative) -or $relative.Length -gt 120) { throw "FS_PATH_INVALID" }
+        if ([string]::IsNullOrWhiteSpace($relative) -or $relative.Length -gt 120 -or $relative.Contains("\\") -or $relative.Contains("/")) { throw "FS_PATH_INVALID" }
         if ($relative -match '(^[\\/]|^[A-Za-z]:|\.\.|[<>:"|?*]|[\\/]{2,})') { throw "FS_PATH_DENIED" }
         $documents = [Environment]::GetFolderPath("MyDocuments")
         if ([string]::IsNullOrWhiteSpace($documents)) { throw "DOCUMENTS_PATH_MISSING" }
@@ -335,7 +335,7 @@ function Execute-LocalCommand($Command) {
             if (-not (Test-Path -LiteralPath $target -PathType Container)) { throw "FS_TARGET_CONFLICT" }
             $created = $false
         } else {
-            New-Item -ItemType Directory -LiteralPath $target | Out-Null
+            [void][IO.Directory]::CreateDirectory($target)
             $created = $true
         }
         Assert-NoReparsePath $root $relative
