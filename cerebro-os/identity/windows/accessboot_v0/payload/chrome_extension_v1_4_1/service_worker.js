@@ -1,6 +1,6 @@
 const PORTS = Array.from({length: 21}, (_, i) => 8765 + i);
 const EXPECTED_SERVICE_VERSION = "1.4.1";
-const EXTENSION_VERSION = "1.6.2";
+const EXTENSION_VERSION = "1.7.0";
 const ALLOWED_URL = "https://example.com/";
 const SAFE_HTTPS = /^https:\/\/[^@/]+(?:\/|$)/i;
 
@@ -76,13 +76,40 @@ async function execute(port, extensionId, cmd) {
     if(!SAFE_HTTPS.test(target)) return;
     let u; try{u=new URL(target)}catch{return}
     if(u.protocol!=="https:"||u.username||u.password||u.port||["localhost","127.0.0.1","::1"].includes(u.hostname)) return;
-    const tab=await chrome.tabs.create({url:target,active:true});
-    if(!tab||!Number.isInteger(tab.id)) return;
-    let finalTab=tab;
-    for(let i=0;i<60;i++){finalTab=await chrome.tabs.get(tab.id);if(finalTab.status==="complete")break;await new Promise(r=>setTimeout(r,250))}
-    const observed=String(finalTab.url||"");
-    const receipt={good:finalTab.status==="complete"&&observed===target,evidence:"BROWSER_URL_OPENED_VERIFIED"};
-    const ru="http://127.0.0.1:"+port+"/extension/result?extension_id="+encodeURIComponent(extensionId)+"&command_id="+encodeURIComponent(cmd.command_id)+"&result="+(receipt.good?"COMPLETED":"FAILED")+"&evidence="+encodeURIComponent(receipt.evidence)+"&observed_url="+encodeURIComponent(observed)+"&observed_title="+encodeURIComponent(String(finalTab.title||"").slice(0,160))+"&page_load_complete="+(finalTab.status==="complete"?"true":"false");
+    const key="cerebro_accessboot_browser_ledger_v170";
+    const scope=[cmd.company_id,cmd.environment,cmd.command_id].join(":");
+    const persisted=(await chrome.storage.local.get(key))[key];
+    const ledger=persisted&&typeof persisted==="object"&&!Array.isArray(persisted)?persisted:{};
+    const fingerprint="BROWSER_OPEN_URL|"+target;
+    const previous=ledger[scope];
+    if(previous){
+      if(previous.fingerprint!==fingerprint){console.warn("CEREBRO_COMMAND_ID_PAYLOAD_CONFLICT",cmd.command_id);return;}
+      if(previous.phase==="TERMINAL"){
+        const ru="http://127.0.0.1:"+port+"/extension/result?extension_id="+encodeURIComponent(extensionId)+"&command_id="+encodeURIComponent(cmd.command_id)+"&result="+(previous.success?"COMPLETED":"FAILED")+"&evidence="+encodeURIComponent(previous.evidence||"BROWSER_URL_OPEN_FAILED")+"&observed_url="+encodeURIComponent(previous.observed_url||"")+"&observed_title="+encodeURIComponent(previous.observed_title||"")+"&page_load_complete="+(previous.page_load_complete?"true":"false");
+        await getJson(ru);
+      } else {
+        console.warn("CEREBRO_BROWSER_COMMAND_AMBIGUOUS_NO_REPLAY",cmd.command_id);
+      }
+      return;
+    }
+    if(Object.keys(ledger).length>=128){console.warn("CEREBRO_BROWSER_LEDGER_FULL");return;}
+    ledger[scope]={phase:"CLAIMED",fingerprint,created_at:Date.now()};
+    await chrome.storage.local.set({[key]:ledger});
+    let success=false,observed="",title="",complete=false,evidence="BROWSER_URL_OPEN_FAILED";
+    try{
+      const tab=await chrome.tabs.create({url:target,active:true});
+      if(!tab||!Number.isInteger(tab.id)) throw new Error("TAB_NOT_CREATED");
+      let finalTab=tab;
+      for(let i=0;i<60;i++){finalTab=await chrome.tabs.get(tab.id);if(finalTab.status==="complete")break;await new Promise(r=>setTimeout(r,250))}
+      observed=String(finalTab.url||""); title=String(finalTab.title||"").slice(0,160); complete=finalTab.status==="complete";
+      let o; try{o=new URL(observed)}catch{o=null}
+      const reqHost=u.hostname.toLowerCase(), obsHost=o?o.hostname.toLowerCase():"";
+      const redirectOk=Boolean(o&&o.protocol==="https:"&&!o.username&&!o.password&&!o.port&&(obsHost===reqHost||(reqHost==="www.youtube.com"&&["youtube.com","www.youtube.com","consent.youtube.com"].includes(obsHost))));
+      success=complete&&redirectOk; evidence=success?"BROWSER_URL_OPENED_VERIFIED":"BROWSER_URL_OPEN_FAILED";
+    }catch(e){console.warn("CEREBRO_BROWSER_OPEN_FAILED",String(e?.message||"UNKNOWN").slice(0,80));}
+    ledger[scope]={phase:"TERMINAL",fingerprint,success,evidence,observed_url:observed,observed_title:title,page_load_complete:complete,created_at:ledger[scope].created_at};
+    await chrome.storage.local.set({[key]:ledger});
+    const ru="http://127.0.0.1:"+port+"/extension/result?extension_id="+encodeURIComponent(extensionId)+"&command_id="+encodeURIComponent(cmd.command_id)+"&result="+(success?"COMPLETED":"FAILED")+"&evidence="+encodeURIComponent(evidence)+"&observed_url="+encodeURIComponent(observed)+"&observed_title="+encodeURIComponent(title)+"&page_load_complete="+(complete?"true":"false");
     await getJson(ru); return;
   }
   if (cmd.action === "OPEN_LOCAL_TEST_PAGE") {
