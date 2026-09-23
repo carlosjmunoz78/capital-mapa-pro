@@ -1,0 +1,45 @@
+name: CEREBRO ACCESSBOOT Windows Operator V0
+on:
+  push:
+    branches: [feat/accessboot-windows-operator-v0]
+  pull_request:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - "cerebro-os/identity/windows/accessboot_v0/**"
+      - "cerebro-os/identity/chrome_extension_v1_7_0/**"
+      - "cerebro-os/tests/test_accessboot_windows_operator_v0.py"
+      - ".github/workflows/cerebro-accessboot-windows-operator-v0.yml"
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m unittest cerebro-os/tests/test_accessboot_windows_operator_v0.py -v
+  windows-powershell:
+    runs-on: windows-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell 5.1
+        shell: powershell
+        run: |
+          foreach($f in @("cerebro-os/identity/windows/accessboot_v0/Install-CerebroAccessbootV0.ps1","cerebro-os/identity/windows/accessboot_v0/payload/CerebroBrowserBridgeService.ps1","cerebro-os/identity/windows/accessboot_v0/payload/CerebroBrowserTransport.ps1")){
+            $t=$null;$e=$null;[void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $f),[ref]$t,[ref]$e);if($e.Count){$e|Format-List;exit 1}
+          }
+      - run: python -m unittest cerebro-os/tests/test_accessboot_windows_operator_v0.py -v
+  package:
+    needs: [contract,windows-powershell]
+    runs-on: ubuntu-latest
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package
+        run: |
+          cd cerebro-os/identity/windows
+          zip -r "$GITHUB_WORKSPACE/CEREBRO_ACCESSBOOT_WINDOWS_OPERATOR_V0.zip" accessboot_v0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CEREBRO_ACCESSBOOT_WINDOWS_OPERATOR_V0
+          path: CEREBRO_ACCESSBOOT_WINDOWS_OPERATOR_V0.zip
+          retention-days: 7
