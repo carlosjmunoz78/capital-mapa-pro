@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "CEREBRO Browser Bridge - ACCESSBOOT LAB",
+  "version": "1.7.0",
+  "description": "LAB-only CEREBRO operator with bounded HTTPS navigation and audited local capabilities.",
+  "permissions": [
+    "alarms",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "https://example.com/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "action": {
+    "default_title": "CEREBRO Browser Bridge LAB"
+  }
+}
