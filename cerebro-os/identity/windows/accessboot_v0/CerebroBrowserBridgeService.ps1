@@ -761,7 +761,9 @@ try {
                 }
                 $state["lab_command_status"] = $result
                 $state["lab_command_completed_at"] = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
-                $state["lab_command_evidence"] = if ($action -eq "READ_ONLY_PAGE_METADATA") {
+                $state["lab_command_evidence"] = if ($action -eq "BROWSER_OPEN_URL") {
+                    if ($result -eq "COMPLETED") { "BROWSER_URL_OPENED_VERIFIED" } else { "BROWSER_URL_OPEN_FAILED" }
+                } elseif ($action -eq "READ_ONLY_PAGE_METADATA") {
                     if ($result -eq "COMPLETED") { "EXAMPLE_DOMAIN_METADATA_VERIFIED" } else { "PAGE_READBACK_FAILED" }
                 } else {
                     if ($result -eq "COMPLETED") { "LOCAL_TEST_PAGE_OPENED" } else { "LOCAL_TEST_PAGE_FAILED" }
