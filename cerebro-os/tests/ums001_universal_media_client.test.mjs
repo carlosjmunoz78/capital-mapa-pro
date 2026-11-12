@@ -42,3 +42,15 @@ test('refuse extra publishing and budgeting controls from callers',async()=>{
  const {client}=make({state:'ACCEPTED',engine_id:'SOC-001',request_id:'UMS001-LAB-REPLAY-SOC-20261112-01',environment:'LAB',publish_authorized:false});
  await assert.rejects(client.request({request_id:'UMS001-LAB-REPLAY-SOC-20261112-01',prompt:'Original fictional Cordoba apartment interior, natural morning light, no branding.',publish_requested:true}),/SCHEMA_DENIED/);
 });
+
+test('deny image receipt from an unrelated engine',async()=>{
+ const id='UMS001-LAB-REPLAY-SOC-20261112-01';
+ const {client}=make({state:'PRIVATE_ASSET_RECEIVED',engine_id:'SEO-001',request_id:id,asset_sha256:'a'.repeat(64),publish_authorized:false});
+ await assert.rejects(client.status(id),/INVALID_IMAGE_STATUS/);
+});
+test('deny tampered JPEG even if envelope is plausible',async()=>{
+ const id='UMS001-LAB-REPLAY-SOC-20261112-01';
+ const data=new Uint8Array(6000);data[0]=255;data[1]=216;data[5998]=255;data[5999]=217;
+ const {client}=make({state:'PRIVATE_ASSET_RECEIVED',mime:'image/jpeg',engine_id:'SOC-001',request_id:id,sha256:'b'.repeat(64),publish_authorized:false,bytes:data});
+ await assert.rejects(client.privateJPEG(id),/SHA_MISMATCH/);
+});

@@ -7,6 +7,7 @@ on:
     paths:
       - 'cerebro-os/runtime/ums001_universal_media_client.mjs'
       - 'cerebro-os/tests/ums001_universal_media_client.test.mjs'
+      - 'cerebro-os/registry/ums001_multi_runtime_connection_matrix.lab.json'
       - '.github/workflows/cerebro-ums001-runtime-sdk-lab.yml'
   workflow_dispatch:
 
@@ -21,5 +22,5 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Run shared runtime IAM and image contract tests
-        run: node --test cerebro-os/tests/ums001_universal_media_client.test.mjs
+      - name: Run shared runtime IAM, image and owner-hold tests
+        run: node --test cerebro-os/tests/ums001_universal_media_client.test.mjs cerebro-os/tests/ums001_registry_owner_hold.test.mjs
