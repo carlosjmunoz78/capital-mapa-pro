@@ -51,6 +51,19 @@ def build_manifest(engine_id: str, name: str) -> dict:
         "rebuild": {"required": True, "verified": False},
         "dependencies": [],
         "autonomy_level": "MANUAL_WITH_APPROVAL",
+        "media_gateway": {
+            "provider_engine_id": "UMS-001",
+            "connection": "CEREBRO_GATEWAY_UNIVERSAL",
+            "provisioner": "FACT-001",
+            "enrollment": "AUTOMATIC_ON_ENGINE_CREATE_WHEN_FACTORY_IAM_READY",
+            "enrollment_status": "PENDING_FACTORY_IAM",
+            "capabilities": ["IMAGE.SYNTHETIC"],
+            "uses_per_engine_worker": False,
+            "uses_per_engine_subscription": False,
+            "publish_authorized": False,
+            "paid_execution_enabled": False,
+            "version": "1.0.0"
+        },
         "human_exception_codes": HUMAN_EXCEPTION_CODES,
     }
 
@@ -64,6 +77,17 @@ def scaffold(root: Path, engine_id: str, name: str) -> Path:
         (target / relative).mkdir(parents=True, exist_ok=True)
     manifest = build_manifest(engine_id, name)
     (target / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    # Universal UMS-001 hook: new engines automatically inherit the same media contract.
+    # This does not self-authorize an engine, create a Worker, or expose credentials.
+    # Works both as a package import and via "python factory.py ..."
+    import importlib.util
+    media_hook = Path(__file__).with_name("universal_media_hook.py")
+    spec = importlib.util.spec_from_file_location("cerebro_universal_media_hook", media_hook)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("universal media hook unavailable")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.write_universal_media_scaffold(target, manifest)
     (target / "docs" / "README.md").write_text(f"# {engine_id} · {manifest['name']}\n\nEstado inicial: DEFINED_NOT_BUILT.\n", encoding="utf-8")
     (target / "ops" / "backup.md").write_text("# Backup\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
     (target / "ops" / "rollback.md").write_text("# Rollback\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
