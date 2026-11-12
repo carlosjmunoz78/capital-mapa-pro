@@ -208,6 +208,31 @@
         "format": "PENDING_1024_TO_NETWORK_SIZE"
       },
       "rollback": "Disable only SOCIAL_NATIVE_V2_ENABLED; retain legacy SOCIAL_BRIDGE_ENABLED and universal IAM"
+    },
+    {
+      "runtime": "SOCIAL_NOTION_EDITORIAL_BRIDGE",
+      "environment": "LAB",
+      "state": "PARCIAL_MONITOR_CONFIGURED_NO_ELIGIBLE_LIVE_EDITORIAL_ORDERS",
+      "connection_type": "Existing ChatGPT UMS001 scheduled automation uses Notion read only then may dispatch to existing private Cloudflare queue when all gates verified",
+      "notion_data_source": "collection://8726e8ff-d45b-4694-8240-b9f9c8060a9e",
+      "automation_id": "Automation_56824b889198819199e0b881c19e23aa",
+      "automation_updated": true,
+      "run_schedule": "08:15 Europe/Madrid",
+      "live_source_rows": 46,
+      "ready_count": 8,
+      "ready_test_count": 6,
+      "ready_operational_count": 2,
+      "ready_operational_dates": [
+        "2026-08-31",
+        "2026-08-31"
+      ],
+      "eligible_future_count": 0,
+      "first_real_notion_dispatch": false,
+      "first_e2e_verified": false,
+      "queue_id": "98d3edbe67d145d5949322d15bbb83db",
+      "publication_authorized": false,
+      "warning": "Not a CEREBRO-native persistent Notion webhook or authenticated editorial emitter; automation tool may not have all connector permissions. No 100% live claim.",
+      "blocker": "No fresh eligible approved briefs; pending first live automation + Cloudflare E2E; QA/Buffer/Meta publication gates remain red."
     }
   ],
   "security": {
@@ -252,9 +277,13 @@
     "social_repo_actions_status": "FAILURE_LOGS_UNAVAILABLE_NOT_GREEN",
     "facebook_autoqual_worker": "DEPLOYED_OFF",
     "facebook_autoqual_schema": "INITIALIZED_OFF",
-    "facebook_autoqual_local_tests": "11/11_PASS"
+    "facebook_autoqual_local_tests": "11/11_PASS",
+    "notion_live_editorial_source": "READ_ONLY_46_ROWS",
+    "notion_future_approved": "ZERO",
+    "notion_cloudflare_queue_auto_bridge": "CONFIGURED_SCHEDULED_NOT_E2E",
+    "notion_publication": "OFF"
   },
-  "next_gate": "Private native Social event generation/receipt is GREEN in LAB. Remaining non-green dependencies: trusted autonomous editorial scheduler actually invoking RPC, output crop/resize for Facebook 1080x1080 / Instagram 1080x1350, independent brand/rights/financial QA, true signed UMS delivery receipt, Buffer/Meta publisher E2E, billing verifiability and GitHub Actions runner status. WordPress STAGING suspended until explicit owner command.",
+  "next_gate": "Notion monitor scheduled on existing UMS-001 automation; no approved future briefs in Notion as of 2026-11-12. E2E Notion→Cloudflare dispatch pending valid fresh brief. Existing Facebook/Instagram synthetic-image E2E remains GREEN; publication gates remain blocked; WordPress STAGING suspended.",
   "rollback": {
     "soc_disable": "SOCIAL_UNIVERSAL_IAM_ENABLED=false (currently true)",
     "fact_disable": "UNIVERSAL_RUNTIME_IAM_ENABLED=false (currently true)",
