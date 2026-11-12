@@ -11,7 +11,8 @@
     "FACT-MEDIA-CANARY-001",
     "FACT-OIDC-CANARY-20261112",
     "FACT-OIDC-LAB-E2E-001",
-    "SOC-001"
+    "SOC-001",
+    "SEO-001"
   ],
   "routing": [
     {
@@ -37,7 +38,7 @@
     {
       "runtime": "SOCIAL_CLOUDFLARE_UNIVERSAL_NEW",
       "environment": "LAB",
-      "state": "PARCIAL_BLOCKED_SECURITY",
+      "state": "PARCIAL_GENERIC_SOC_RUNTIME_CLIENT_DEPLOYED_OFF",
       "engine_scope": "SOC-",
       "identity": "SOC-001 ACTIVE",
       "service_binding": "FACT_GATEWAY",
@@ -45,7 +46,9 @@
         "SOCIAL_UNIVERSAL_IAM_ENABLED=false",
         "UNIVERSAL_RUNTIME_IAM_ENABLED=false"
       ],
-      "blocker": "OpenAI security control blocked creation of separate private runtime credential. Do not bypass controls or reuse an all-engine secret."
+      "blocker": "Scoped runtime credential not installed; security control prohibits direct activation. Legacy Social path preserved.",
+      "client_scope": "Any registered SOC-* engine ID (not hardcoded SOC-001)",
+      "authorization": "SOC-001 FACT signed identity ACTIVE; runtime token remains UNAVAILABLE"
     },
     {
       "runtime": "INSTAGRAM_AUTOQUAL_LAB",
@@ -62,8 +65,13 @@
     {
       "runtime": "SEO_WORDPRESS_STAGING",
       "environment": "STAGING",
-      "state": "POR_AUDITAR",
-      "blocker": "WordPress staging runtime identity and business event adapter not validated"
+      "state": "PARCIAL_SIGNED_SEO_IDENTITY_AND_GITOPS_E2E",
+      "blocker": "WordPress staging connector read unavailable; SEO runtime has not originated a native request. No WordPress/PROD writes.",
+      "factory_identity": "SEO-001 ACTIVE (LAB)",
+      "gitops_verified": true,
+      "gitops_run_url": "https://github.com/carlosjmunoz78/capital-mapa-pro/actions/runs/43269333725",
+      "last_image_request_id": "UMS001-LAB-SEO001-GITOPS-20261112-01",
+      "image_sha256": "4cc7078e5f4bbc0e6af72bc9e740b73acc267be28c4928562a63d0f14c734e43"
     },
     {
       "runtime": "APP_CRM",
@@ -91,9 +99,15 @@
     "shared_sdk_node": "8/8 PASS",
     "fact_registered_iam": "ACTIVE_SIGNED",
     "fact_image_sha256": "8e0149691f0e7615bd0cf2a7bf8b417937b6cbfcba3dfe9c472e05dfef9e9075",
-    "social_new_path": "NOT_VERIFIED"
+    "social_new_path": "NOT_VERIFIED",
+    "seo_lab_gitops": "SUCCESS",
+    "seo_lab_image_sha256": "4cc7078e5f4bbc0e6af72bc9e740b73acc267be28c4928562a63d0f14c734e43",
+    "seo_lab_image_bytes": 389149,
+    "seo_lab_image_delivery": "PRIVATE_ASSET_RECEIVED",
+    "social_generic_client": "DEPLOYED_OFF_NOT_E2E_VERIFIED",
+    "active_iam_count": 5
   },
-  "next_gate": "Provision Social scoped workload token via approved Cloudflare security mechanism, then test capability/reject cross-prefix/send/receive, and only then flip new path flags. Repeat once per additional shared runtime.",
+  "next_gate": "Install an approved scoped runtime credential for Social; obtain read-only access to WordPress STAGING then use the shared runtime SDK. Do not bypass IAM, activate public endpoints, or promote to PROD.",
   "rollback": {
     "soc_disable": "SOCIAL_UNIVERSAL_IAM_ENABLED=false",
     "fact_disable": "UNIVERSAL_RUNTIME_IAM_ENABLED=false",
