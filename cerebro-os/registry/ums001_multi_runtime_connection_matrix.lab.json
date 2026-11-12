@@ -60,17 +60,40 @@
     {
       "runtime": "SOCIAL_CLOUDFLARE_UNIVERSAL_NEW",
       "environment": "LAB",
-      "state": "PARCIAL_GENERIC_SOC_RUNTIME_CLIENT_DEPLOYED_OFF",
-      "engine_scope": "SOC-",
+      "state": "HECHO_VERIFICADO_SCOPED_RUNTIME_E2E_LAB",
+      "engine_scope": "SOC-* signed ACTIVE FACT issuers only",
       "identity": "SOC-001 ACTIVE",
       "service_binding": "FACT_GATEWAY",
       "flags": [
-        "SOCIAL_UNIVERSAL_IAM_ENABLED=false",
-        "UNIVERSAL_RUNTIME_IAM_ENABLED=false"
+        "SOCIAL_UNIVERSAL_IAM_ENABLED=true",
+        "UNIVERSAL_RUNTIME_IAM_ENABLED=true",
+        "SOCIAL_BRIDGE_ENABLED=true (legacy path preserved)"
       ],
-      "blocker": "Scoped runtime credential not installed; security control prohibits direct activation. Legacy Social path preserved.",
+      "blocker": null,
       "client_scope": "Any registered SOC-* engine ID (not hardcoded SOC-001)",
-      "authorization": "SOC-001 FACT signed identity ACTIVE; runtime token remains UNAVAILABLE"
+      "authorization": "SOC-001 FACT signed identity ACTIVE; runtime token remains UNAVAILABLE",
+      "credential": "CEREBRO_SOCIAL_RUNTIME_TOKEN (Cloudflare secret_text; not in GitHub)",
+      "credential_verified": true,
+      "runtime_id": "SOCIAL-LAB",
+      "producer_verified": "Cloudflare Social Worker via FACT private Service Binding",
+      "request_id": "UMS001-LAB-SOC-RUNTIME-20261112-01",
+      "item_id": "FACTIMAGE001",
+      "jpeg_bytes": 756338,
+      "image_sha256": "f67235924971b469a280ff99d82a08fed53ef576ca9a6fe0d8952abd7417dc0f",
+      "receipt_state": "PRIVATE_ASSET_RECEIVED",
+      "scope_negative_tests": [
+        "BAD_TOKEN_DENIED",
+        "CROSS_PREFIX_SEO_001_DENIED"
+      ],
+      "publications": 0,
+      "temporary_test_handlers_removed": true,
+      "remaining_gates": [
+        "AUTONOMOUS_SOCIAL_PUBLISHER_EMITTER_NOT_VERIFIED",
+        "VISUAL_QA_PENDING",
+        "BRAND_QA_PENDING",
+        "BILLING_NOT_VERIFIED",
+        "PROD_NOT_PROMOTED"
+      ]
     },
     {
       "runtime": "INSTAGRAM_AUTOQUAL_LAB",
@@ -139,7 +162,7 @@
     "shared_sdk_node": "12/12 PASS",
     "fact_registered_iam": "ACTIVE_SIGNED",
     "fact_image_sha256": "8e0149691f0e7615bd0cf2a7bf8b417937b6cbfcba3dfe9c472e05dfef9e9075",
-    "social_new_path": "NOT_VERIFIED",
+    "social_new_path": "PRIVATE_ASSET_RECEIVED_SHA256_VERIFIED",
     "seo_lab_gitops": "SUCCESS",
     "seo_lab_image_sha256": "4cc7078e5f4bbc0e6af72bc9e740b73acc267be28c4928562a63d0f14c734e43",
     "seo_lab_image_bytes": 389149,
@@ -154,14 +177,19 @@
     "social_github_oidc_image_sha256": "08d61fb2ac08d66893327149db50d15413f8be57733c0e124a0afda83d71e052",
     "social_legacy_instagram": "PRIVATE_ASSET_RECEIVED",
     "social_legacy_facebook": "PRIVATE_ASSET_RECEIVED",
-    "social_legacy_publish_denial": "UMS001_SOCIAL_SPEND_PUBLISH"
+    "social_legacy_publish_denial": "UMS001_SOCIAL_SPEND_PUBLISH",
+    "social_runtime_iam": "ACTIVE_SCOPED_WORKLOAD_CREDENTIAL",
+    "social_negative_token_test": "PASS_DENIED",
+    "social_negative_cross_engine_test": "PASS_DENIED",
+    "social_runtime_e2e_sha256": "f67235924971b469a280ff99d82a08fed53ef576ca9a6fe0d8952abd7417dc0f",
+    "social_runtime_e2e_bytes": 756338
   },
-  "next_gate": "Social native Cloudflare runtime needs approved scoped IAM credential and a real engine-originated event (queue currently has no configured worker producer). Preserve existing Social legacy, use GitOps in LAB; do not access or reopen WordPress STAGING until owner new order. Only mark native Social verified with authenticated E2E evidence.",
+  "next_gate": "Social runtime image request and return are GREEN in LAB; keep existing Social publisher workflow unchanged. Remaining checks are actual autonomous social publisher emission, visual/brand/legal QA, billing verification, and any PROD promotion separately; WordPress STAGING suspended until new owner order.",
   "rollback": {
-    "soc_disable": "SOCIAL_UNIVERSAL_IAM_ENABLED=false",
-    "fact_disable": "UNIVERSAL_RUNTIME_IAM_ENABLED=false",
+    "soc_disable": "SOCIAL_UNIVERSAL_IAM_ENABLED=false (currently true)",
+    "fact_disable": "UNIVERSAL_RUNTIME_IAM_ENABLED=false (currently true)",
     "core_fact_disable": "UNIVERSAL_IMAGE_RUNTIME_ENABLED=false",
-    "preserve_existing_soc": "SOCIAL_BRIDGE_ENABLED=true",
+    "preserve_existing_soc": "SOCIAL_BRIDGE_ENABLED=true (currently true)",
     "backups": "cerebro/media-studio/v2/runtime/ums001-cloudflare-lab/backups/"
   },
   "owner_directive": {
