@@ -1,0 +1,45 @@
+name: CEREBRO UMS-001 · Universal Image Requests GitOps LAB
+
+on:
+  push:
+    branches:
+      - cerebro-engine-factory-v0
+    paths:
+      - 'cerebro-os/media-requests/**/*.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cerebro-ums001-universal-gitops-lab
+  cancel-in-progress: false
+
+jobs:
+  deliver-private-images:
+    name: Verified image delivery for registered FACT motors
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      CEREBRO_FACT_COMMIT_BEFORE: ${{ github.event.before }}
+      CEREBRO_FACT_COMMIT_SHA: ${{ github.sha }}
+      CEREBRO_COMPANY_ID: fenix
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Offline schema and security tests
+        run: python3 -m unittest discover -s cerebro-os/tests -p 'test_ums001_universal_media_gitops_lab.py' -v
+      - name: Fetch original images and verify sha256 via OIDC
+        run: python3 cerebro-os/factory/universal_media_gitops_lab.py
+      - name: Private images and machine-readable receipts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cerebro-ums001-private-images-${{ github.run_id }}
+          path: ${{ runner.temp }}/cerebro-ums001-images/
+          retention-days: 1
+          if-no-files-found: error
