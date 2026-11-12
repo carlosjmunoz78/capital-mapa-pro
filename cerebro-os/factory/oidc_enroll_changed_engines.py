@@ -111,6 +111,50 @@ def enroll(engine: str, sha: str) -> dict:
     return result
 
 
+def request_image_lab_canary(engine: str, sha: str) -> dict:
+    """One explicit LAB image test for the registered FACT canary; never publishes."""
+    if engine != "FACT-OIDC-CANARY-20261112":
+        raise RuntimeError("Image canary restricted to fixed FACT test motor")
+    token = request_oidc()
+    payload = {
+        "engine_id": engine, "sha": sha,
+        "request_id": "UMS001-LAB-GITHUB-OIDC-IMAGE-20261112-01",
+        "prompt": (
+            "Create an original realistic editorial photograph of a fictional bright apartment "
+            "in Cordoba Spain, warm Mediterranean natural light, tasteful neutral furniture, "
+            "premium architectural photography, olive-green accent plants, no people, no logos, "
+            "no signs, no captions, no visible writing or watermark."
+        ),
+    }
+    request = Request(
+        ENDPOINT.replace("/v1/factory/engine-created", "/v1/factory/image-request"),
+        method="POST",
+        data=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
+        headers={
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        },
+    )
+    try:
+        with urlopen(request, timeout=20) as response:
+            result = json.loads(response.read(5000))
+    except HTTPError as exc:
+        safe = "UNSPECIFIED"
+        try:
+            error = json.loads(exc.read(2000))
+            value = error.get("code")
+            if isinstance(value, str) and re.fullmatch(r"[A-Z0-9_]{1,75}", value):
+                safe = value
+        except Exception:
+            pass
+        raise RuntimeError(f"LAB image request rejected: HTTP {exc.code} ({safe})") from None
+    if result.get("state") != "ACCEPTED" or result.get("engine_id") != engine:
+        raise RuntimeError("Private signed image request not accepted")
+    return result
+
+
 def main() -> None:
     if os.environ.get("GITHUB_REPOSITORY") != "carlosjmunoz78/capital-mapa-pro":
         raise RuntimeError("Wrong repository")
@@ -124,6 +168,9 @@ def main() -> None:
         validate_manifest(engine)
         result = enroll(engine, sha)
         print(f"FACT-001 -> UMS-001 LAB: {engine} state={result['state']} signed_probe={result.get('signed_probe_status')}")
+        if engine == "FACT-OIDC-CANARY-20261112":
+            job = request_image_lab_canary(engine, sha)
+            print(f"FACT-001 -> UMS-001 LAB: signed private image request {job['request_id']} state={job['state']}")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with open(summary, "a", encoding="utf-8") as output:
