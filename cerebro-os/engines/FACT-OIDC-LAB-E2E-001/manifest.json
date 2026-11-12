@@ -1,6 +1,6 @@
 {
   "engine_id": "FACT-OIDC-LAB-E2E-001",
-  "name": "FACTORIA UNIVERSAL IMAGE LAB OIDC PROBE",
+  "name": "FACTORIA UNIVERSAL IMAGE LAB OIDC PROBE · RETEST SIGNED ENROLLMENT",
   "company_scope": "GLOBAL_OR_SCOPED",
   "environment": "LAB",
   "version": "0.1.0",
