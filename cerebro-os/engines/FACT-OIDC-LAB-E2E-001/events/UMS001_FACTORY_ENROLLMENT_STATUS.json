@@ -1,7 +1,17 @@
 {
-  "status": "PENDING_FACTORY_IAM_TRANSPORT",
+  "status": "ACTIVE",
+  "registration_status": "GATEWAY_IDENTITY_ACTIVE",
+  "source": "GITHUB_ACTIONS_OIDC",
+  "workflow_run_url": "https://github.com/carlosjmunoz78/capital-mapa-pro/actions/runs/43255769366",
+  "workflow_conclusion": "success",
   "event_id": "FACT-ENROLL-621092540C3AF386B852AF9504E11A1F",
   "company_id": "fenix",
   "engine_id": "FACT-OIDC-LAB-E2E-001",
-  "media_dispatch_enabled": false
+  "environment": "LAB",
+  "private_key_encrypted": true,
+  "signed_probe_status": "REGISTERED_QA_PENDING",
+  "cloudflare_activated_at": "2026-11-12T16:10:41.850Z",
+  "media_dispatch_enabled": false,
+  "reason": "Identidad activa; despacho autónomo desde este motor no certificado",
+  "publish_authorized": false
 }
