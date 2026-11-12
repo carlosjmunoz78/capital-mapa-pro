@@ -1,0 +1,35 @@
+name: FACT-001 · Universal Image Enrollment (GitHub OIDC LAB)
+
+on:
+  push:
+    branches:
+      - cerebro-engine-factory-v0
+    paths:
+      - 'cerebro-os/engines/**/manifest.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fact001-ums001-oidc-lab-enrollment
+  cancel-in-progress: false
+
+jobs:
+  enroll-new-engines:
+    name: Enroll changed FACT motors to universal UMS-001
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate and enroll new motors with ephemeral OIDC
+        env:
+          CEREBRO_FACT_COMMIT_BEFORE: ${{ github.event.before }}
+          CEREBRO_FACT_COMMIT_SHA: ${{ github.sha }}
+          CEREBRO_COMPANY_ID: fenix
+        run: python3 cerebro-os/factory/oidc_enroll_changed_engines.py
