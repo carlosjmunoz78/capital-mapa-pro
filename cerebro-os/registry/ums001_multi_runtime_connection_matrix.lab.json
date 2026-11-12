@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-11-12",
+  "target": "UMS-001 · persistent IMAGE.SYNTHETIC via shared CEREBRO Gateway",
+  "policy": "CONSERVAR_ENTENDER_ENVOLVER_PROBAR_MEJORAR_MIGRAR",
+  "single_provider": "cerebro-ums001-registered-image-executor-lab-eu",
+  "shared_gateway": "cerebro-fact001-gateway-lab-eu-20261109",
+  "shared_broker": "cerebro-ums001-universal-runtime-broker-lab-eu",
+  "automatic_new_engine_enrollment": "FACT-001 signed GitHub OIDC LAB",
+  "registration_active_lab_ids": [
+    "FACT-MEDIA-CANARY-001",
+    "FACT-OIDC-CANARY-20261112",
+    "FACT-OIDC-LAB-E2E-001",
+    "SOC-001"
+  ],
+  "routing": [
+    {
+      "runtime": "FACT_GITHUB_OIDC_LAB",
+      "environment": "LAB",
+      "state": "HECHO_VERIFICADO",
+      "request_evidence": "https://github.com/carlosjmunoz78/capital-mapa-pro/actions/runs/43259579088",
+      "note": "Any new scoped committed FACT engine can submit via shared GitOps workflow"
+    },
+    {
+      "runtime": "FACT_CLOUDFLARE_LAB",
+      "environment": "LAB",
+      "state": "HECHO_VERIFICADO",
+      "request_id": "UMS001-LAB-CENTRAL-20261112-01",
+      "note": "Private Service Binding, JPEG and SHA256 verified"
+    },
+    {
+      "runtime": "SOCIAL_CLOUDFLARE_LAB_EXISTING",
+      "environment": "LAB",
+      "state": "EXISTENTE_VERIFICADO",
+      "note": "Original SOCIAL_CONTENT_REQUESTED → owner Gateway preserved and enabled, no publication"
+    },
+    {
+      "runtime": "SOCIAL_CLOUDFLARE_UNIVERSAL_NEW",
+      "environment": "LAB",
+      "state": "PARCIAL_BLOCKED_SECURITY",
+      "engine_scope": "SOC-",
+      "identity": "SOC-001 ACTIVE",
+      "service_binding": "FACT_GATEWAY",
+      "flags": [
+        "SOCIAL_UNIVERSAL_IAM_ENABLED=false",
+        "UNIVERSAL_RUNTIME_IAM_ENABLED=false"
+      ],
+      "blocker": "OpenAI security control blocked creation of separate private runtime credential. Do not bypass controls or reuse an all-engine secret."
+    },
+    {
+      "runtime": "INSTAGRAM_AUTOQUAL_LAB",
+      "environment": "LAB",
+      "state": "EXISTENTE_OFF_NOT_CONNECTED_TO_UNIVERSAL",
+      "blocker": "AUTOQUAL_ENABLED=false; no authenticated runtime implementation validated"
+    },
+    {
+      "runtime": "FACEBOOK_AUTOQUAL_LAB",
+      "environment": "LAB",
+      "state": "POR_AUDITAR",
+      "blocker": "No verified independently running Worker in current Cloudflare Worker list; PR draft alone does not confirm runtime"
+    },
+    {
+      "runtime": "SEO_WORDPRESS_STAGING",
+      "environment": "STAGING",
+      "state": "POR_AUDITAR",
+      "blocker": "WordPress staging runtime identity and business event adapter not validated"
+    },
+    {
+      "runtime": "APP_CRM",
+      "environment": "PROD",
+      "state": "PROTECTED_NOT_TOUCHED",
+      "blocker": "No authorized promotion/gates; production integrity policy"
+    },
+    {
+      "runtime": "OTHER_ENGINES",
+      "environment": "MIXED",
+      "state": "POR_AUDITAR",
+      "blocker": "177 master IDs documentary; runtime presence, shared IAM and engine status not evidenced"
+    }
+  ],
+  "security": {
+    "public_endpoints_for_new_service": false,
+    "unregistered_engines_blocked": true,
+    "publish_authorized": false,
+    "paid_execution_authorized": false,
+    "legacy_connections_preserved": true,
+    "prod_modified": false,
+    "global_gateway_enabled": false
+  },
+  "tests": {
+    "shared_sdk_node": "8/8 PASS",
+    "fact_registered_iam": "ACTIVE_SIGNED",
+    "fact_image_sha256": "8e0149691f0e7615bd0cf2a7bf8b417937b6cbfcba3dfe9c472e05dfef9e9075",
+    "social_new_path": "NOT_VERIFIED"
+  },
+  "next_gate": "Provision Social scoped workload token via approved Cloudflare security mechanism, then test capability/reject cross-prefix/send/receive, and only then flip new path flags. Repeat once per additional shared runtime.",
+  "rollback": {
+    "soc_disable": "SOCIAL_UNIVERSAL_IAM_ENABLED=false",
+    "fact_disable": "UNIVERSAL_RUNTIME_IAM_ENABLED=false",
+    "core_fact_disable": "UNIVERSAL_IMAGE_RUNTIME_ENABLED=false",
+    "preserve_existing_soc": "SOCIAL_BRIDGE_ENABLED=true",
+    "backups": "cerebro/media-studio/v2/runtime/ums001-cloudflare-lab/backups/"
+  }
+}
