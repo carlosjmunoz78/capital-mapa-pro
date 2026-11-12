@@ -85,8 +85,16 @@ def enroll(engine: str, sha: str) -> dict:
         with urlopen(req, timeout=20) as reply:
             result = json.loads(reply.read(6000))
     except HTTPError as exc:
-        # Never log request headers, credentials, tokens, or server dumps.
-        raise RuntimeError(f"Gateway rejected enrollment, HTTP {exc.code}") from None
+        # Log only our allowlisted error code, never JWTs, headers or response dumps.
+        safe = "UNSPECIFIED"
+        try:
+            denial = json.loads(exc.read(2000))
+            name = denial.get("code")
+            if isinstance(name, str) and re.fullmatch(r"[A-Z0-9_]{1,75}", name):
+                safe = name
+        except Exception:
+            pass
+        raise RuntimeError(f"Gateway rejected enrollment HTTP {exc.code}: {safe}") from None
     if result.get("state") != "ACTIVE" or result.get("engine_id") != engine:
         raise RuntimeError("Gateway did not certify ACTIVE registration")
     return result
