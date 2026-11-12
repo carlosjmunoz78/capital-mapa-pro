@@ -1,0 +1,10 @@
+{
+  "company_id": "fenix",
+  "engine_id": "SEO-001",
+  "environment": "LAB",
+  "request_id": "UMS001-LAB-SEO001-GITOPS-20261112-01",
+  "capability_id": "IMAGE.SYNTHETIC",
+  "prompt": "Original high-quality photorealistic architectural photograph of a fictional contemporary apartment in Cordoba, Andalusia, Spain, golden natural daylight, white plaster walls, elegant contemporary furniture and olive-green plants. Wide-angle composition appropriate for a real estate SEO article. No people, no logos, no words, no watermarks.",
+  "rights_profile": "SYNTHETIC_ORIGINAL",
+  "publish_requested": false
+}
