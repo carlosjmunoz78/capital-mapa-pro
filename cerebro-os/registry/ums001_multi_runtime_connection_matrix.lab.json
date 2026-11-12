@@ -32,8 +32,18 @@
     {
       "runtime": "SOCIAL_CLOUDFLARE_LAB_EXISTING",
       "environment": "LAB",
-      "state": "EXISTENTE_VERIFICADO",
-      "note": "Original SOCIAL_CONTENT_REQUESTED → owner Gateway preserved and enabled, no publication"
+      "state": "TECHNICAL_PIPELINE_GREEN_ADMIN_LAB_CANARY",
+      "note": "Original SOCIAL_CONTENT_REQUESTED → owner Gateway preserved and enabled, no publication",
+      "evidence": {
+        "instagram_request_id": "UMS001-LAB-SOC-LEGACY-20261112-VERIFIED01",
+        "instagram_jpeg_bytes": 728054,
+        "instagram_state": "PRIVATE_ASSET_RECEIVED",
+        "facebook_request_id": "UMS001-LAB-SOC-FB-LEGACY-20261112-VERIFIED01",
+        "facebook_generation": "PRIVATE_READY",
+        "facebook_return": "PENDING_GET_VERIFICATION",
+        "origin": "DIRECT_CLOUDFLARE_ADMIN_QUEUE_CANARY_NOT_AUTONOMOUS_SOCIAL_EMITTER",
+        "publisher_connected": false
+      }
     },
     {
       "runtime": "SOCIAL_CLOUDFLARE_UNIVERSAL_NEW",
@@ -65,13 +75,16 @@
     {
       "runtime": "SEO_WORDPRESS_STAGING",
       "environment": "STAGING",
-      "state": "PARCIAL_SIGNED_SEO_IDENTITY_AND_GITOPS_E2E",
-      "blocker": "WordPress staging connector read unavailable; SEO runtime has not originated a native request. No WordPress/PROD writes.",
+      "state": "SUSPENDED_BY_OWNER_UNTIL_NEW_ORDER",
+      "blocker": "VOLUNTARY_HOLD: WordPress STAGING is down by explicit owner directive; do not access/repair/restart/monitor/test until new order",
       "factory_identity": "SEO-001 ACTIVE (LAB)",
       "gitops_verified": true,
       "gitops_run_url": "https://github.com/carlosjmunoz78/capital-mapa-pro/actions/runs/43269333725",
       "last_image_request_id": "UMS001-LAB-SEO001-GITOPS-20261112-01",
-      "image_sha256": "4cc7078e5f4bbc0e6af72bc9e740b73acc267be28c4928562a63d0f14c734e43"
+      "image_sha256": "4cc7078e5f4bbc0e6af72bc9e740b73acc267be28c4928562a63d0f14c734e43",
+      "skip_monitoring": true,
+      "reopen_requires": "NEW_EXPLICIT_OWNER_ORDER",
+      "seo_gitops_lab_identity_state": "SEO-001 ACTIVE; verified separately"
     },
     {
       "runtime": "APP_CRM",
@@ -105,7 +118,9 @@
     "seo_lab_image_bytes": 389149,
     "seo_lab_image_delivery": "PRIVATE_ASSET_RECEIVED",
     "social_generic_client": "DEPLOYED_OFF_NOT_E2E_VERIFIED",
-    "active_iam_count": 5
+    "active_iam_count": 5,
+    "instagram_social_legacy_canary": "PRIVATE_ASSET_RECEIVED",
+    "facebook_social_legacy_canary": "PRIVATE_READY_RECEIPT_ACK_TO_VERIFY"
   },
   "next_gate": "Install an approved scoped runtime credential for Social; obtain read-only access to WordPress STAGING then use the shared runtime SDK. Do not bypass IAM, activate public endpoints, or promote to PROD.",
   "rollback": {
@@ -114,5 +129,20 @@
     "core_fact_disable": "UNIVERSAL_IMAGE_RUNTIME_ENABLED=false",
     "preserve_existing_soc": "SOCIAL_BRIDGE_ENABLED=true",
     "backups": "cerebro/media-studio/v2/runtime/ums001-cloudflare-lab/backups/"
+  },
+  "owner_directive": {
+    "wordpress_staging": "SUSPENDED_UNTIL_OWNER_NEW_ORDER",
+    "reason": "Owner confirms WordPress STAGING is down and explicitly excludes it from work",
+    "do_not": [
+      "ACCESS",
+      "REPAIR",
+      "RESTART",
+      "RETRY",
+      "DEPLOY",
+      "AUDIT",
+      "ALERT_AS_INCIDENT"
+    ],
+    "reopen_requires": "NEW_EXPLICIT_OWNER_ORDER",
+    "scope": "WordPress STAGING ONLY; excludes neither SEO GitOps LAB nor other systems"
   }
 }
