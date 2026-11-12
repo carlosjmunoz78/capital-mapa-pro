@@ -94,7 +94,12 @@ def enroll(engine: str, sha: str) -> dict:
                 safe = name
         except Exception:
             pass
-        raise RuntimeError(f"Gateway rejected enrollment HTTP {exc.code}: {safe}") from None
+        kind = str(exc.headers.get("Content-Type", "none")).split(";")[0][:50]
+        server = str(exc.headers.get("Server", "none"))[:35]
+        via_cf = "yes" if exc.headers.get("CF-Ray") else "no"
+        raise RuntimeError(
+            f"Gateway rejected HTTP {exc.code}, detail={safe}, type={kind}, server={server}, cf_ray={via_cf}"
+        ) from None
     if result.get("state") != "ACTIVE" or result.get("engine_id") != engine:
         raise RuntimeError("Gateway did not certify ACTIVE registration")
     return result
