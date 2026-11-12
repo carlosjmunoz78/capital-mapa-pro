@@ -79,7 +79,13 @@ def enroll(engine: str, sha: str) -> dict:
     payload = json.dumps({"engine_id": engine, "sha": sha}, separators=(",", ":")).encode()
     req = Request(
         ENDPOINT, method="POST", data=payload,
-        headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"},
+        headers={
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            # workers.dev Browser Integrity Check rejects the default Python-urllib UA.
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        },
     )
     try:
         with urlopen(req, timeout=20) as reply:
