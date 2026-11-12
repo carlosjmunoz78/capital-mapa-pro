@@ -38,3 +38,7 @@ test('factory helper points to the one bound gateway',()=>{
  const client=createUniversalMediaClient({CEREBRO_MEDIA_GATEWAY:{universalImageFromRuntime(){}},CEREBRO_RUNTIME_TOKEN:token},{runtimeId:'SOCIAL-LAB',engineId:'SOC-001'});
  assert.equal(client.engineId,'SOC-001');
 });
+test('refuse extra publishing and budgeting controls from callers',async()=>{
+ const {client}=make({state:'ACCEPTED',engine_id:'SOC-001',request_id:'UMS001-LAB-REPLAY-SOC-20261112-01',environment:'LAB',publish_authorized:false});
+ await assert.rejects(client.request({request_id:'UMS001-LAB-REPLAY-SOC-20261112-01',prompt:'Original fictional Cordoba apartment interior, natural morning light, no branding.',publish_requested:true}),/SCHEMA_DENIED/);
+});

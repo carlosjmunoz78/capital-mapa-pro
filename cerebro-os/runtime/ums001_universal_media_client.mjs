@@ -38,7 +38,9 @@ export class CEREBROUniversalMediaClient {
       throw Error('UMS001_INVALID_CAPABILITY_RECEIPT');
     return result;
   }
-  async request({request_id,prompt}={}){
+  async request(input={}){
+    if(!input||typeof input!=='object'||Object.keys(input).sort().join('|')!=='prompt|request_id')throw Error('UMS001_REQUEST_SCHEMA_DENIED');
+    const {request_id,prompt}=input;
     ensureRequestId(request_id);
     if(typeof prompt!=='string'||prompt.length<40||prompt.length>630||
        prompt!==prompt.trim()||/api[._ -]?key|access[._ -]?token|password\s*:/i.test(prompt))
