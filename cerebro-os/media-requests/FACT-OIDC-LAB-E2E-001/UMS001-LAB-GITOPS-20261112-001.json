@@ -1,0 +1,10 @@
+{
+  "company_id": "fenix",
+  "engine_id": "FACT-OIDC-LAB-E2E-001",
+  "environment": "LAB",
+  "request_id": "UMS001-LAB-GITOPS-20261112-001",
+  "capability_id": "IMAGE.SYNTHETIC",
+  "prompt": "Original photorealistic editorial photograph for a fictional modern apartment in Córdoba, Spain. Warm Mediterranean sunlight through large windows, white walls, beautiful natural wood furniture, olive-green plants, sophisticated minimal interior design, realistic architectural photography, no people, no text, no logos, no watermark.",
+  "rights_profile": "SYNTHETIC_ORIGINAL",
+  "publish_requested": false
+}
