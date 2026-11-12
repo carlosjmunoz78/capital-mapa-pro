@@ -68,7 +68,7 @@ def build_manifest(engine_id: str, name: str) -> dict:
     }
 
 
-def scaffold(root: Path, engine_id: str, name: str) -> Path:
+def scaffold(root: Path, engine_id: str, name: str, company_id: str | None = None) -> Path:
     engine_id = validate_engine_id(engine_id)
     target = root / "engines" / engine_id
     if target.exists():
@@ -88,6 +88,10 @@ def scaffold(root: Path, engine_id: str, name: str) -> Path:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     module.write_universal_media_scaffold(target, manifest)
+    # Enrollment outbox and automatic delivery through the shared FACT-001 transport.
+    # Missing credentials leave a durable PENDING receipt; never bypass Gateway IAM.
+    from universal_media_enrollment import enroll_factory_engine
+    enroll_factory_engine(target, manifest, company_id=company_id)
     (target / "docs" / "README.md").write_text(f"# {engine_id} · {manifest['name']}\n\nEstado inicial: DEFINED_NOT_BUILT.\n", encoding="utf-8")
     (target / "ops" / "backup.md").write_text("# Backup\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
     (target / "ops" / "rollback.md").write_text("# Rollback\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
@@ -97,11 +101,12 @@ def scaffold(root: Path, engine_id: str, name: str) -> Path:
 
 def main(argv: list[str]) -> int:
     if len(argv) < 3:
-        print("usage: python factory.py ENGINE_ID 'Engine Name' [ROOT]", file=sys.stderr)
+        print("usage: python factory.py ENGINE_ID 'Engine Name' [ROOT] [COMPANY_ID]", file=sys.stderr)
         return 2
     engine_id, name = argv[1], argv[2]
     root = Path(argv[3]) if len(argv) > 3 else Path(__file__).resolve().parents[1]
-    target = scaffold(root, engine_id, name)
+    company_id = argv[4] if len(argv) > 4 else None
+    target = scaffold(root, engine_id, name, company_id=company_id)
     print(target)
     return 0
 
