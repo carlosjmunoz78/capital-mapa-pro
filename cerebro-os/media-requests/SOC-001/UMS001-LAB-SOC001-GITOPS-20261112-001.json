@@ -1,0 +1,10 @@
+{
+  "company_id": "fenix",
+  "engine_id": "SOC-001",
+  "environment": "LAB",
+  "request_id": "UMS001-LAB-SOC001-GITOPS-20261112-001",
+  "capability_id": "IMAGE.SYNTHETIC",
+  "prompt": "Original photorealistic social media editorial image of a fictional contemporary apartment in Córdoba Spain, inviting Mediterranean light from large windows, sophisticated natural wood furniture and cream tones, original design, plants, polished interior, high quality photographic style, no people, no writing, no logo, no watermark.",
+  "rights_profile": "SYNTHETIC_ORIGINAL",
+  "publish_requested": false
+}
