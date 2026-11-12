@@ -90,8 +90,13 @@ def scaffold(root: Path, engine_id: str, name: str, company_id: str | None = Non
     module.write_universal_media_scaffold(target, manifest)
     # Enrollment outbox and automatic delivery through the shared FACT-001 transport.
     # Missing credentials leave a durable PENDING receipt; never bypass Gateway IAM.
-    from universal_media_enrollment import enroll_factory_engine
-    enroll_factory_engine(target, manifest, company_id=company_id)
+    enrollment_hook = Path(__file__).with_name("universal_media_enrollment.py")
+    enroll_spec = importlib.util.spec_from_file_location("cerebro_factory_media_enrollment", enrollment_hook)
+    if enroll_spec is None or enroll_spec.loader is None:
+        raise RuntimeError("universal media enrollment hook unavailable")
+    enroll_module = importlib.util.module_from_spec(enroll_spec)
+    enroll_spec.loader.exec_module(enroll_module)
+    enroll_module.enroll_factory_engine(target, manifest, company_id=company_id)
     (target / "docs" / "README.md").write_text(f"# {engine_id} · {manifest['name']}\n\nEstado inicial: DEFINED_NOT_BUILT.\n", encoding="utf-8")
     (target / "ops" / "backup.md").write_text("# Backup\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
     (target / "ops" / "rollback.md").write_text("# Rollback\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
