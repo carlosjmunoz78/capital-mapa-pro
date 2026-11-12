@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "capability_id": "IMAGE.SYNTHETIC",
+  "provider_engine_id": "UMS-001",
+  "environment": "LAB",
+  "company_id": "fenix",
+  "route_mode": "DYNAMIC_FOR_REGISTERED_ENGINES",
+  "route_id": "CEREBRO_FACT001_GATEWAY_UNIVERSAL_IMAGE_SERVICE",
+  "common_gateway_worker": "cerebro-fact001-gateway-lab-eu-20261109",
+  "gateway_rpc": [
+    "universalImageCapability",
+    "universalImageRequest",
+    "universalImageStatus",
+    "universalImagePrivateJPEG"
+  ],
+  "shared_service_worker": "cerebro-ums001-universal-runtime-broker-lab-eu",
+  "identity_source": "FACT001_SIGNED_ISSUER_REGISTRY",
+  "enrollment": "AUTO_BY_FACTORY_GITHUB_OIDC_FOR_COMMITTED_FACTORY_ENGINES",
+  "new_engine_worker_required": false,
+  "engine_specific_route_required": false,
+  "resource_use": "SHARED_WORKER_AND_SHARED_QUEUE",
+  "signed_identity_required": true,
+  "public_endpoint_enabled": false,
+  "publish_authorized": false,
+  "verification": {
+    "gateway_to_private_asset": "E2E_LAB_GREEN",
+    "request_id": "UMS001-LAB-CENTRAL-20261112-01",
+    "verified_sha256": "8e0149691f0e7615bd0cf2a7bf8b417937b6cbfcba3dfe9c472e05dfef9e9075",
+    "verified_bytes": 633388,
+    "known_issuer_state": "READY_AUTHENTICATED",
+    "unregistered_issuer_state": "PENDING_FACTORY_IAM"
+  },
+  "limits": {
+    "canonical_documented_engine_ids": 177,
+    "active_signed_test_issuer_count": 3,
+    "existing_external_runtimes_connected": "NOT_VERIFIED",
+    "PROD": "NOT_PROMOTED",
+    "MULTICOMPANY": "NOT_AUTHORIZED",
+    "visual_brand_rights_qa": "PENDING",
+    "cloudflare_billing": "NOT_VERIFIED"
+  },
+  "safety": {
+    "company_isolation": true,
+    "key_vault_encrypted": true,
+    "global_gateway_enabled": false,
+    "model_generation_private_only": true,
+    "rollback_flags": [
+      "UNIVERSAL_IMAGE_RUNTIME_ENABLED",
+      "BROKER_ENABLED"
+    ]
+  }
+}
