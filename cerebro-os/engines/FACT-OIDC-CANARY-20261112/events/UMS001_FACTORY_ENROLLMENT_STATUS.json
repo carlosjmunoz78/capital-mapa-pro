@@ -1,0 +1,7 @@
+{
+  "status": "PENDING_FACTORY_IAM_TRANSPORT",
+  "event_id": "FACT-ENROLL-60EAB737BAEC8360BDF822A766913C31",
+  "company_id": "fenix",
+  "engine_id": "FACT-OIDC-CANARY-20261112",
+  "media_dispatch_enabled": false
+}

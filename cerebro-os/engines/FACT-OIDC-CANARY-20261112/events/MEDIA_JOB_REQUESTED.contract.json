@@ -1,0 +1,22 @@
+{
+  "event_type": "MEDIA_JOB_REQUESTED",
+  "schema_version": "1.0.0",
+  "origin_engine_id": "FACT-OIDC-CANARY-20261112",
+  "company_id": "TRUSTED_FACTORY_SCOPE",
+  "environment": "LAB",
+  "requires": [
+    "request_id",
+    "item_id",
+    "capability_id",
+    "brief_ref",
+    "format",
+    "budget"
+  ],
+  "reply_to": "cerebro://events/ums001",
+  "dispatch_enabled": false,
+  "blocked_until": [
+    "FACTORY_SIGNED_ENROLLMENT",
+    "IAM_REGISTERED",
+    "CAPABILITY_ALLOWED"
+  ]
+}

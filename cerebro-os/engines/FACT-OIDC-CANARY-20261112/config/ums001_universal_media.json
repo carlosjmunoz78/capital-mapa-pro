@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "company_id": "RESOLVED_FROM_SIGNED_FACTORY_CONTEXT",
+  "engine_id": "FACT-OIDC-CANARY-20261112",
+  "environment": "LAB",
+  "version": "0.1.0",
+  "capability_provider": "UMS-001",
+  "gateway": "CEREBRO_GATEWAY_UNIVERSAL",
+  "enrollment": "AUTO_ON_CREATE_VIA_TRUSTED_FACTORY_IAM",
+  "enrollment_status": "PENDING_FACTORY_IAM",
+  "request_event": "MEDIA_JOB_REQUESTED",
+  "response_events": [
+    "UMS001_ORDER_ACCEPTED",
+    "UMS001_ASSET_QA_PENDING",
+    "MEDIA_JOB_COMPLETED"
+  ],
+  "media_capabilities": [
+    "IMAGE.SYNTHETIC"
+  ],
+  "security": {
+    "signed_identity_required": true,
+    "registry_allowlist_required": true,
+    "tenant_isolation_required": true,
+    "no_payload_asserted_identity": true,
+    "replay_protection_required": true,
+    "publish_authorized": false,
+    "paid_execution_enabled": false
+  },
+  "transport": {
+    "source": "CEREBRO_GATEWAY",
+    "uses_per_engine_worker": false,
+    "uses_per_engine_queue": false,
+    "shared_runtime": true
+  }
+}

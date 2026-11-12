@@ -1,0 +1,80 @@
+{
+  "engine_id": "FACT-OIDC-CANARY-20261112",
+  "name": "FACT-001 OIDC Universal Media Canary",
+  "company_scope": "GLOBAL_OR_SCOPED",
+  "environment": "LAB",
+  "version": "0.1.0",
+  "status": "DEFINED_NOT_BUILT",
+  "owner": "UNASSIGNED",
+  "inputs": [],
+  "outputs": [],
+  "permissions": [],
+  "policies": [
+    "deny_cross_company_by_default",
+    "deterministic_before_ai",
+    "zero_new_cost_by_default"
+  ],
+  "events_in": [],
+  "events_out": [],
+  "tests": [
+    "unit",
+    "contract",
+    "integration"
+  ],
+  "evaluation": [
+    "policy_gate",
+    "tribunal_gate"
+  ],
+  "observability": [
+    "request_id",
+    "company_id",
+    "engine_id",
+    "version",
+    "environment",
+    "result",
+    "duration_ms",
+    "cost_eur"
+  ],
+  "cost_budget": {
+    "target_additional_eur": 0
+  },
+  "backup": {
+    "required": true,
+    "verified": false
+  },
+  "rollback": {
+    "required": true,
+    "verified": false
+  },
+  "rebuild": {
+    "required": true,
+    "verified": false
+  },
+  "dependencies": [],
+  "autonomy_level": "MANUAL_WITH_APPROVAL",
+  "media_gateway": {
+    "provider_engine_id": "UMS-001",
+    "connection": "CEREBRO_GATEWAY_UNIVERSAL",
+    "provisioner": "FACT-001",
+    "enrollment": "AUTOMATIC_ON_ENGINE_CREATE_WHEN_FACTORY_IAM_READY",
+    "enrollment_status": "PENDING_FACTORY_IAM",
+    "capabilities": [
+      "IMAGE.SYNTHETIC"
+    ],
+    "uses_per_engine_worker": false,
+    "uses_per_engine_subscription": false,
+    "publish_authorized": false,
+    "paid_execution_enabled": false,
+    "version": "1.0.0"
+  },
+  "human_exception_codes": [
+    "LEGAL_REQUIRED",
+    "SIGNATURE_REQUIRED",
+    "LOW_CONFIDENCE",
+    "HIGH_RISK",
+    "POLICY_CONFLICT",
+    "SECURITY_INCIDENT",
+    "MONEY_LIMIT",
+    "CUSTOMER_HUMAN_REQUEST"
+  ]
+}
