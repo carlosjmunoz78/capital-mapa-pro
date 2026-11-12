@@ -168,9 +168,6 @@ def main() -> None:
         validate_manifest(engine)
         result = enroll(engine, sha)
         print(f"FACT-001 -> UMS-001 LAB: {engine} state={result['state']} signed_probe={result.get('signed_probe_status')}")
-        if engine == "FACT-OIDC-CANARY-20261112":
-            job = request_image_lab_canary(engine, sha)
-            print(f"FACT-001 -> UMS-001 LAB: signed private image request {job['request_id']} state={job['state']}")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with open(summary, "a", encoding="utf-8") as output:
