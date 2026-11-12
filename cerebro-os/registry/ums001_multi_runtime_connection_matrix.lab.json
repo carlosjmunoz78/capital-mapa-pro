@@ -35,14 +35,26 @@
       "state": "TECHNICAL_PIPELINE_GREEN_ADMIN_LAB_CANARY",
       "note": "Original SOCIAL_CONTENT_REQUESTED → owner Gateway preserved and enabled, no publication",
       "evidence": {
-        "instagram_request_id": "UMS001-LAB-SOC-LEGACY-20261112-VERIFIED01",
-        "instagram_jpeg_bytes": 728054,
-        "instagram_state": "PRIVATE_ASSET_RECEIVED",
-        "facebook_request_id": "UMS001-LAB-SOC-FB-LEGACY-20261112-VERIFIED01",
-        "facebook_generation": "PRIVATE_READY",
-        "facebook_return": "PENDING_GET_VERIFICATION",
-        "origin": "DIRECT_CLOUDFLARE_ADMIN_QUEUE_CANARY_NOT_AUTONOMOUS_SOCIAL_EMITTER",
-        "publisher_connected": false
+        "origin": "ADMINISTRATIVE_QUEUE_CANARY_NOT_NATIVE_SOCIAL_EMITTER",
+        "instagram": {
+          "request_id": "UMS001-LAB-SOC-LEGACY-20261112-VERIFIED01",
+          "state": "PRIVATE_ASSET_RECEIVED",
+          "bytes": 728054,
+          "sha256": "d6b8cc41f078a864ca5070996614cf78c49222a031e8986bfdf8f211e15b078a"
+        },
+        "facebook": {
+          "request_id": "UMS001-LAB-SOC-FB-LEGACY-20261112-VERIFIED01",
+          "state": "PRIVATE_ASSET_RECEIVED",
+          "bytes": 594994,
+          "sha256": "17a1f4a023df0a025bd023ea41ee030b7075aa39af769b163ef9b4a6cb041f9b"
+        },
+        "safety": {
+          "publish_attempt_code": "UMS001_SOCIAL_SPEND_PUBLISH",
+          "publish_attempt_result": "DENIED_NO_MEDIA_GENERATED",
+          "signed_delivery_verified": false,
+          "visual_brand_qa": "PENDING"
+        },
+        "native_producer_verified": false
       }
     },
     {
@@ -97,6 +109,21 @@
       "environment": "MIXED",
       "state": "POR_AUDITAR",
       "blocker": "177 master IDs documentary; runtime presence, shared IAM and engine status not evidenced"
+    },
+    {
+      "runtime": "SOCIAL_FACT_GITHUB_OIDC_GITOPS_LAB",
+      "environment": "LAB",
+      "state": "HECHO_VERIFICADO",
+      "engine_id": "SOC-001",
+      "authorization": "SIGNED_GITHUB_OIDC",
+      "request_id": "UMS001-LAB-SOC001-GITOPS-20261112-001",
+      "run_url": "https://github.com/carlosjmunoz78/capital-mapa-pro/actions/runs/43272216971",
+      "artifact_url": "https://github.com/carlosjmunoz78/capital-mapa-pro/actions/runs/43272216971/artifacts/13968038126",
+      "asset_sha256": "08d61fb2ac08d66893327149db50d15413f8be57733c0e124a0afda83d71e052",
+      "jpeg_bytes": 625712,
+      "receipt": "PRIVATE_ASSET_RECEIVED",
+      "publication_authorized": false,
+      "limitation": "Origin is GitHub FACT GitOps from SOC-001 identity, not a native Social runtime emitter; publishing not connected"
     }
   ],
   "security": {
@@ -109,7 +136,7 @@
     "global_gateway_enabled": false
   },
   "tests": {
-    "shared_sdk_node": "8/8 PASS",
+    "shared_sdk_node": "12/12 PASS",
     "fact_registered_iam": "ACTIVE_SIGNED",
     "fact_image_sha256": "8e0149691f0e7615bd0cf2a7bf8b417937b6cbfcba3dfe9c472e05dfef9e9075",
     "social_new_path": "NOT_VERIFIED",
@@ -120,9 +147,16 @@
     "social_generic_client": "DEPLOYED_OFF_NOT_E2E_VERIFIED",
     "active_iam_count": 5,
     "instagram_social_legacy_canary": "PRIVATE_ASSET_RECEIVED",
-    "facebook_social_legacy_canary": "PRIVATE_READY_RECEIPT_ACK_TO_VERIFY"
+    "facebook_social_legacy_canary": "PRIVATE_READY_RECEIPT_ACK_TO_VERIFY",
+    "shared_sdk_ci_run": "https://github.com/carlosjmunoz78/capital-mapa-pro/actions/runs/43271758110",
+    "social_github_oidc_run": "https://github.com/carlosjmunoz78/capital-mapa-pro/actions/runs/43272216971",
+    "social_github_oidc_image_receipt": "PRIVATE_ASSET_RECEIVED",
+    "social_github_oidc_image_sha256": "08d61fb2ac08d66893327149db50d15413f8be57733c0e124a0afda83d71e052",
+    "social_legacy_instagram": "PRIVATE_ASSET_RECEIVED",
+    "social_legacy_facebook": "PRIVATE_ASSET_RECEIVED",
+    "social_legacy_publish_denial": "UMS001_SOCIAL_SPEND_PUBLISH"
   },
-  "next_gate": "Install an approved scoped runtime credential for Social; obtain read-only access to WordPress STAGING then use the shared runtime SDK. Do not bypass IAM, activate public endpoints, or promote to PROD.",
+  "next_gate": "Social native Cloudflare runtime needs approved scoped IAM credential and a real engine-originated event (queue currently has no configured worker producer). Preserve existing Social legacy, use GitOps in LAB; do not access or reopen WordPress STAGING until owner new order. Only mark native Social verified with authenticated E2E evidence.",
   "rollback": {
     "soc_disable": "SOCIAL_UNIVERSAL_IAM_ENABLED=false",
     "fact_disable": "UNIVERSAL_RUNTIME_IAM_ENABLED=false",
