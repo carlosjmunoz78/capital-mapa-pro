@@ -1,0 +1,25 @@
+name: CEREBRO UMS-001 · Shared runtime SDK contract LAB
+
+on:
+  push:
+    branches:
+      - cerebro-engine-factory-v0
+    paths:
+      - 'cerebro-os/runtime/ums001_universal_media_client.mjs'
+      - 'cerebro-os/tests/ums001_universal_media_client.test.mjs'
+      - '.github/workflows/cerebro-ums001-runtime-sdk-lab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-runtime-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run shared runtime IAM and image contract tests
+        run: node --test cerebro-os/tests/ums001_universal_media_client.test.mjs
