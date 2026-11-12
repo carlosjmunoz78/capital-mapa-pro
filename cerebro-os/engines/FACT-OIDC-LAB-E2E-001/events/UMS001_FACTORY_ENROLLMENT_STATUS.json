@@ -1,0 +1,7 @@
+{
+  "status": "PENDING_FACTORY_IAM_TRANSPORT",
+  "event_id": "FACT-ENROLL-621092540C3AF386B852AF9504E11A1F",
+  "company_id": "fenix",
+  "engine_id": "FACT-OIDC-LAB-E2E-001",
+  "media_dispatch_enabled": false
+}
