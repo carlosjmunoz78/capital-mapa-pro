@@ -104,8 +104,23 @@
     {
       "runtime": "FACEBOOK_AUTOQUAL_LAB",
       "environment": "LAB",
-      "state": "POR_AUDITAR",
-      "blocker": "No verified independently running Worker in current Cloudflare Worker list; PR draft alone does not confirm runtime"
+      "state": "DEPLOYED_OFF_D1_EU_INITIAL_SCHEMA_READY",
+      "blocker": "Training/semantic certification is not activated; provider Free attestation, original case import and tribunal pending. Publisher E2E separately unverified.",
+      "worker": "cerebro-facebook-autoqual-lab",
+      "d1_id": "e8fe801d-4b01-4e34-ac12-26014b79adc1",
+      "database_schema": "fb_auto_state, fb_auto_queue, fb_auto_queue_status",
+      "database_mode": "OFF",
+      "flags": [
+        "AUTOQUAL_ENABLED=false",
+        "GROQ_ENABLED=false",
+        "COST_CEILING_EUR=0"
+      ],
+      "public_routes": false,
+      "cron_count": 0,
+      "local_tests": "11/11 PASS",
+      "training_executed": 0,
+      "published": 0,
+      "migration_baseline_bookmark": "00000003-00000000-00005121-dc0dd60bea982bdb818d7542f7b25b54"
     },
     {
       "runtime": "SEO_WORDPRESS_STAGING",
@@ -147,6 +162,52 @@
       "receipt": "PRIVATE_ASSET_RECEIVED",
       "publication_authorized": false,
       "limitation": "Origin is GitHub FACT GitOps from SOC-001 identity, not a native Social runtime emitter; publishing not connected"
+    },
+    {
+      "runtime": "SOCIAL_NATIVE_APPROVED_CREATIVE_V2_LAB",
+      "environment": "LAB",
+      "state": "HECHO_VERIFICADO_EVENT_DRIVEN_IMAGE_REQUEST_AND_RETURN",
+      "producer_engine": "SOC-001",
+      "producer_source": "ADMINISTRATIVE_FAKE_APPROVED_BRIEF_CANARY",
+      "real_editorial_emitter_verified": false,
+      "consumer_worker": "cerebro-ums001-social-creative-bridge-lab-eu",
+      "queue": "cerebro-ums001-social-approved-creative-v2-lab-eu",
+      "queue_id": "98d3edbe67d145d5949322d15bbb83db",
+      "queue_consumer": "e66da126ecc843a3b5820c4a741b7365",
+      "private_editorial_rpc": "SocialUniversalMediaRuntime.submitApprovedCreative(item)",
+      "editorial_rpc_deployed": true,
+      "editorial_rpc_called_by_real_scheduler": false,
+      "flags": [
+        "SOCIAL_NATIVE_V2_ENABLED=true",
+        "SOCIAL_UNIVERSAL_IAM_ENABLED=true",
+        "SOCIAL_BRIDGE_ENABLED=true"
+      ],
+      "safe_daily_requests_cap": 2,
+      "free_tier_billing": "NOT_VERIFIED",
+      "facebook": {
+        "request_id": "SOCIAL-V2-FB-LAB-20261112-01",
+        "state": "PRIVATE_ASSET_RECEIVED",
+        "bytes": 648993,
+        "sha256": "c291a90602ecffa08ac97bdc81999702a61dccad2e7fc5807c51cff841495f45"
+      },
+      "instagram": {
+        "request_id": "SOCIAL-V2-IG-LAB-20261112-01",
+        "state": "PRIVATE_ASSET_RECEIVED",
+        "bytes": 778539,
+        "sha256": "89251f3849b31f2146c5f2b4ead48986a317352b9767fafe8b8be6d09cf5a573"
+      },
+      "negative_publish_request": "SOC_V2_APPROVAL_SCOPE_DENIED_NO_MODEL_CALL",
+      "publication_authorized": false,
+      "scheduled": false,
+      "qa": {
+        "visual": "PENDING",
+        "brand": "PENDING",
+        "rights": "PENDING",
+        "finance": "PENDING",
+        "signed_delivery": "NOT_VERIFIED",
+        "format": "PENDING_1024_TO_NETWORK_SIZE"
+      },
+      "rollback": "Disable only SOCIAL_NATIVE_V2_ENABLED; retain legacy SOCIAL_BRIDGE_ENABLED and universal IAM"
     }
   ],
   "security": {
@@ -182,9 +243,18 @@
     "social_negative_token_test": "PASS_DENIED",
     "social_negative_cross_engine_test": "PASS_DENIED",
     "social_runtime_e2e_sha256": "f67235924971b469a280ff99d82a08fed53ef576ca9a6fe0d8952abd7417dc0f",
-    "social_runtime_e2e_bytes": 756338
+    "social_runtime_e2e_bytes": 756338,
+    "social_native_fb_v2": "PRIVATE_ASSET_RECEIVED_SHA256_VERIFIED_648993",
+    "social_native_ig_v2": "PRIVATE_ASSET_RECEIVED_SHA256_VERIFIED_778539",
+    "social_native_v2_negative_publish": "PASS_NO_IMAGE_OR_QUOTA_INCREMENT",
+    "social_native_v2_local_contract_tests": "12/12_PASS_OLD_CONSUMER_PLUS_V2_SCHEMAS",
+    "social_native_v2_editorial_emitter": "NOT_VERIFIED_ADMIN_EVENT_CANARY",
+    "social_repo_actions_status": "FAILURE_LOGS_UNAVAILABLE_NOT_GREEN",
+    "facebook_autoqual_worker": "DEPLOYED_OFF",
+    "facebook_autoqual_schema": "INITIALIZED_OFF",
+    "facebook_autoqual_local_tests": "11/11_PASS"
   },
-  "next_gate": "Social runtime image request and return are GREEN in LAB; keep existing Social publisher workflow unchanged. Remaining checks are actual autonomous social publisher emission, visual/brand/legal QA, billing verification, and any PROD promotion separately; WordPress STAGING suspended until new owner order.",
+  "next_gate": "Private native Social event generation/receipt is GREEN in LAB. Remaining non-green dependencies: trusted autonomous editorial scheduler actually invoking RPC, output crop/resize for Facebook 1080x1080 / Instagram 1080x1350, independent brand/rights/financial QA, true signed UMS delivery receipt, Buffer/Meta publisher E2E, billing verifiability and GitHub Actions runner status. WordPress STAGING suspended until explicit owner command.",
   "rollback": {
     "soc_disable": "SOCIAL_UNIVERSAL_IAM_ENABLED=false (currently true)",
     "fact_disable": "UNIVERSAL_RUNTIME_IAM_ENABLED=false (currently true)",
