@@ -1,0 +1,31 @@
+{
+  "company_id": "fenix-capital",
+  "engine_id": "MODEL-ROUTER-DEEPSEEK-V1",
+  "environment": "LAB",
+  "version": "0.1.0",
+  "worker": "cerebro-model-router-deepseek-lab-eu",
+  "owner_repo": "carlosjmunoz78/capital-mapa-pro",
+  "owner_branch": "cerebro-engine-factory-v0",
+  "secret_store": "cerebro-os-shared-vault",
+  "secret_name": "CEREBRO_OS_SHARED_DEEPSEEK_V1",
+  "secret_not_copied_to_engine_workers": true,
+  "service_binding_only": true,
+  "permitted_engines": [
+    "SOC-FB-FINANCIAL-REAL-ESTATE-V1",
+    "SOC-IG-FINANCIAL-REAL-ESTATE-V1",
+    "SOC-LI-FINANCIAL-REAL-ESTATE-V1",
+    "SEO-001",
+    "SOC-001"
+  ],
+  "status": "SOURCE_STAGED_PENDING_DEPLOY",
+  "shared_credentials": 1,
+  "public_routes": 0,
+  "crons": 0,
+  "provider_readonly_probe_enabled": false,
+  "model_inference_enabled": false,
+  "inference_implementation_exists": false,
+  "payment_authorized": false,
+  "additional_contract_cost_eur": 0,
+  "rollback": "Disable ROUTER_ENABLED; revoke service bindings only after confirming dependencies; retain account secret; do not alter other engines.",
+  "registry_notes": "Preserve existing Social/SEO/FACT/App/CRM; service bindings are not yet attached."
+}
