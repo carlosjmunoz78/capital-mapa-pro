@@ -15,6 +15,24 @@ const EXPECTED = new Map([
 ]);
 const ALLOWED_MODELS = ["deepseek-flash", "deepseek-v4-pro"];
 const SECRET_ID = "CEREBRO_OS_SHARED_DEEPSEEK_V1";
+// Owner directive 2026-11-13: DeepSeek is a LIMITED supplementary learning tool.
+// Future inference implementation MUST implement persistent, atomic daily counters
+// and a billing hard stop BEFORE enabling any provider/model request.
+const LEARNING_POLICY = Object.freeze({
+ purpose:"shadow_learning_and_targeted_remediation_only",
+ priority:"deterministic_then_existing_free_models_then_deepseek",
+ max_requests_per_engine_per_utc_day:2,
+ max_requests_across_engines_per_utc_day:6,
+ max_output_tokens_per_request:512,
+ automatic_retry_count:0,
+ bulk_batches_allowed:false,
+ direct_publishing_allowed:false,
+ seo_enabled:false,
+ default_spending_limit_eur_per_day:0,
+ requires_verified_provider_credit_and_hard_spend_cap:true,
+ requires_persistent_atomic_global_and_engine_counters:true,
+ permits_paid_inference_without_explicit_budget:false
+});
 
 const reply = (value, status=200) => new Response(JSON.stringify(value),{
   status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"}
@@ -43,7 +61,7 @@ export default {
     return reply({...common,state:"AVAILABLE_CONFIGURED_NOT_INFERENCE",
       secret_binding_present:!!env.SHARED_DEEPSEEK_SECRET,
       infer_enabled:false,readonly_probe_enabled:env.READONLY_BALANCE_PROBE_ENABLED==="true",
-      approved_zero_spend:true,auto_topup_enabled:false});
+      approved_zero_spend:true,auto_topup_enabled:false,learning_policy:LEARNING_POLICY});
   }
   if(path==="/v1/infer"){
     // There is deliberately no API inference code in the LAB broker.
