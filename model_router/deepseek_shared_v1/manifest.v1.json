@@ -67,5 +67,39 @@
     "no_service_binding": true,
     "no_provider_calls": true,
     "reconsider_only_after_owner_order": true
+  },
+  "owner_learning_usage_directive": {
+    "recorded_utc_date": "2026-11-13",
+    "intent": "Usar DeepSeek de manera moderada para aprender, solo cuando modelos gratuitos y lógica determinista no basten; no gastar a saco.",
+    "status": "POLICY_REGISTERED_AND_PROVIDER_INFERENCE_OFF",
+    "policy": "moderate_last_resort",
+    "enabled_engines": [
+      "SOC-FB-FINANCIAL-REAL-ESTATE-V1",
+      "SOC-IG-FINANCIAL-REAL-ESTATE-V1",
+      "SOC-LI-FINANCIAL-REAL-ESTATE-V1"
+    ],
+    "seo": "EXCLUDED_UNTIL_OWNER_RELEASE",
+    "indicative_rate_ceiling_for_future_release": {
+      "max_requests_per_engine_per_utc_day": 2,
+      "max_requests_global_per_utc_day": 6,
+      "max_output_tokens_per_request": 512,
+      "automatic_retries": 0,
+      "bulk_requests": false,
+      "publication": false
+    },
+    "cost_policy": {
+      "currently_authorized_daily_spend_eur": 0,
+      "currently_authorized_monthly_spend_eur": 0,
+      "paid_inference_enabled": false,
+      "mandatory_verification_before_spend": [
+        "DeepSeek API authentication",
+        "provider credit or prepaid remaining",
+        "auto-topup disabled",
+        "atomic shared daily request and cost counters",
+        "hard-stop at agreed amount",
+        "explicit accepted spend allowance"
+      ],
+      "missing_financial_gate": "HUMAN_REQUIRED:MONEY_LIMIT"
+    }
   }
 }
