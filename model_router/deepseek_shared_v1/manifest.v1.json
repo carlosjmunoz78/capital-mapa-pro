@@ -17,15 +17,45 @@
     "SEO-001",
     "SOC-001"
   ],
-  "status": "SOURCE_STAGED_PENDING_DEPLOY",
+  "status": "DEPLOYED_PRIVATE_SERVICE_BINDING_LINKEDIN_VERIFIED",
   "shared_credentials": 1,
   "public_routes": 0,
   "crons": 0,
-  "provider_readonly_probe_enabled": false,
+  "provider_readonly_probe_enabled": true,
   "model_inference_enabled": false,
   "inference_implementation_exists": false,
   "payment_authorized": false,
   "additional_contract_cost_eur": 0,
   "rollback": "Disable ROUTER_ENABLED; revoke service bindings only after confirming dependencies; retain account secret; do not alter other engines.",
-  "registry_notes": "Preserve existing Social/SEO/FACT/App/CRM; service bindings are not yet attached."
+  "registry_notes": "Preserve existing Social/SEO/FACT/App/CRM; service bindings are not yet attached.",
+  "deployed_utc": "2026-11-13T21:13:13.121215Z",
+  "physical_evidence": {
+    "secret_store_list": "active/workers-scope",
+    "broker_worker": "DEPLOYED_PRIVATE",
+    "workers_dev": false,
+    "preview_urls": false,
+    "crons": 0,
+    "secret_binding": "SHARED_DEEPSEEK_SECRET -> CEREBRO_OS_SHARED_DEEPSEEK_V1",
+    "only_connected_consumer": "cerebro-linkedin-autonomy-ticker-lab-eu",
+    "linkedin_worker_service_binding": "MODEL_ROUTER",
+    "linkedin_readiness_receipt": "li-autonomy/v1/model-router/last-probe",
+    "linkedin_readiness_utc": "2026-11-13T21:15:19.853Z",
+    "linkedin_readiness_state": "AVAILABLE_CONFIGURED_NOT_INFERENCE",
+    "provider_api_key_auth": "NOT_YET_VERIFIED",
+    "read_only_balance_probe": "SUBMITTED_PENDING_RECEIPT",
+    "extra_cost_authorized_eur": 0
+  },
+  "consumer_status": {
+    "facebook": "NOT_ATTACHED_SAFE_RELEASE_REQUIRED",
+    "instagram": "NOT_ATTACHED_SAFE_RELEASE_REQUIRED",
+    "linkedin": "SERVICE_BINDING_VERIFIED",
+    "seo": "NOT_ATTACHED_SAFE_RELEASE_REQUIRED"
+  },
+  "cost_controls": {
+    "inference_calls": 0,
+    "cost_ceiling_eur": 0,
+    "auto_topup": false,
+    "paid_enabled": false,
+    "model_api_calls_proven": 0
+  }
 }
