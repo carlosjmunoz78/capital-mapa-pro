@@ -14,7 +14,6 @@
     "SOC-FB-FINANCIAL-REAL-ESTATE-V1",
     "SOC-IG-FINANCIAL-REAL-ESTATE-V1",
     "SOC-LI-FINANCIAL-REAL-ESTATE-V1",
-    "SEO-001",
     "SOC-001"
   ],
   "status": "CENTRAL_SECRET_BOUND_AND_LINKEDIN_PRIVATE_READINESS_VERIFIED_PROVIDER_AUTH_PENDING",
@@ -27,7 +26,7 @@
   "payment_authorized": false,
   "additional_contract_cost_eur": 0,
   "rollback": "Disable ROUTER_ENABLED; revoke service bindings only after confirming dependencies; retain account secret; do not alter other engines.",
-  "registry_notes": "Preserve existing Social/SEO/FACT/App/CRM; service bindings are not yet attached.",
+  "registry_notes": "Conservar todos los sistemas; SEO excluido de la allowlist del Model Router y congelado hasta nueva orden. Solo LinkedIn conectado, Facebook/Instagram pendientes y sin inferencia de pago.",
   "deployed_utc": "2026-11-13T21:13:13.121215Z",
   "physical_evidence": {
     "secret_store_list": "active/workers-scope",
@@ -53,7 +52,7 @@
     "facebook": "NOT_ATTACHED_SAFE_RELEASE_REQUIRED",
     "instagram": "NOT_ATTACHED_SAFE_RELEASE_REQUIRED",
     "linkedin": "SERVICE_BINDING_VERIFIED",
-    "seo": "NOT_ATTACHED_SAFE_RELEASE_REQUIRED"
+    "seo": "HOLD_OWNER_DIRECTIVE_NOT_ATTACHED"
   },
   "cost_controls": {
     "inference_calls": 0,
@@ -61,5 +60,12 @@
     "auto_topup": false,
     "paid_enabled": false,
     "model_api_calls_proven": 0
+  },
+  "seo_integration_policy": {
+    "status": "HOLD",
+    "owner_directive": "Dejar SEO sin DeepSeek hasta pulirlo; no modificar su motor, código, automatizaciones ni PROD.",
+    "no_service_binding": true,
+    "no_provider_calls": true,
+    "reconsider_only_after_owner_order": true
   }
 }
