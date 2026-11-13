@@ -11,3 +11,5 @@ test("disabled router blocks",async()=>{const r=await broker.fetch(req("/v1/stat
 test("unknown path blocked",async()=>{const r=await broker.fetch(req("/secrets"),env);assert.equal(r.status,404);});
 
 test("SEO remains excluded until its own release gate",async()=>{const r=await broker.fetch(req("/v1/status","SEO-001"),env);assert.equal(r.status,403);assert.equal((await r.json()).reason,"ENGINE_NOT_ALLOWED");});
+
+test("Learning use stays limited and paid execution remains OFF",async()=>{const r=await broker.fetch(req("/v1/status"),env);const j=await r.json();assert.equal(j.learning_policy.max_requests_per_engine_per_utc_day,2);assert.equal(j.learning_policy.max_requests_across_engines_per_utc_day,6);assert.equal(j.learning_policy.automatic_retry_count,0);assert.equal(j.learning_policy.default_spending_limit_eur_per_day,0);assert.equal(j.learning_policy.seo_enabled,false);assert.equal(j.learning_policy.bulk_batches_allowed,false);assert.equal(j.infer_enabled,false);});
