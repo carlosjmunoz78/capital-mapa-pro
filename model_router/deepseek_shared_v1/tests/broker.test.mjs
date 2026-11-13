@@ -9,3 +9,5 @@ test("read-only balance probe is off",async()=>{const r=await broker.fetch(req("
 test("unknown engine blocked",async()=>{const r=await broker.fetch(req("/v1/status","HACKER-ENGINE"),env);assert.equal(r.status,403);});
 test("disabled router blocks",async()=>{const r=await broker.fetch(req("/v1/status"),{...env,ROUTER_ENABLED:"false"});assert.equal(r.status,503);});
 test("unknown path blocked",async()=>{const r=await broker.fetch(req("/secrets"),env);assert.equal(r.status,404);});
+
+test("SEO remains excluded until its own release gate",async()=>{const r=await broker.fetch(req("/v1/status","SEO-001"),env);assert.equal(r.status,403);assert.equal((await r.json()).reason,"ENGINE_NOT_ALLOWED");});
