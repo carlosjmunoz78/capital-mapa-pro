@@ -1,0 +1,11 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import broker from "../src/index.mjs";
+const env={ROUTER_ENABLED:"true",READONLY_BALANCE_PROBE_ENABLED:"false",SHARED_DEEPSEEK_SECRET:{async get(){throw Error("SHOULD_NOT_READ")}}};
+const req=(path,engine="SOC-LI-FINANCIAL-REAL-ESTATE-V1")=>new Request("https://service-only.cerebro.internal"+path,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({company_id:"fenix-capital",engine_id:engine,environment:"LAB",version:"0.1.0"})});
+test("authorized status is non-billing and does not read secret",async()=>{const r=await broker.fetch(req("/v1/status"),env);const j=await r.json();assert.equal(r.status,200);assert.equal(j.infer_enabled,false);assert.equal(j.secret_binding_present,true);});
+test("model inference never enabled",async()=>{const r=await broker.fetch(req("/v1/infer"),env);assert.equal(r.status,423);assert.equal((await r.json()).provider_call,false);});
+test("read-only balance probe is off",async()=>{const r=await broker.fetch(req("/v1/readonly-balance"),env);assert.equal(r.status,423);});
+test("unknown engine blocked",async()=>{const r=await broker.fetch(req("/v1/status","HACKER-ENGINE"),env);assert.equal(r.status,403);});
+test("disabled router blocks",async()=>{const r=await broker.fetch(req("/v1/status"),{...env,ROUTER_ENABLED:"false"});assert.equal(r.status,503);});
+test("unknown path blocked",async()=>{const r=await broker.fetch(req("/secrets"),env);assert.equal(r.status,404);});
