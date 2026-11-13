@@ -11,7 +11,6 @@ const EXPECTED = new Map([
   ["SOC-FB-FINANCIAL-REAL-ESTATE-V1", "FACEBOOK"],
   ["SOC-IG-FINANCIAL-REAL-ESTATE-V1", "INSTAGRAM"],
   ["SOC-LI-FINANCIAL-REAL-ESTATE-V1", "LINKEDIN"],
-  ["SEO-001", "SEO"],
   ["SOC-001", "SOC-ORCHESTRATOR"]
 ]);
 const ALLOWED_MODELS = ["deepseek-flash", "deepseek-v4-pro"];
