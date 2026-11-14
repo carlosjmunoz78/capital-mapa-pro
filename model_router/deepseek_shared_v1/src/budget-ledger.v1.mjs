@@ -1,10 +1,11 @@
+import {DurableObject} from "cloudflare:workers";
 /**
  * CEREBRO OS · single shared Cloudflare SQLite Durable Object budget ledger.
  * Atomic reserve-before-request; no refunds or retries. No API secrets.
  * LAB only. Never call a provider when a reservation is denied or uncertain.
  */
-export class SharedBudgetLedger {
- constructor(ctx,env){this.ctx=ctx;this.env=env;}
+export class SharedBudgetLedger extends DurableObject {
+ constructor(ctx,env){super(ctx,env);}
  async reserve(input){
   const allow=new Set(["SOC-LI-FINANCIAL-REAL-ESTATE-V1","SOC-FB-FINANCIAL-REAL-ESTATE-V1","SOC-IG-FINANCIAL-REAL-ESTATE-V1","SOC-001"]);
   if(!input||input.company_id!=="fenix-capital"||input.environment!=="LAB"||
