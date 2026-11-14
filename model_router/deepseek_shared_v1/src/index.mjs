@@ -48,7 +48,7 @@ export default {
   if(request.method!=="POST")return deny("METHOD_NOT_ALLOWED",405);
   let u;try{u=new URL(request.url)}catch{return deny("BAD_URL",400)}
   const path=u.pathname;
-  if(!["/v1/status","/v1/readonly-balance","/v1/infer"].includes(path))
+  if(!["/v1/status","/v1/readonly-balance","/v1/budget-status","/v1/infer"].includes(path))
      return deny("NOT_FOUND",404);
   const type=request.headers.get("content-type")||"";
   if(!type.startsWith("application/json"))return deny("JSON_REQUIRED",415);
@@ -62,6 +62,19 @@ export default {
       secret_binding_present:!!env.SHARED_DEEPSEEK_SECRET,
       infer_enabled:false,readonly_probe_enabled:env.READONLY_BALANCE_PROBE_ENABLED==="true",
       approved_zero_spend:true,auto_topup_enabled:false,learning_policy:LEARNING_POLICY});
+  }
+  if(path==="/v1/budget-status"){
+    if(!env.BUDGET_LEDGER)return deny("BUDGET_BINDING_MISSING",503);
+    try{
+      const state=await env.BUDGET_LEDGER.getByName("cerebro-os-shared-budget-global").status();
+      return reply({...common,state:"BUDGET_LEDGER_CONNECTED",ledger:{
+        date:state.date,monthly_reserved_cents:state.month_reserved_cents,
+        global_daily_calls:state.day?.global_calls||0,
+        global_daily_max:state.global_quota_per_day,
+        per_engine_daily_max:state.engine_quota_per_day,
+        monthly_reserved_max_cents:state.max_reserved_month_cents
+      },inference_enabled:false});
+    }catch{return deny("BUDGET_LEDGER_NOT_READY",503);}
   }
   if(path==="/v1/infer"){
     // There is deliberately no API inference code in the LAB broker.
