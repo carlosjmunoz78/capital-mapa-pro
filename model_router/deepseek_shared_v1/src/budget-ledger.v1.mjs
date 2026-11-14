@@ -14,6 +14,7 @@ export class SharedBudgetLedger {
   if(input.cloudflare_exhausted_verified!==true||input.provider_balance_verified!==true||
      input.auto_topup_off_verified!==true||input.price_ceiling_verified!==true||
      input.paid_calls_authorized!==true||input.hard_invoice_cap_verified!==true||
+     !Number.isSafeInteger(input.input_tokens_max)||!Number.isSafeInteger(input.output_tokens_max)||
      input.input_tokens_max>1200||input.output_tokens_max>512||
      input.input_tokens_max<1||input.output_tokens_max<1)
     return{state:"HOLD_FALLBACK_POLICY",granted:false};
