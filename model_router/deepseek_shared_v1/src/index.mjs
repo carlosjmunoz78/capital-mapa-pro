@@ -1,3 +1,4 @@
+export {SharedBudgetLedger} from "./budget-ledger.v1.mjs";
 /**
  * FACT-001 / CEREBRO Model Router · DeepSeek shared API credential, LAB.
  * One account-level Secrets Store binding. No direct public route or cron.
