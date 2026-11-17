@@ -6,6 +6,8 @@ on:
       - 'cerebro-os/quality/ums001_visual_ai_auditor.mjs'
       - 'cerebro-os/quality/tests/ums001_visual_ai_auditor.test.mjs'
       - '.github/workflows/cerebro-ums001-vision-qa-lab.yml'
+      - 'cerebro-os/factory/universal_media_gitops_lab.py'
+      - 'cerebro-os/tests/test_ums001_visual_bridge_adapter.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,3 +21,5 @@ jobs:
           persist-credentials: false
       - name: Node 20 built-in test runner, no external network or AI calls
         run: node --test cerebro-os/quality/tests/ums001_visual_ai_auditor.test.mjs
+      - name: Signed Cloudflare QA bridge fail-closed adapter tests
+        run: python3 -m unittest discover -s cerebro-os/tests -p "test_ums001_visual_bridge_adapter.py" -v

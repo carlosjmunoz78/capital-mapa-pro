@@ -69,6 +69,37 @@ def call(path: str, body: dict, binary=False):
     except HTTPError as exc:
         raise RuntimeError("CEREBRO private media API returned HTTP " + str(exc.code)) from None
 
+def maybe_review_asset(common: dict, expected_sha256: str) -> dict:
+    """Only invoke QA through existing signed GitHub OIDC when explicitly enabled.
+
+    This secondary reviewer cannot authorize reuse/publication. The fail-closed
+    image gate stays authoritative until independent calibration and promotion.
+    """
+    if os.environ.get("UMS001_VISION_QA_API_ENABLED") != "true":
+        return {"qa_bridge_state": "DISABLED", "qa_bridge_reason": "NOT_DEPLOYED"}
+    try:
+        raw = call("/v1/factory/image-review", common)
+        if not isinstance(raw, dict) or any(raw.get(k) != v for k,v in (
+            ("company_id","fenix"), ("engine_id",common["engine_id"]),
+            ("request_id",common["request_id"]), ("environment","LAB"),
+            ("asset_sha256",expected_sha256))):
+            raise ValueError("VISION_QA_IDENTITY_MISMATCH")
+        if raw.get("reuse_allowed") is not False or raw.get("publish_authorized") is not False:
+            raise ValueError("VISION_QA_UNSAFE_AUTHORIZATION")
+        state=raw.get("state")
+        if state == "REJECTED_VISUAL":
+            findings=raw.get("findings") or []
+            if not isinstance(findings,list) or len(findings)>8 or any(
+                not isinstance(f,str) or len(f)>180 for f in findings):
+                raise ValueError("VISION_QA_BAD_FINDINGS")
+            return {"qa_bridge_state":"REJECTED_VISUAL","qa_bridge_reason":"VISUAL_DEFECT",
+                    "qa_bridge_findings":findings}
+        if state in {"QA_HOLD","QA_CANDIDATE_UNCALIBRATED"}:
+            return {"qa_bridge_state":state,"qa_bridge_reason":"PENDING_INDEPENDENT_REVIEW"}
+        raise ValueError("VISION_QA_UNRECOGNIZED_REPLY")
+    except (RuntimeError, ValueError, TypeError, KeyError):
+        return {"qa_bridge_state":"QA_HOLD","qa_bridge_reason":"QA_BRIDGE_UNAVAILABLE"}
+
 def dimensions(jpeg: bytes) -> tuple[int,int]:
     if len(jpeg)<4000 or jpeg[:2]!=b"\xff\xd8" or jpeg[-2:]!=b"\xff\xd9":
         raise ValueError("Invalid JPEG envelope")
@@ -112,9 +143,10 @@ def run_one(path: str, sha: str, output: Path) -> dict:
     (output/(engine+"-"+rid+".jpg")).write_bytes(image)
     qa=assess_private_asset(asset_sha256=actual, company_id="fenix",engine_id=engine,
                             request_id=rid, environment="LAB")
+    bridge_qa=maybe_review_asset(common,actual)
     result={"state":"PRIVATE_ASSET_RECEIVED","company_id":"fenix","engine_id":engine,
             "request_id":rid,"sha256":actual,"bytes":len(image),"format":"JPEG_1024_1024",
-            **qa}
+            **qa, **bridge_qa}
     (output/(engine+"-"+rid+".receipt.json")).write_text(json.dumps(result,indent=2)+"\n",encoding="utf-8")
     return result
 
