@@ -1,0 +1,21 @@
+name: NEWS001 · Brevo private readonly inventory LAB
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/brevo_inventory_readonly.py'
+      - 'cerebro-os/tests/test_news001_brevo_inventory_readonly.py'
+      - '.github/workflows/news001-brevo-inventory-readonly-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  readonly-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: No credentials, no external calls; strict read-only audit tests
+        run: python3 -m unittest discover -s cerebro-os/tests -p 'test_news001_brevo_inventory_readonly.py' -v
