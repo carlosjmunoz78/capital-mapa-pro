@@ -1,0 +1,25 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {inspect, verdict, parseModelResult, REQUIRED, KNOWN_REJECTED} from "../ums001_visual_ai_auditor.mjs";
+const meta={asset_sha256:"a".repeat(64),company_id:"fenix",engine_id:"CEREBRO-NEWS-001",request_id:"UMS001-LAB-NEWS001-B2C-20261117-03",environment:"LAB"};
+const clean={...Object.fromEntries(REQUIRED.map(k=>[k,true])),confidence:0.97,findings:[]};
+const fakeImage=new Uint8Array(5000);
+test("known bad anatomy rejects without calling model",async()=>{
+ let calls=0; const x=await inspect({env:{VISION_QA_ENABLED:"true",VISION_QA_COST_VERIFIED:"true",AI:{run:async()=>{calls++;return {response:JSON.stringify(clean)}}}},...meta,asset_sha256:Object.keys(KNOWN_REJECTED)[0],imageBytes:fakeImage});
+ assert.equal(x.status,"REJECTED_VISUAL");assert.equal(calls,0);
+});
+test("known fake text rejects",()=>assert.equal(verdict({...meta,asset_sha256:Object.keys(KNOWN_REJECTED)[1]}).status,"REJECTED_VISUAL"));
+test("missing cost verification no model call",async()=>{let calls=0;const x=await inspect({env:{VISION_QA_ENABLED:"true",AI:{run:async()=>{calls++;return {response:JSON.stringify(clean)}}}},...meta,imageBytes:fakeImage});assert.equal(x.status,"QA_HOLD");assert.equal(calls,0)});
+test("disabled controls block",async()=>{const x=await inspect({env:{VISION_QA_ENABLED:"false",VISION_QA_COST_VERIFIED:"true"},...meta,imageBytes:fakeImage});assert.equal(x.status,"QA_HOLD")});
+test("wrong scope blocks",()=>assert.equal(verdict({...meta,environment:"PROD"}).reason,"INVALID_ASSET_SCOPE"));
+test("bad schema blocks",()=>assert.equal(verdict({...meta,providerCalled:true,modelOutput:{response:"not JSON"}}).reason,"MODEL_RESPONSE_INVALID"));
+test("malformed confidence blocks",()=>assert.equal(parseModelResult(JSON.stringify({...clean,confidence:"high"})),null));
+test("arbitrary keys blocks",()=>assert.equal(parseModelResult(JSON.stringify({...clean,allowed:true})),null));
+test("partial checks block",()=>{let x={...clean};delete x.connected_limbs;assert.equal(parseModelResult(JSON.stringify(x)),null)});
+test("visual model detects fake text",()=>{const x=verdict({...meta,providerCalled:true,modelOutput:{response:JSON.stringify({...clean,no_fake_text:false,findings:["Unintelligible lettering"]})}});assert.equal(x.status,"REJECTED_VISUAL")});
+test("visual model detects disconnected limbs",()=>{const x=verdict({...meta,providerCalled:true,modelOutput:{response:JSON.stringify({...clean,connected_limbs:false,findings:["Floating arms"]})}});assert.equal(x.status,"REJECTED_VISUAL")});
+test("model uncertain blocks",()=>assert.equal(verdict({...meta,providerCalled:true,modelOutput:{response:JSON.stringify({...clean,confidence:.73})}}).status,"QA_HOLD"));
+test("clean model answer still not independently certified",()=>{const x=verdict({...meta,providerCalled:true,modelOutput:{response:JSON.stringify(clean)}});assert.equal(x.status,"QA_CANDIDATE_UNCALIBRATED");assert.equal(x.reuse_allowed,false);assert.equal(x.publish_authorized,false)});
+test("bad image input blocks",async()=>{const x=await inspect({env:{VISION_QA_ENABLED:"true",VISION_QA_COST_VERIFIED:"true",AI:{run:async()=>({response:JSON.stringify(clean)})}},...meta,imageBytes:new Uint8Array(3)});assert.equal(x.status,"QA_HOLD")});
+test("valid mock executes exactly one model request",async()=>{let times=0;const x=await inspect({env:{VISION_QA_ENABLED:"true",VISION_QA_COST_VERIFIED:"true",AI:{run:async()=>{times++;return {response:JSON.stringify(clean)}}}},...meta,imageBytes:fakeImage});assert.equal(times,1);assert.equal(x.status,"QA_CANDIDATE_UNCALIBRATED")});
+test("provider error blocks",async()=>{const x=await inspect({env:{VISION_QA_ENABLED:"true",VISION_QA_COST_VERIFIED:"true",AI:{run:async()=>{throw Error("test only")}}},...meta,imageBytes:fakeImage});assert.equal(x.reason,"VISION_PROVIDER_FAILED")});

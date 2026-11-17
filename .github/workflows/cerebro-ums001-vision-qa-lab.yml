@@ -1,0 +1,21 @@
+name: CEREBRO UMS001 · Visual QA Module Regression LAB
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - 'cerebro-os/quality/ums001_visual_ai_auditor.mjs'
+      - 'cerebro-os/quality/tests/ums001_visual_ai_auditor.test.mjs'
+      - '.github/workflows/cerebro-ums001-vision-qa-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-vision-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Node 20 built-in test runner, no external network or AI calls
+        run: node --test cerebro-os/quality/tests/ums001_visual_ai_auditor.test.mjs
