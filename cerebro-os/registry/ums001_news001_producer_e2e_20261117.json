@@ -1,0 +1,49 @@
+{
+  "company_id": "fenix",
+  "engine_id": "CEREBRO-NEWS-001",
+  "environment": "LAB",
+  "version": "0.1.0",
+  "enrollment": {
+    "status": "ACTIVE",
+    "signing_test": "REGISTERED_QA_PENDING",
+    "factory_commit": "9d9f9725362273a34f759231b7c59240407f3d7d"
+  },
+  "media_requests": [
+    {
+      "id": "UMS001-LAB-NEWS001-B2C-20261117-01",
+      "sha256": "d2fc3c59b906ac109ac93571813302d20583b039d18909c3e553157f0d640467",
+      "bytes": 689760,
+      "status": "PRIVATE_ASSET_RECEIVED",
+      "visual_qa": "PENDING",
+      "brand_qa": "PENDING"
+    },
+    {
+      "id": "UMS001-LAB-NEWS001-B2B-20261117-01",
+      "sha256": "417df9bd60f75a64672485cbe28faf11327d01d02f81be885fde99520e822a6b",
+      "bytes": 539633,
+      "status": "PRIVATE_ASSET_RECEIVED",
+      "visual_qa": "PENDING",
+      "brand_qa": "PENDING"
+    }
+  ],
+  "actions": {
+    "run_id": 44134737046,
+    "conclusion": "success",
+    "artifact_id": 14351891748
+  },
+  "permanent_asset_archive": "https://drive.google.com/file/d/1zuOuYMk16-7AmLmWK2Cpum-Zo9Z9Tliy/view",
+  "composed_newsletters": {
+    "count": 2,
+    "b2c_blocks": 10,
+    "b2b_blocks": 10,
+    "b2c_links": 13,
+    "b2b_links": 13,
+    "render_qa": "PASS_DESKTOP_MOBILE",
+    "deepseek_copy": "NOT_VERIFIED",
+    "images_publicly_hosted": false
+  },
+  "publish_authorized": false,
+  "paid_generation_invoiced": "NOT_VERIFIED",
+  "brevo_send_enabled": false,
+  "autonomy": "LAB_ON_DEMAND_GITOPS_NOT_SCHEDULED"
+}
