@@ -1,0 +1,111 @@
+{
+  "engine_id": "CEREBRO-NEWS-001",
+  "name": "CEREBRO-NEWS-001 · Newsletter Growth B2C/B2B – Productora UMS-001 (LAB)",
+  "company_scope": "GLOBAL_OR_SCOPED",
+  "environment": "LAB",
+  "version": "0.1.0",
+  "status": "DEFINED_NOT_BUILT",
+  "owner": "FENIX_CAPITAL",
+  "inputs": [
+    "NEWS_SOURCE_VERIFIED",
+    "EDITORIAL_BRIEF_APPROVED",
+    "IMAGE_ASSET_REQUEST"
+  ],
+  "outputs": [
+    "NEWSLETTER_DRAFT_B2C",
+    "NEWSLETTER_DRAFT_B2B",
+    "PRIVATE_IMAGE_ASSET_RECEIPT"
+  ],
+  "permissions": [
+    "image.synthetic.request:lab",
+    "image.private_read:own_engine",
+    "news.draft:lab"
+  ],
+  "policies": [
+    "deny_cross_company_by_default",
+    "deterministic_before_ai",
+    "zero_new_cost_by_default",
+    "producer_access_via_registered_fact001_identity",
+    "signed_runtime_required",
+    "image_rights_and_visual_qa_required",
+    "deny_publication",
+    "brevo_send_disabled",
+    "no_customer_pii_in_brief",
+    "one_sample_per_audience_only"
+  ],
+  "events_in": [
+    "NEWS_SOURCE_VERIFIED",
+    "PRODUCER_IMAGE_PRIVATE_READY"
+  ],
+  "events_out": [
+    "MEDIA_JOB_REQUESTED",
+    "NEWSLETTER_DRAFT_READY"
+  ],
+  "tests": [
+    "unit",
+    "contract",
+    "integration",
+    "visual_qa",
+    "brand_qa"
+  ],
+  "evaluation": [
+    "policy_gate",
+    "tribunal_gate"
+  ],
+  "observability": [
+    "request_id",
+    "company_id",
+    "engine_id",
+    "version",
+    "environment",
+    "result",
+    "duration_ms",
+    "cost_eur",
+    "asset_sha256"
+  ],
+  "cost_budget": {
+    "target_additional_eur": 0
+  },
+  "backup": {
+    "required": true,
+    "verified": false
+  },
+  "rollback": {
+    "required": true,
+    "verified": false
+  },
+  "rebuild": {
+    "required": true,
+    "verified": false
+  },
+  "dependencies": [
+    "FACT-001",
+    "UMS-001"
+  ],
+  "autonomy_level": "MANUAL_WITH_APPROVAL",
+  "media_gateway": {
+    "provider_engine_id": "UMS-001",
+    "connection": "CEREBRO_GATEWAY_UNIVERSAL",
+    "provisioner": "FACT-001",
+    "enrollment": "AUTOMATIC_ON_ENGINE_CREATE_WHEN_FACTORY_IAM_READY",
+    "enrollment_status": "PENDING_FACTORY_IAM",
+    "capabilities": [
+      "IMAGE.SYNTHETIC"
+    ],
+    "uses_per_engine_worker": false,
+    "uses_per_engine_subscription": false,
+    "publish_authorized": false,
+    "paid_execution_enabled": false,
+    "version": "1.0.0"
+  },
+  "human_exception_codes": [
+    "LEGAL_REQUIRED",
+    "SIGNATURE_REQUIRED",
+    "LOW_CONFIDENCE",
+    "HIGH_RISK",
+    "POLICY_CONFLICT",
+    "SECURITY_INCIDENT",
+    "MONEY_LIMIT",
+    "CUSTOMER_HUMAN_REQUEST"
+  ]
+}
