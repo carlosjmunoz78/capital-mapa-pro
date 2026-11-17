@@ -1,0 +1,10 @@
+{
+  "company_id": "fenix",
+  "engine_id": "CEREBRO-NEWS-001",
+  "environment": "LAB",
+  "request_id": "UMS001-LAB-NEWS001-B2C-20261117-02",
+  "capability_id": "IMAGE.SYNTHETIC",
+  "prompt": "Original premium photorealistic editorial image for a mortgage education newsletter, distinctly new from previous couple-with-house-model imagery. One fictional adult homebuyer seated in a bright elegant living room, calmly comparing a household budget notebook with a tablet showing a minimal unreadable financial chart. Natural authentic emotion, accurate hands, warm daylight, premium magazine photography, cream/charcoal with subtle amber accents, beautiful square composition. No readable text, numbers, logos, watermark, identifiable city or promise of approval.",
+  "rights_profile": "SYNTHETIC_ORIGINAL",
+  "publish_requested": false
+}
