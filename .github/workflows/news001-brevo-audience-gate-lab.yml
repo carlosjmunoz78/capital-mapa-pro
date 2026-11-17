@@ -1,0 +1,21 @@
+name: NEWS001 · Brevo audience gating LAB
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/brevo_audience_gate.py'
+      - 'cerebro-os/tests/test_news001_brevo_audience_gate.py'
+      - '.github/workflows/news001-brevo-audience-gate-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audience-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate B2B historical/B2C new audience routing without external calls
+        run: python3 -m unittest discover -s cerebro-os/tests -p 'test_news001_brevo_audience_gate.py' -v
