@@ -1,0 +1,21 @@
+name: NEWS001 · Brevo Free daily quota planner LAB
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/brevo_free_daily_planner.py'
+      - 'cerebro-os/tests/test_news001_brevo_free_daily_planner.py'
+      - '.github/workflows/news001-brevo-free-quota-planner-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  quota-deterministic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run quota, priority, suppression and duplicate regression tests
+        run: python3 -m unittest discover -s cerebro-os/tests -p 'test_news001_brevo_free_daily_planner.py' -v
