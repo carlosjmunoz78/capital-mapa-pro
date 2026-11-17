@@ -1,0 +1,10 @@
+{
+  "company_id": "fenix",
+  "engine_id": "CEREBRO-NEWS-001",
+  "environment": "LAB",
+  "request_id": "UMS001-LAB-NEWS001-B2C-20261117-01",
+  "capability_id": "IMAGE.SYNTHETIC",
+  "prompt": "Create an original premium photorealistic editorial image for a mortgage newsletter: fictional adult Spanish-looking European couple in their thirties at a wooden kitchen table reviewing house plans and documents with a small house model and keys. Expressive candid smiles, real emotional connection, cinematic warm amber daylight, elegant cozy contemporary home, natural skin and hands, dynamic cinematic composition, aspirational sophisticated magazine photography, neutral cream and warm orange accents. No visible writing, no logos, no text, no watermarks.",
+  "rights_profile": "SYNTHETIC_ORIGINAL",
+  "publish_requested": false
+}
