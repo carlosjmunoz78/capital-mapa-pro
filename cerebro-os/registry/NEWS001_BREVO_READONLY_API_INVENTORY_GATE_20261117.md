@@ -20,3 +20,6 @@ The official Brevo API is https://developers.brevo.com/reference/get-lists, http
 - Verify access from bounded private runtime or explicit workflow with no stdout secrets.
 - Run one read-only inventory probe and review anonymized counts/list IDs; reconcile with CRM B2B consent states using evidence, keep discrepancies in HOLD.
 - Certify editorial/UMS image QA and then test DOI and welcome at internal authorized inboxes; do not enable production sends now.
+
+## Secure manual inventory execution (not auto-triggered)
+Workflow `.github/workflows/news001-brevo-inventory-readonly-lab.yml` now offers a separate gated `workflow_dispatch` input `confirm_readonly=AUDIT` on branch `cerebro-engine-factory-v0`. It passes `secrets.BREVO_API_KEY` only into its one-shot read-only job and prints only aggregated list/account data. Neither a push nor a default manual dispatch runs the API probe. If the secret is absent, it exits BLOCKED_BREVO_SECRET_MISSING with no network request. No API key or contact data should ever be entered into the chat or checked into GitHub files.

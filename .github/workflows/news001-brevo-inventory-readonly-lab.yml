@@ -7,6 +7,13 @@ on:
       - 'cerebro-os/tests/test_news001_brevo_inventory_readonly.py'
       - '.github/workflows/news001-brevo-inventory-readonly-lab.yml'
   workflow_dispatch:
+    inputs:
+      confirm_readonly:
+        description: 'One read-only Brevo inventory probe; never modifies contacts or sends'
+        required: true
+        type: choice
+        default: 'NO'
+        options: ['NO', 'AUDIT']
 permissions:
   contents: read
 jobs:
@@ -19,3 +26,17 @@ jobs:
           persist-credentials: false
       - name: No credentials, no external calls; strict read-only audit tests
         run: python3 -m unittest discover -s cerebro-os/tests -p 'test_news001_brevo_inventory_readonly.py' -v
+
+  private-brevo-audit:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_readonly == 'AUDIT' && github.ref == 'refs/heads/cerebro-engine-factory-v0' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      NEWS001_BREVO_READONLY_ENABLED: 'true'
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Brevo lists and agency counts only (never print emails or secret)
+        run: python3 cerebro-os/engines/CEREBRO-NEWS-001/brevo_inventory_readonly.py
