@@ -107,7 +107,23 @@ export async function scan(env,now=new Date()){
  return receipt;
 }
 export default {
- async fetch(){return new Response(null,{status:404,headers:{"Cache-Control":"no-store"}});},
+ // Private service binding only. No public Worker subdomain, routes or previews.
+ async fetch(request,env){
+  const url=new URL(request.url);
+  if(request.method!=="POST"||url.pathname!=="/v0/internal/daily-model-watch"||
+     request.headers.get("x-cerebro-shared-scheduler")!=="FACT-001/SUP-001/LAB")
+   return new Response(null,{status:404,headers:{"Cache-Control":"no-store"}});
+  try{
+   const previous=await env.LIFECYCLE_KV?.get("model-lifecycle/v0/last-scan","json");
+   const today=new Date().toISOString().slice(0,10);
+   if(previous?.scan_date===today)return Response.json({state:"ALREADY_SCANNED_TODAY",date:today,model_calls:0});
+   const result=await scan(env);
+   return Response.json({state:result.state,scan_date:result.scan_date,
+     affected_count:result.affected.length,source_errors:result.errors.length,model_calls:0});
+  }catch(error){
+   return Response.json({state:"DEGRADED_HOLD",reason:String(error?.message||error).slice(0,100)}, {status:503});
+  }
+ },
  async scheduled(_controller,env,ctx){
   ctx.waitUntil(scan(env).catch(e=>console.error(JSON.stringify({
    event:"MODEL_RETIREMENT_SCAN_FAILURE",error:String(e.message||e).slice(0,120)}))));
