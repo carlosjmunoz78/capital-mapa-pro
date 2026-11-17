@@ -84,8 +84,12 @@ def inspect(get:Callable[[str],dict]) -> dict:
     plans=account.get("plan",[])
     if not isinstance(plans,list):plans=[]
     labels=sorted(set(x.get("type") for x in plans if isinstance(x,dict) and isinstance(x.get("type"),str)))
-    senders=get("/senders").get("senders",[])
-    if not isinstance(senders,list):raise InventoryBlocked("SENDERS_NOT_LIST")
+    sender_data=get("/senders")
+    if "senders" not in sender_data:
+        raise InventoryBlocked("SENDERS_NOT_REPORTED")
+    senders=sender_data["senders"]
+    if not isinstance(senders,list):
+        raise InventoryBlocked("SENDERS_NOT_LIST")
     lists=_page(get,"/contacts/lists?limit={limit}&offset={offset}","lists")
     seen=set()
     ag=[]

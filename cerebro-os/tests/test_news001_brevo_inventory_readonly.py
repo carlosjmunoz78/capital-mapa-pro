@@ -82,5 +82,6 @@ class BrevoInspectorTests(unittest.TestCase):
       return {"lists":[]}
     self.assertEqual(len(mod._page(mock_get,"/contacts/lists?limit={limit}&offset={offset}","lists")),50)
   def test_no_mutating_methods_in_transport(self):
-    self.assertNotIn("POST",open(mod.__file__,encoding="utf8").read().split("def make_reader")[1].split("def _page")[0])
+    source=Path(mod.__file__).read_text(encoding="utf8")
+    self.assertNotIn("POST",source.split("def make_reader")[1].split("def _page")[0])
 if __name__=="__main__":unittest.main()
