@@ -33,6 +33,8 @@ jobs:
           persist-credentials: false
       - name: Offline schema and security tests
         run: python3 -m unittest discover -s cerebro-os/tests -p 'test_ums001_universal_media_gitops_lab.py' -v
+      - name: Fail-closed visual QA gate regression suite
+        run: python3 -m unittest discover -s cerebro-os/tests -p 'test_ums001_visual_qa_gate.py' -v
       - name: Fetch original images and verify sha256 via OIDC
         run: python3 cerebro-os/factory/universal_media_gitops_lab.py
       - name: Private images and machine-readable receipts
