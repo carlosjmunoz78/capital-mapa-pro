@@ -24,6 +24,36 @@
       "status": "PRIVATE_ASSET_RECEIVED",
       "visual_qa": "PENDING",
       "brand_qa": "PENDING"
+    },
+    {
+      "id": "UMS001-LAB-NEWS001-B2C-20261117-02",
+      "sha256": "6b4b1596ec87efd30f4d7ac677e19514a10f6896b22587dddcec06a23c8c2791",
+      "bytes": 609127,
+      "status": "PRIVATE_ASSET_RECEIVED_REJECTED_FOR_REUSE",
+      "visual_qa": "REJECTED",
+      "brand_qa": "PENDING",
+      "reason_codes": [
+        "ANATOMY_DISCONNECTED_LIMBS",
+        "UNREADABLE_SYNTHETIC_TEXT",
+        "COMPOSITION_WRONG"
+      ],
+      "reuse_allowed": false,
+      "publish_authorized": false,
+      "drive_file_id": "17cKsRSdM7XGwnRd4nfDPbcH_3_YKxDcS"
+    },
+    {
+      "id": "UMS001-LAB-NEWS001-B2B-20261117-02",
+      "sha256": "c227a0723d89a2ff8292d709bd171aa617a8cfb27dbeb64ea508df23c87dfc18",
+      "bytes": 506693,
+      "status": "PRIVATE_ASSET_RECEIVED_REJECTED_FOR_REUSE",
+      "visual_qa": "REJECTED",
+      "brand_qa": "PENDING",
+      "reason_codes": [
+        "UNREADABLE_SYNTHETIC_TEXT"
+      ],
+      "reuse_allowed": false,
+      "publish_authorized": false,
+      "drive_file_id": "1bnVRchnWeGCB_UzBYAYSuucRUeaxTGxs"
     }
   ],
   "actions": {
@@ -40,10 +70,26 @@
     "b2b_links": 13,
     "render_qa": "PASS_DESKTOP_MOBILE",
     "deepseek_copy": "NOT_VERIFIED",
-    "images_publicly_hosted": false
+    "images_publicly_hosted": false,
+    "latest_real_productora_visual_qa": "REJECTED",
+    "latest_email_demo_publish_authorized": false
   },
   "publish_authorized": false,
   "paid_generation_invoiced": "NOT_VERIFIED",
   "brevo_send_enabled": false,
-  "autonomy": "LAB_ON_DEMAND_GITOPS_NOT_SCHEDULED"
+  "autonomy": "LAB_ON_DEMAND_GITOPS_NOT_SCHEDULED",
+  "actions_followup": {
+    "run_id": 44147612208,
+    "artifact_id": 14356454034,
+    "commit": "6b9c6b326a277f4da3b92eaba821d3941480fd2a",
+    "visual_qa": "REJECTED"
+  },
+  "visual_gate": {
+    "status": "FAIL_CLOSED_LAB",
+    "implementation_commit": "1ac8dd78dbd9ac8db2caf8208ab8f8249e3668ca",
+    "vision_reviewer_live_connected": false,
+    "known_rejected_hashes": 2,
+    "mandatory_before_reuse": true,
+    "consumer_runtime_integration": "PENDING"
+  }
 }
