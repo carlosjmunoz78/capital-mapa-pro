@@ -1,0 +1,22 @@
+name: NEWS001 · WordPress consent parser candidate LAB
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/wp-leads-lab/**'
+      - '.github/workflows/news001-wp-consent-candidate-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  consent-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: PHP syntax candidate
+        run: php -l cerebro-os/engines/CEREBRO-NEWS-001/wp-leads-lab/fenix-cerebro-leads-candidate.php
+      - name: Strict consent regression without any external call
+        run: php cerebro-os/engines/CEREBRO-NEWS-001/wp-leads-lab/tests/test_consent.php
