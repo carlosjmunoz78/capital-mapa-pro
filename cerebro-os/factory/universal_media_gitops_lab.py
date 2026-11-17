@@ -10,6 +10,7 @@ import time
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from oidc_enroll_changed_engines import request_oidc, validate_manifest, ENDPOINT
+from ums001_visual_qa_gate import assess_private_asset
 
 ROOT = "cerebro-os/media-requests/"
 ENG = re.compile(r"^[A-Z][A-Z0-9-]{2,63}$")
@@ -109,9 +110,11 @@ def run_one(path: str, sha: str, output: Path) -> dict:
         raise RuntimeError("Media integrity or dimensions failed")
     output.mkdir(parents=True,exist_ok=True)
     (output/(engine+"-"+rid+".jpg")).write_bytes(image)
+    qa=assess_private_asset(asset_sha256=actual, company_id="fenix",engine_id=engine,
+                            request_id=rid, environment="LAB")
     result={"state":"PRIVATE_ASSET_RECEIVED","company_id":"fenix","engine_id":engine,
             "request_id":rid,"sha256":actual,"bytes":len(image),"format":"JPEG_1024_1024",
-            "visual_qa":"PENDING","brand_qa":"PENDING","publication":False}
+            **qa}
     (output/(engine+"-"+rid+".receipt.json")).write_text(json.dumps(result,indent=2)+"\n",encoding="utf-8")
     return result
 
@@ -125,7 +128,8 @@ def main() -> None:
     target=Path(os.environ["RUNNER_TEMP"])/"cerebro-ums001-images"
     for path in changed_paths(os.environ["CEREBRO_FACT_COMMIT_BEFORE"],sha):
         r=run_one(path,sha,target)
-        print("UMS001 LAB",r["engine_id"],r["state"],"SHA256",r["sha256"],"NO_PUBLICATION")
+        print("UMS001 LAB",r["engine_id"],r["state"],"SHA256",r["sha256"],
+              "VISUAL_QA",r["qa_state"],"REUSE_ALLOWED",r["reuse_allowed"],"NO_PUBLICATION")
         if os.environ.get("GITHUB_STEP_SUMMARY"):
             with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as f:
                 f.write("UMS001 LAB / "+r["engine_id"]+" / PRIVATE_ASSET_RECEIVED / no publication\n")

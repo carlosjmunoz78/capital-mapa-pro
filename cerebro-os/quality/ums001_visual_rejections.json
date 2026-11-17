@@ -1,0 +1,45 @@
+{
+  "policy_id": "UMS001-VISUAL-QA-FAIL-CLOSED-V1",
+  "schema_version": "1.0.0",
+  "scope": "UMS-001 LAB, all FACT registered engines",
+  "review_dimensions": [
+    "anatomy_consistent",
+    "limbs_connected",
+    "hands_natural",
+    "faces_natural",
+    "no_fake_text",
+    "no_deformed_objects",
+    "scene_correct",
+    "brand_appropriate",
+    "rights_verified"
+  ],
+  "rejected_assets": [
+    {
+      "sha256": "6b4b1596ec87efd30f4d7ac677e19514a10f6896b22587dddcec06a23c8c2791",
+      "company_id": "fenix",
+      "engine_id": "CEREBRO-NEWS-001",
+      "request_id": "UMS001-LAB-NEWS001-B2C-20261117-02",
+      "reason_codes": [
+        "ANATOMY_DISCONNECTED_LIMBS",
+        "UNREADABLE_SYNTHETIC_TEXT",
+        "COMPOSITION_WRONG"
+      ],
+      "drive_file_id": "17cKsRSdM7XGwnRd4nfDPbcH_3_YKxDcS",
+      "original_preserved": true
+    },
+    {
+      "sha256": "c227a0723d89a2ff8292d709bd171aa617a8cfb27dbeb64ea508df23c87dfc18",
+      "company_id": "fenix",
+      "engine_id": "CEREBRO-NEWS-001",
+      "request_id": "UMS001-LAB-NEWS001-B2B-20261117-02",
+      "reason_codes": [
+        "UNREADABLE_SYNTHETIC_TEXT"
+      ],
+      "drive_file_id": "1bnVRchnWeGCB_UzBYAYSuucRUeaxTGxs",
+      "original_preserved": true
+    }
+  ],
+  "noncertified_images": "QA_HOLD",
+  "reuse_requires_independent_signed_review": true,
+  "publication_authorized_by_this_policy": false
+}
