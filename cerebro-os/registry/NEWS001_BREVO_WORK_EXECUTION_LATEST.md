@@ -33,3 +33,11 @@ Re-open Brevo campaign **113**, finish the B2B draft, then continue with Task 07
 - Old automation #9 not paused; new automations not activated. No commercial emails sent by NEWS001.
 - CEREBRO-generated canonical HTML: 10 blocks, 13 links, official logo+hero, passed LAB CI; native Brevo unsubscribe still needs an E2E test and approval.
 - Future reports must not state NEWS001 AUTONOMOUS in PROD absent actual list→trigger→delivery and unsubscribe proof.
+
+## Verificación incremental 18/11/2026, tras agotarse los créditos Work
+- Datos de la última comunicación de Work, aportados por el propietario: campaña B2B #113 con diseño, asunto y preheader guardados; automatizaciones #10 y #11 creadas e inactivas, disparadores #17/#18; #10 enlazada a mensaje de automatización B2C #115, pero la plantilla necesita activación. Sin activar nada.
+- Verificación directa mediante Opera read-only: #10 tiene acción `Enviar un email`, asunto B2C y disparador lista #17; figura INACTIVA. #11 tiene disparador de lista #18 y figura INACTIVA; **no tiene acción `Enviar un email` visible**, por lo que falta mensaje B2B.
+- Verificación directa de Gmail propio autorizado: llegó una prueba B2C de Fénix el 18/11/2026 a las 12:32:59 UTC, asunto `TEST - La casa te gusta. Ahora hablemos de los números.`. El cuerpo incluye enlace real Brevo `/mk/un/v2/` de baja, pero NO se ha pulsado ni verificado el funcionamiento de la baja.
+- ACCIÓN NUEVA (conector Brevo): contacto personal autorizado de prueba agregado correctamente a las listas #17 y #18, **un suscriptor de prueba en cada una**, Brevo respondió `success` y el `get_list` posterior confirmó ambos contadores a 1. No se importaron particulares históricos ni contactos comerciales ni Salinas.
+- Se mantiene desactivado el envío comercial nuevo; #9 sigue activa, otras automatizaciones intactas. NO consta prueba de entrega B2B ni programación semanal autónoma ni circuito web/social completo.
+- **Siguiente prioridad concreta:** completar acción de email de #11 y validar contenido/mensajes y baja; probar B2B con único buzón autorizado; probar consentimiento real end-to-end (sin inventarlo) antes de activar #10/#11; pausar #9 solo al certificar el relevo; configurar calendario editorial semanal vigente y envío respetando cuota.

@@ -2,7 +2,7 @@
   "company_id": "fenix",
   "engine_id": "CEREBRO-NEWS-001",
   "environment": "LAB",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "date": "2026-11-18",
   "provenance": {
     "source": "personal Library NEWS001_BREVO_WORK_EXECUTION_LATEST.md",
@@ -10,16 +10,21 @@
   },
   "tasks": {
     "10": {
-      "state": "BLOQUEADO",
-      "reason": "NO_SAFE_INTERNAL_E2E_DELIVERY_YET"
+      "state": "PARCIAL",
+      "b2c_test_received": true,
+      "b2b_test_received": false,
+      "unsubscribe_link_generated": true,
+      "unsubscribe_function_tested": false
     },
     "11": {
       "state": "BLOQUEADO",
-      "reason": "NEW_NOT_VERIFIED; KEEP_OLD_9_ACTIVE"
+      "old_automation_id": 9,
+      "old_automation_active": true,
+      "reason": "NEW_AUTOMATIONS_INACTIVE_E2E_INCOMPLETE"
     },
     "12": {
       "state": "BLOQUEADO",
-      "reason": "AUTO_WEEKLY_SENDING_NOT_CONFIGURED"
+      "reason": "WEEKLY_CEREBRO_PIPELINE_NOT_ACTIVE"
     },
     "01": {
       "state": "HECHO",
@@ -60,7 +65,13 @@
       "audience": "b2c",
       "intended_list_id": 17,
       "needs": "NATIVE_BREVO_UNSUBSCRIBE_VALIDATION",
-      "sent": false
+      "sent": false,
+      "test_email_received_in_authorized_inbox": true,
+      "unsubscribe_link_present": true,
+      "unsubscribe_click_verified": false,
+      "auto_message_template_work_reported_id": 115,
+      "automation_id": 10,
+      "automation_active": false
     },
     "06": {
       "state": "PARCIAL",
@@ -68,37 +79,51 @@
       "audience": "b2b",
       "intended_list_id": 18,
       "needs": "FINISH_STUCK_EDITOR_AND_VALIDATE_CONTENT",
-      "sent": false
+      "sent": false,
+      "b2b_subject_and_html_saved_work_reported": true,
+      "automation_id": 11,
+      "automation_active": false,
+      "automation_email_action": "MISSING_ON_LIVE_UI"
     },
     "07": {
-      "state": "BLOQUEADO",
-      "reason": "BREVO_AUTOMATION_NOT_CREATED",
-      "sent": false
+      "state": "PARCIAL",
+      "automation_id": 10,
+      "trigger_list_id": 17,
+      "email_action_present": true,
+      "template_activation_verified": false,
+      "automation_active": false
     },
     "08": {
-      "state": "BLOQUEADO",
-      "reason": "BREVO_AUTOMATION_NOT_CREATED",
-      "sent": false
+      "state": "PARCIAL",
+      "automation_id": 11,
+      "trigger_list_id": 18,
+      "email_action_present": false,
+      "automation_active": false
     },
     "09": {
-      "state": "BLOQUEADO",
-      "reason": "NO_REAL_VERIFIED_NEW_LEAD_TO_TARGET_LIST",
-      "sent": false
+      "state": "PARCIAL",
+      "authorized_test_contact_added_to_lists": [
+        17,
+        18
+      ],
+      "real_web_social_ingestion_verified": false
     }
   },
   "live_list_snapshot": [
     {
       "list_id": 17,
-      "subscribers": 0
+      "subscribers": 1,
+      "subscription_scope": "authorized owner test only"
     },
     {
       "list_id": 18,
-      "subscribers": 0
+      "subscribers": 1,
+      "subscription_scope": "authorized owner test only"
     }
   ],
   "commercial_sending_enabled": false,
   "existing_automation_9_paused": false,
   "rollback": "Both drafts 112 and 113 unprogrammed, no automation changes",
   "additional_spend_eur": 0,
-  "next_step": "Finish draft 113 in authenticated Brevo, native unsubscribe and contacts test before any production delivery"
+  "next_step": "Configure B2B #11 email action; activate B2C template #115 only after QA; test B2B, optin, unsubscribe and weekly before activating automations"
 }
