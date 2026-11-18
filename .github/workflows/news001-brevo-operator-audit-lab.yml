@@ -1,0 +1,19 @@
+name: NEWS001 · Brevo operator audit isolated LAB tests
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/brevo-operator-audit-lab/**'
+      - '.github/workflows/news001-brevo-operator-audit-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: node --test cerebro-os/engines/CEREBRO-NEWS-001/brevo-operator-audit-lab/tests/audit.test.mjs
