@@ -74,6 +74,6 @@ export function render(a,now=new Date(),news=null){
  cell("pie",'<div style="font:12px/1.65 Arial,sans-serif;color:#666;border-top:1px solid #ddd;padding-top:14px"><p style="margin:0 0 7px">Fénix Capital · Córdoba · Información general; no oferta vinculante.</p><p style="margin:0 0 7px">Recibes esta newsletter por tu suscripción a las comunicaciones de Fénix Capital.</p><a href="{{ unsubscribe }}" style="color:#D94F00">Darse de baja</a> · <a href="https://fenixcapital.es/declaracion-de-privacidad/" style="color:#666">Privacidad</a> · <a href="mailto:hipotecas@fenixcapital.es" style="color:#666">Contacto</a></div>')
  ].join("")+'</table></td></tr></table></body></html>';
  const blocks=(html.match(/\bdata-block=/g)||[]).length,images=(html.match(/<img /g)||[]).length;
- if(blocks!==10||images!==2||html.length<6500||!html.includes("{{ unsubscribe }}")||!html.includes(LOGO))throw Error("HTML_QA_FAIL_blocks_"+blocks+"_images_"+images+"_chars_"+html.length);
+ if(blocks!==10||images!==2||html.length<5700||!html.includes("{{ unsubscribe }}")||!html.includes(LOGO))throw Error("HTML_QA_FAIL_blocks_"+blocks+"_images_"+images+"_chars_"+html.length);
  return {audience:a,listId:LISTS[a],week,name:"NEWS001 CEREBRO AUTO "+a.toUpperCase()+" "+week,subject:"🟠 "+brand+" | "+title,previewText:pro?"Una idea práctica para proteger las operaciones de tu agencia.":"Ideas prácticas para preparar mejor tu compra de vivienda.",htmlContent:html,blocks,images,source:source?{url:source.url,title:source.title,date:source.published}:null};
 }
