@@ -1,0 +1,157 @@
+{
+  "engine_id": "CEREBRO-NEWS-001",
+  "company_id": "fenix-capital",
+  "environment": "LAB",
+  "version": "0.1.0",
+  "publish_enabled": false,
+  "send_enabled": false,
+  "approved": false,
+  "locale": "es-ES",
+  "schema": "newsletter_editorial_blocks_v1",
+  "assets": {
+    "logo": "https://fenixcapital.es/wp-content/uploads/2026/10/Logo-Fenix-Capital-oficial-color-completo-scaled-1.png",
+    "b2c": "https://fenixcapital.es/wp-content/uploads/2026/10/Fenix-C2B7-Pareja-haciendo-numeros-para-comprar-vivienda.jpg",
+    "b2b": "https://fenixcapital.es/wp-content/uploads/2026/11/fenix-seo001-52663-cabecera-premium-apoyo-hipotecario-agencias-cordoba.webp"
+  },
+  "audiences": {
+    "b2c": {
+      "audience": "Particulares",
+      "name": "Hipotecas sin vueltas",
+      "subject": "La casa te gusta. Ahora hablemos de los números.",
+      "preheader": "Arras, ahorro, financiación al 90 % y una calculadora: ideas útiles antes de dar el paso.",
+      "hero_title": "Una casa ilusiona. Que los números no te quiten el sueño.",
+      "hero_intro": "A veces todo empieza por una visita, una sensación y la frase «esta podría ser». Esa ilusión importa. Pero merece la pena acompañarla de números claros antes de entregar una señal.",
+      "letter": "En Fénix nos gustan las preguntas que llegan a tiempo. Por eso, hoy no vamos a venderte una hipoteca milagrosa: vamos a ayudarte a ver qué deberías comprobar antes de comprometer tus ahorros.",
+      "main_title": "Antes de reservar, hay tres conversaciones que conviene tener",
+      "main_intro": "Aunque el piso te encante, todavía quedan piezas por encajar. Pregúntate lo siguiente:",
+      "checkpoints": [
+        [
+          "El dinero completo",
+          "No basta con mirar la entrada. Hay que contar impuestos, gastos de compra y el colchón que quieres conservar después."
+        ],
+        [
+          "La cuota de verdad",
+          "Suma las deudas que ya tienes. La cuota que parece cómoda en una calculadora puede dejar de serlo en el presupuesto cotidiano."
+        ],
+        [
+          "El calendario",
+          "Pregunta qué ocurrirá si faltan documentos, la tasación llega por debajo del precio previsto o el banco necesita más tiempo."
+        ]
+      ],
+      "main_quote": "La prisa por no perder una vivienda no debería hacerte perder claridad.",
+      "mortgage_title": "¿Una hipoteca al 90 % significa que solo necesitas ahorrar un 10 %?",
+      "mortgage_body": "No necesariamente. Ese porcentaje describe la parte financiada bajo los criterios que aplique la entidad; no sustituye los impuestos, gastos ni el análisis de tu caso. Y una simulación nunca es una aprobación. El porcentaje útil es el que encaja con tu economía completa.",
+      "mortgage_link": "Entender la financiación al 90 %",
+      "article_title": "Qué revisar antes de firmar arras",
+      "article_body": "Si ya has encontrado vivienda, esta guía te ayuda a ordenar ahorro, precio, tasación, documentación y plazos. Mejor una conversación incómoda ahora que una sorpresa cuando ya has entregado dinero.",
+      "article_link": "Leer la guía completa",
+      "tool_title": "Ponle cifras a la compra, no solo a la hipoteca",
+      "tool_body": "Una vivienda tiene precio de compra y también costes alrededor. Usa nuestra calculadora de gastos para estimarlos de forma orientativa antes de hacer promesas o fijar un presupuesto final.",
+      "tool_link": "Calcular los gastos de compra",
+      "key_title": "«Mi banco me ha dicho que sí». ¿Eso es suficiente?",
+      "key_body": "Depende de qué haya revisado exactamente. Una conversación, una oferta orientativa o una simulación no equivalen a una decisión definitiva sobre tu expediente y esa vivienda. Pide claridad sobre lo que está confirmado y lo que falta por comprobar.",
+      "trust_title": "Lo que puedes esperar de Fénix",
+      "trust_body": "Primero escuchamos tu situación. Después contrastamos ingresos, ahorro, deudas, vivienda y documentación. Y te explicamos qué merece la pena estudiar y qué sigue pendiente. Sin venderte como segura una operación que todavía debe analizar la entidad.",
+      "question_title": "Te hacemos una pregunta",
+      "question": "Si hoy fueras a comprar, ¿qué te quitaría más el sueño: no tener ahorro suficiente, no saber qué cuota asumir o que se alarguen los plazos?",
+      "question_body": "Respóndenos. Nos interesa conocer las dudas reales, también las que parecen demasiado sencillas.",
+      "question_link": "Contar mi duda",
+      "cta_title": "¿Y si revisamos tu compra antes de que tengas que decidir?",
+      "cta_body": "Cuéntanos qué vivienda valoras, qué ahorro tienes y qué punto te preocupa. Te ayudaremos a ordenar el siguiente paso. La revisión inicial no es una aprobación bancaria.",
+      "cta_button": "Quiero revisar mi situación",
+      "closing": "Gracias por leernos. Nos vemos en tu próxima gran decisión, con menos ruido y más claridad.",
+      "urls": {
+        "mortgage": [
+          "/hipotecas/hipoteca-90/",
+          "hipoteca_90"
+        ],
+        "article": [
+          "/antes-de-reservar/",
+          "articulo_arras"
+        ],
+        "tool": [
+          "/gastos-compra/",
+          "calculadora_gastos"
+        ],
+        "main": [
+          "/pre-ok-hipotecario/",
+          "cta_principal"
+        ],
+        "question": [
+          "mailto:hipotecas@fenixcapital.es?subject=Mi%20pregunta%20a%20Hipotecas%20sin%20vueltas",
+          "pregunta"
+        ]
+      },
+      "image_alt": "Pareja revisando juntos números y documentación de una compra de vivienda en un ambiente cercano."
+    },
+    "b2b": {
+      "audience": "Inmobiliarias",
+      "name": "Operaciones con más claridad",
+      "subject": "La operación parecía cerrada. ¿Y la financiación?",
+      "preheader": "Tres señales de riesgo, una herramienta para agencias y un Pre-OK para anticiparse.",
+      "hero_title": "Hay ventas que se complican cuando todo parecía hecho.",
+      "hero_intro": "Lo sabes bien: detrás de una operación hay visitas, llamadas, negociación, expectativas y muchas horas de trabajo. Por eso fastidia tanto descubrir tarde un problema que quizá podía haberse detectado antes.",
+      "letter": "Hoy queremos hablarte de algo muy práctico: cómo abordar la financiación del comprador sin convertir a tu agencia en un banco y sin prometer certezas que nadie tiene todavía.",
+      "main_title": "El comprador está ilusionado. Pero ¿qué sabemos de su capacidad real?",
+      "main_intro": "La pregunta no es cuánto le gustaría pagar, sino qué datos hacen defendible la operación. Antes de fijar una reserva, conviene distinguir interés comercial de financiación contrastada.",
+      "semaphore": [
+        [
+          "VERDE · Base documental",
+          "Hay información inicial sobre ingresos, otras cuotas, ahorro y vivienda; puede iniciarse una revisión, sin dar por aprobada la hipoteca."
+        ],
+        [
+          "ÁMBAR · Capacidad",
+          "La cuota deseada se calcula sin tener en cuenta otros préstamos, tarjetas o ingresos variables."
+        ],
+        [
+          "ROJO · Calendario",
+          "Se quiere firmar arras con fechas ajustadas sin tener documentación y revisión de financiación encauzadas."
+        ]
+      ],
+      "main_quote": "Una agencia no tiene que aprobar hipotecas. Tiene que detectar cuándo es el momento de pedir un análisis profesional.",
+      "article_title": "Evitar operaciones caídas empieza bastante antes de la firma",
+      "article_body": "Hemos reunido señales que suelen desordenar el proceso: ahorro insuficiente, tasación que no encaja, documentos que faltan y plazos que dejan poco margen. La idea es ayudarte a anticiparlas en la conversación comercial.",
+      "article_link": "Leer el protocolo práctico",
+      "tool_title": "Una calculadora para orientar, no para prometer",
+      "tool_body": "Nuestra calculadora de preanálisis ayuda a ordenar precio, ahorro, deuda y cuota estimada. No sustituye al Pre-OK ni autoriza a comunicar al comprador que su hipoteca está aprobada.",
+      "tool_link": "Abrir calculadora para agencias",
+      "case_title": "La frase que pide una segunda pregunta",
+      "case_body": "«El banco ya le ha dicho que sí». Puede significar muchas cosas: una simulación, una consulta previa o un análisis avanzado. Antes de convertir esa frase en fecha de arras, pregunta qué documentos se han revisado y qué condiciones siguen abiertas. No hace falta conocer datos financieros que no correspondan a la agencia.",
+      "key_title": "La clave Fénix: derivar pronto también es vender mejor",
+      "key_body": "Un preanálisis oportuno no quita protagonismo a tu equipo. Puede proteger la relación comercial, ayudar a ordenar expectativas y permitir que cada profesional trabaje con la información y las competencias que le corresponden.",
+      "trust_title": "Así trabajamos junto a una agencia",
+      "trust_body": "La agencia mantiene su relación con el comprador. Fénix revisa la parte hipotecaria con autorización y documentación adecuada, explica incidencias sin prometer resultados y comunica los hitos que corresponda compartir. Un método más útil que una respuesta vaga.",
+      "question_title": "Nos interesa vuestra experiencia",
+      "question": "¿Qué os hace perder más tiempo últimamente: clientes sin ahorro suficiente, documentación incompleta o plazos de arras demasiado ajustados?",
+      "question_body": "Cuéntanoslo. Una buena herramienta empieza por un problema de verdad, no por una presentación bonita.",
+      "question_link": "Contar el principal problema",
+      "cta_title": "¿Tienes un comprador al que conviene revisar antes de seguir?",
+      "cta_body": "Cuéntanos lo imprescindible para orientar el siguiente paso. Si hace falta un Pre-OK, coordinaremos la revisión profesional sin interferir en la relación entre tu agencia y el comprador.",
+      "cta_button": "Pedir un Pre-OK para mi comprador",
+      "closing": "Nos gustan los acuerdos claros y las operaciones bien preparadas. Si tienes un caso sobre la mesa, hablemos.",
+      "urls": {
+        "article": [
+          "/inmobiliarias/evitar-operaciones-caidas/",
+          "articulo_operaciones"
+        ],
+        "tool": [
+          "/inmobiliarias/calculadora-preanalisis-hipotecario/",
+          "calculadora_b2b"
+        ],
+        "main": [
+          "/inmobiliarias/preok-hipotecario/",
+          "cta_preok"
+        ],
+        "secondary": [
+          "/inmobiliarias/formacion-inmobiliarias/",
+          "formacion_agencias"
+        ],
+        "question": [
+          "mailto:hipotecas@fenixcapital.es?subject=Pregunta%20de%20inmobiliarias%20a%20Fenix",
+          "pregunta"
+        ]
+      },
+      "image_alt": "Mesa de trabajo y documentación de una operación inmobiliaria preparada para revisión profesional."
+    }
+  }
+}

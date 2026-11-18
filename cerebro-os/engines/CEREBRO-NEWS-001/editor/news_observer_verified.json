@@ -1,0 +1,43 @@
+{
+  "schema": "cerebro-news-verified-sources-v1",
+  "as_of": "2026-11-17",
+  "items": [
+    {
+      "id": "BDE-EURIBOR-2026-11-03",
+      "title": "El euríbor se sitúa en el 3,239 % en octubre, 1,052 puntos más que hace un año",
+      "source_url": "https://www.bde.es/wbe/es/noticias-eventos/actualidad-banco-espana/notas-banco-espana/euribor-octubre-2026.html",
+      "source_type": "official_primary",
+      "published_at": "2026-11-03",
+      "verified_at": "2026-11-17",
+      "audiences": ["b2c", "b2b"],
+      "facts": [
+        "El euríbor a un año publicado para octubre de 2026 fue del 3,239 %, frente al 3,247 % correspondiente a septiembre de 2026.",
+        "Respecto al mismo mes del año anterior, el índice subió 1,052 puntos porcentuales en octubre de 2026.",
+        "El Banco de España indica que estos índices no son referencia oficial hasta su publicación en el BOE.",
+        "El euríbor a un año se utiliza como principal referencia para fijar el interés de hipotecas de tipo variable."
+      ]
+    },
+    {
+      "id": "BDE-BCE-TIPOS-2026-10-29",
+      "title": "El BCE mantiene sin cambios los tipos de interés en octubre",
+      "source_url": "https://www.bde.es/wbe/es/noticias-eventos/actualidad-bce/decisiones-politica-monetaria/tipos-de-interes--octubre-2026.html",
+      "source_type": "official_primary",
+      "published_at": "2026-10-29",
+      "verified_at": "2026-11-17",
+      "audiences": ["b2c", "b2b"],
+      "facts": [
+        "La decisión del 29 de octubre de 2026 mantuvo el tipo de la facilidad de depósito en el 2,50 %.",
+        "La misma decisión mantuvo el tipo de las operaciones principales de financiación en el 2,65 %.",
+        "La facilidad marginal de crédito se mantuvo en el 2,90 %.",
+        "La decisión trata de tipos oficiales del BCE; por sí sola no fija la TAE ni garantiza el precio de una oferta hipotecaria concreta."
+      ]
+    }
+  ],
+  "verification_policy": {
+    "only_public_official_sources": true,
+    "evidence_not_copied_into_email_as_external_links": true,
+    "no_external_customer_redirections": true,
+    "no_customer_personal_data": true,
+    "status": "VERIFIED_SOURCE_RECORDS_ONLY; NOT_AI_QA"
+  }
+}
