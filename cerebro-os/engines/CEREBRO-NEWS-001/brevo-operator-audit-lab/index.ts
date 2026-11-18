@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {TARGET_IDS,summarizeCampaign,summarizeTemplate,summarizeTemplates,auditDecision} from "./core.mjs";
 import {TARGETS,prepare,verify} from "./repair.mjs";
 import {eligibleTemplate} from "./activate.mjs";
+import {eligibleTestCampaign,OWNER} from "./test-send.mjs";
 const TOKEN_SHA256="48a231313669e9fbe71ced2be12d66e87a8f5139abba650cbc76f80583649788";
 function out(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json","cache-control":"no-store"}});}
 async function sha256(v:string){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
@@ -9,7 +10,7 @@ function eq(a:string,b:string){if(a.length!==b.length)return false;let d=0;for(l
 Deno.serve(async (req:Request)=>{
  if(req.method!=="POST")return out({state:"METHOD_NOT_ALLOWED"},405);
  const u=new URL(req.url);
- const mode=u.pathname.endsWith("/audit")?"audit":u.pathname.endsWith("/export")?"export":u.pathname.endsWith("/repair")?"repair":u.pathname.endsWith("/activate-template")?"activate-template":null;
+ const mode=u.pathname.endsWith("/audit")?"audit":u.pathname.endsWith("/export")?"export":u.pathname.endsWith("/repair")?"repair":u.pathname.endsWith("/activate-template")?"activate-template":u.pathname.endsWith("/send-test")?"send-test":null;
  if(!mode)return out({state:"NOT_FOUND"},404);
  const token=req.headers.get("x-news001-lab-token")||"";
  if(token.length!==64||!eq(await sha256(token),TOKEN_SHA256))return out({state:"UNAUTHORIZED"},401);
@@ -29,6 +30,33 @@ Deno.serve(async (req:Request)=>{
    return JSON.parse(raw);
   }finally{clearTimeout(tm);}
  };
+ if(mode==="send-test"){
+  const c=(body as Record<string,unknown>).campaign_id;
+  const expected=(body as Record<string,unknown>).test_token;
+  if(c!==112&&c!==113)return out({state:"CAMPAIGN_NOT_ALLOWLISTED"},403);
+  const tokenCheck=c===113?"NEWS001_20261118_B2B_TEST_ONCE":"NEWS001_20261118_B2C_TEST_CANONICAL_ONCE";
+  if(expected!==tokenCheck)return out({state:"TEST_REQUEST_TOKEN_NOT_MATCHED"},409);
+  const path="/emailCampaigns/"+c;
+  try {
+   const campaign=await read(path);
+   eligibleTestCampaign(c,campaign);
+   const ctrl=new AbortController(),tm=setTimeout(()=>ctrl.abort(),9000);
+   let status=0;
+   try{
+    const sent=await fetch("https://api.brevo.com/v3"+path+"/sendTest",{
+     method:"POST",headers:{"api-key":key,"accept":"application/json","content-type":"application/json"},
+     body:JSON.stringify({emailTo:[OWNER]}),redirect:"error",signal:ctrl.signal});
+    status=sent.status;
+    if(!sent.ok)return out({state:"OWNER_TEST_REJECTED",campaign_id:c,http_status:status,recipient_type:"OWNER_ONLY"},422);
+   }finally{clearTimeout(tm);}
+   return out({state:"BREVO_OWNER_TEST_ACCEPTED",campaign_id:c,http_status:status,
+    recipient_type:"OWNER_ONLY",one_address_only:true,commercial_sending:false,old_automation_9_preserved:true,
+    check_gmail_delivery_separately:true});
+  }catch(e){
+   const s=e instanceof Error?e.message:"UNKNOWN";return out({state:"SEND_TEST_HELD",campaign_id:c,
+    reason:/^(NOT_|WRONG_|CANONICAL_|BREVO_\d{3})/.test(s)?s:"UPSTREAM_FAILURE",commercial_sending:false},422);
+  }
+ }
  if(mode==="activate-template"){
   if((body as Record<string,unknown>).backup_commit!=="931afd65dfe3ff36087d72e15a1134d01d27260b")return out({state:"BACKUP_NOT_CONFIRMED"},409);
   const id=(body as Record<string,unknown>).template_id;
