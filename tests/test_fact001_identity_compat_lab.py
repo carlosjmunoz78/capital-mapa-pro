@@ -85,5 +85,95 @@ class FactoryIdentityCompatibilityLab(unittest.TestCase):
             self.assertEqual((target / "manifest.json").read_bytes(), original)
 
 
+    def test_failed_late_hook_leaves_no_partial_engine_or_lock(self):
+        # A failing docs/ops write after staging media must not publish.
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {
+            "CEREBRO_FACT_ENROLL_EVENT_KEY": "x" * 64,
+            "CEREBRO_CLOUDFLARE_API_TOKEN": "fake-placeholder-never-transmit",
+            "CEREBRO_CLOUDFLARE_ACCOUNT_ID": "a" * 32,
+            "CEREBRO_FACT_ENROLL_QUEUE_ID": "b" * 32,
+        }, clear=True):
+            root = Path(tmp)
+            original = Path.write_text
+
+            def fail_rebuild(self, content, *args, **kwargs):
+                if self.name == "rebuild.md":
+                    raise OSError("INTENTIONAL_LAB_WRITE_FAULT")
+                return original(self, content, *args, **kwargs)
+
+            with patch.object(Path, "write_text", new=fail_rebuild), \
+                    patch("urllib.request.urlopen") as network:
+                with self.assertRaisesRegex(OSError, "INTENTIONAL_LAB_WRITE_FAULT"):
+                    factory.scaffold(root, "FACT-ATOMIC-001", "Fault injection", company_id="fenix")
+                network.assert_not_called()
+            parent = root / "engines"
+            self.assertFalse((parent / "FACT-ATOMIC-001").exists())
+            self.assertFalse((parent / ".FACT-ATOMIC-001.factory.lock").exists())
+            self.assertEqual(list(parent.glob(".FACT-ATOMIC-001.build-*")), [])
+
+    def test_lock_prevents_concurrent_writers_without_touching_lock(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {}, clear=True):
+            parent = Path(tmp) / "engines"
+            parent.mkdir()
+            lock = parent / ".FACT-LOCK-001.factory.lock"
+            lock.write_text("OTHER_WRITER")
+            with self.assertRaises(FileExistsError):
+                factory.scaffold(Path(tmp), "FACT-LOCK-001", "Concurrent", company_id="fenix")
+            self.assertEqual(lock.read_text(), "OTHER_WRITER")
+            self.assertFalse((parent / "FACT-LOCK-001").exists())
+
+    def test_signed_transport_only_after_complete_scaffold_commit(self):
+        class FakeResponse:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self):
+                return b'{"success":true,"result":{}}'
+
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {
+            "CEREBRO_FACT_ENROLL_EVENT_KEY": "k" * 64,
+            "CEREBRO_CLOUDFLARE_API_TOKEN": "fake-lab-token",
+            "CEREBRO_CLOUDFLARE_ACCOUNT_ID": "a" * 32,
+            "CEREBRO_FACT_ENROLL_QUEUE_ID": "b" * 32,
+        }, clear=True):
+            path = Path(tmp) / "engines" / "FACT-POSTCOMMIT-001"
+            requests = []
+
+            def check_post_commit(req, timeout=8):
+                self.assertTrue(path.is_dir(), "no network until manifest committed")
+                self.assertTrue((path / "manifest.json").is_file())
+                self.assertTrue((path / "ops" / "rebuild.md").is_file())
+                self.assertTrue((path / "events" / "FACT001_ENGINE_CREATED.outbox.json").is_file())
+                self.assertEqual(timeout, 8)
+                requests.append(req)
+                return FakeResponse()
+
+            with patch("urllib.request.urlopen", new=check_post_commit):
+                result = factory.scaffold(
+                    Path(tmp), "FACT-POSTCOMMIT-001", "One queue", company_id="fenix"
+                )
+            self.assertEqual(result, path)
+            self.assertEqual(len(requests), 1)
+            receipt = json.loads((path / "events" / "UMS001_FACTORY_ENROLLMENT_STATUS.json").read_text())
+            self.assertEqual(receipt["status"], "QUEUED_SIGNED_ENROLLMENT_PENDING_GATEWAY_ACK")
+            self.assertFalse(receipt["media_dispatch_enabled"])
+            self.assertFalse((path.parent / ".FACT-POSTCOMMIT-001.factory.lock").exists())
+
+    def test_partial_iam_configuration_cannot_send_or_publish(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {
+            "CEREBRO_FACT_ENROLL_EVENT_KEY": "k" * 64,
+            "CEREBRO_CLOUDFLARE_API_TOKEN": "fake-lab-token",
+            # Missing account and queue on purpose.
+        }, clear=True), patch("urllib.request.urlopen") as network:
+            path = factory.scaffold(
+                Path(tmp), "FACT-PARTIAL-IAM-001", "No transport", company_id="fenix"
+            )
+            network.assert_not_called()
+            receipt = json.loads((path / "events" / "UMS001_FACTORY_ENROLLMENT_STATUS.json").read_text())
+            self.assertEqual(receipt["status"], "PENDING_FACTORY_IAM_TRANSPORT")
+            self.assertFalse(receipt["media_dispatch_enabled"])
+
+
 if __name__ == "__main__":
     unittest.main()
