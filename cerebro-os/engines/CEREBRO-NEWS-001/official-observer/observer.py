@@ -19,7 +19,7 @@ FEEDS = (
     "https://www.ecb.europa.eu/rss/press.html",
 )
 HOSTS={"www.bde.es","www.ecb.europa.eu"}
-TOPIC=re.compile(r"eur[ií]bor|hipotec|vivienda|pr[eé]stam|cr[eé]dito|financiac|inter[eé]s|monetari|banco",re.I)
+TOPIC=re.compile(r"eur[ií]bor|hipotec|vivienda|pr[eé]stam|cr[eé]dito|financiac|inter[eé]s|monetari|estabilidad financiera",re.I)
 STRIP=re.compile(r"\s+")
 class Text(HTMLParser):
     def __init__(self):super().__init__(convert_charrefs=True);self.out=[]
@@ -30,7 +30,27 @@ def pure(s):
 def official_url(raw):
     p=urllib.parse.urlparse(raw or "")
     return p.scheme=="https" and p.hostname in HOSTS and not p.username and not p.password and p.port is None
-def extract(xml,*,today:date,feed:str):
+
+class Paragraphs(HTMLParser):
+    def __init__(self):super().__init__(convert_charrefs=True);self.parts=[];self.depth=0;self.cur=[]
+    def handle_starttag(self,tag,attrs):
+        if tag=="p":self.depth+=1;self.cur=[]
+    def handle_data(self,data):
+        if self.depth:self.cur.append(data)
+    def handle_endtag(self,tag):
+        if tag=="p" and self.depth:
+            value=STRIP.sub(" "," ".join(self.cur)).strip()
+            if len(value)>36 and TOPIC.search(value):self.parts.append(value)
+            self.depth=0;self.cur=[]
+
+def page_excerpt(url,getter):
+    if not official_url(url) or url.lower().split("?")[0].endswith(".pdf"):return ""
+    content=getter(url)
+    if len(content)>2_000_000:return ""
+    p=Paragraphs();p.feed(content.decode("utf-8","replace") if isinstance(content,bytes) else content)
+    return p.parts[0][:390] if p.parts else ""
+
+def extract(xml,*,today:date,feed:str,page_getter=None):
     if feed not in FEEDS:raise ValueError("UNAPPROVED_FEED")
     if len(xml)>2_000_000:raise ValueError("FEED_TOO_LARGE")
     root=ET.fromstring(xml)
@@ -43,11 +63,16 @@ def extract(xml,*,today:date,feed:str):
             return ""
         title=pure(field("title","{http://www.w3.org/2005/Atom}title"))
         desc=pure(field("description","{http://www.w3.org/2005/Atom}summary","{http://www.w3.org/2005/Atom}content"))
+        # These official RSS feeds often omit descriptions. Verify the linked article body.
+
         url=field("link")
         if not url:
             for link in entry.findall("{http://www.w3.org/2005/Atom}link"):
                 if link.attrib.get("rel","alternate")=="alternate":url=link.attrib.get("href","");break
         if not official_url(url) or len(title)<15 or not TOPIC.search(title+" "+desc):continue
+        if len(desc)<36 and page_getter is not None:
+            try:desc=page_excerpt(url,page_getter)
+            except Exception:desc=""
         stamp=field("pubDate","{http://www.w3.org/2005/Atom}published","{http://www.w3.org/2005/Atom}updated")
         try:
             dt=datetime.fromisoformat(stamp.replace("Z","+00:00")) if re.match(r"^\d{4}-\d{2}-\d{2}T",stamp) else parsedate_to_datetime(stamp)
@@ -73,7 +98,7 @@ def refresh(*,today:date,getter=None):
                 return raw
     found=[]
     for url in FEEDS:
-        try:found.extend(extract(getter(url),today=today,feed=url))
+        try:found.extend(extract(getter(url),today=today,feed=url,page_getter=getter))
         except Exception:continue # A failed source does not generate guessed content.
     unique={x["source_url"]:x for x in found}
     items=sorted(unique.values(),key=lambda x:x["published_at"],reverse=True)[:3]
