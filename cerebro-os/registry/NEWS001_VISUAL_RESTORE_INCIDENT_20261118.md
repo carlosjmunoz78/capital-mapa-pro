@@ -20,3 +20,12 @@ Hashes exactos de fuentes HTML ZIP:
 - Para Brevo, el HTML autocontenido sirve de preview; antes del email real, alojar imágenes correctamente (no data URI), verificar enlaces públicos y compatibilidad real con Gmail/Outlook/Brevo; copyright/licencias, edad de fuentes, datos Euríbor y pie legal, consentimiento DOI y baja. Los borradores Brevo separados están etiquetados `NO_ENVIAR` mientras no se verifiquen las URLs externas.
 
 **No se ha modificado contacto alguno, ni enviado newsletter, ni escrito CRM/App/WordPress PROD. No coste adicional.**
+
+## CIERRE DEL FALLO DE REPRODUCCIÓN VISUAL · 18/11/2026
+Tras localizar los originales, se han colocado TODOS los módulos reales de CEREBRO bajo `cerebro-os/engines/CEREBRO-NEWS-001/editor/`, incluyendo motor editorial, noticias/contrato, adaptador optativo, pruebas y tres recursos visuales originales preservados como base64 bit-exact. No se escribió en las maquetas simplificadas rechazadas.
+
+Ejecución propia GitHub Actions run **44280104275**, workflow `NEWS001 · CEREBRO genera diseño completo LAB`, job `cerebro-reproduce-both-newsletters`: **SUCCESS**. Artefacto privado **14417215089**, contiene ambos borradores HTML Brevo, ambos previews y los tres assets. Los SHA256 de los tres assets pasaron. El motor produjo dos ediciones dinámicas con 10 bloques, 13 enlaces, 687 palabras B2C y 667 palabras B2B, y comprobó que puede sustituir textos de edición sin perder el diseño.
+
+Se descargó el ARTEFACTO GENERADO POR GITHUB (no el ZIP original previo) y se renderizaron en Chromium dos newsletters x escritorio/móvil; imágenes **2/2 cargadas cada una**, overflow horizontal false, altura B2B 4003/4722 y B2C 3880/4445. Se comparó visualmente con la composición original completa: imágenes, logo, secciones, CTA y footer restituidos. Una plantilla vacía con 3 secciones no puede sustituir este motor.
+
+**Qué NO significa:** no hay comprobación de contenido semanal futuro ni actualización automática de fuentes; no hay envío, QA de clientes de email ni consentimiento B2C acreditado; Brevo PROD sigue OFF; no promoción desde LAB a producción. Compromiso: no sustituir el editor canónico por rediseños parciales ni aprobar una paleta sola como QA visual. 

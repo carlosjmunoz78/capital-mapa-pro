@@ -3,8 +3,8 @@
   "name": "CEREBRO-NEWS-001 · Newsletter Growth B2C/B2B – Productora UMS-001 (LAB)",
   "company_scope": "GLOBAL_OR_SCOPED",
   "environment": "LAB",
-  "version": "0.1.0",
-  "status": "DEFINED_NOT_BUILT",
+  "version": "0.2.0",
+  "status": "PARTIAL",
   "owner": "FENIX_CAPITAL",
   "inputs": [
     "NEWS_SOURCE_VERIFIED",
@@ -107,5 +107,38 @@
     "SECURITY_INCIDENT",
     "MONEY_LIMIT",
     "CUSTOMER_HUMAN_REQUEST"
-  ]
+  ],
+  "editorial_generator": {
+    "component_status": "CI_AUTOMATED_REPRODUCTION_VERIFIED_LAB",
+    "canonical_source": "cerebro-os/engines/CEREBRO-NEWS-001/editor/",
+    "legacy_simplified_templates": "REJECTED",
+    "registry_source": "news_observer_verified.json",
+    "fresh_news_required": true,
+    "trigger": "PUSH_TO_LAB_EDITOR_ONLY",
+    "ci_run_id": 44280104275,
+    "ci_run_url": "https://github.com/carlosjmunoz78/capital-mapa-pro/actions/runs/44280104275",
+    "ci_artifact_id": 14417215089,
+    "original_assets_verified_by_sha256": true,
+    "b2b": {
+      "modules": 10,
+      "links": 13,
+      "logo_loaded": true,
+      "hero_loaded": true,
+      "desktop_mobile_browser_qa": "PASS"
+    },
+    "b2c": {
+      "modules": 10,
+      "links": 13,
+      "logo_loaded": true,
+      "hero_loaded": true,
+      "desktop_mobile_browser_qa": "PASS"
+    },
+    "reproduction_from_source_only": true,
+    "sends_to_customers": false,
+    "preprod_dry_run": true,
+    "no_new_subscriptions": true,
+    "weekly_unattended_execution": "NOT_CONFIGURED",
+    "editorial_source_auto_refresh": "NOT_CONFIGURED",
+    "sending_automation": "OFF"
+  }
 }

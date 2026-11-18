@@ -13,10 +13,11 @@
     "templates": "SIMPLIFIED_CANDIDATES_REJECTED",
     "brevo_send_enabled": false,
     "qa_pending": [
-      "EDITORIAL",
-      "BRAND",
-      "UMS_VISUAL",
-      "DELIVERY_E2E"
+      "FRESH_EXTERNAL_FACT_CHECK",
+      "EMAIL_CLIENT_DELIVERY_E2E",
+      "BREVO_IMAGE_URLS",
+      "UMS_VISUAL_CONTENT_QA",
+      "CONSENT_WEB_SOCIAL"
     ],
     "brand_palette_from_manual_2025": [
       "#222222",
@@ -36,8 +37,17 @@
       "require_images_at_least": 2,
       "require_true_logo": true,
       "require_clickable_links_at_least": 13,
-      "forbid_simplified_template": true
-    }
+      "forbid_simplified_template": true,
+      "canonical_generator_ci_run": 44280104275,
+      "canonical_source_commits": [
+        "7f2a41c2db6bb93ad90c8e357d0db1d2b612da1f",
+        "732b51b31a6a0ef4e228cb73aaf674b9b6b6baf2"
+      ],
+      "design_reproduced_by_engine": true,
+      "browser_qa_from_github_generated_artifact": "PASS_4_RENDERINGS_2_IMAGES_EACH_NO_OVERFLOW"
+    },
+    "canonical_editor": "cerebro-os/engines/CEREBRO-NEWS-001/editor/",
+    "canonical_generator_status": "VERIFIED_IN_GITHUB_LAB_BUT_NOT_WEEKLY_SCHEDULED"
   },
   "b2b": {
     "population": "TODAS_INMOBILIARIAS_EXISTENTES_BREVO",
