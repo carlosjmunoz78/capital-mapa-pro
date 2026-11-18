@@ -29,4 +29,17 @@ class TestObserver(unittest.TestCase):
  def test_pdf_is_not_treated_as_html_evidence(self):
   rss=GOOD.replace('.html','.pdf').replace('<description><![CDATA[Informe oficial sobre crédito hipotecario y tipos de interés destinado a explicar la información económica de las entidades.]]></description>','')
   self.assertEqual(extract(rss,today=NOW,feed=FEEDS[0],page_getter=lambda url:b'<p>Datos hipotecarios relevantes.</p>'),[])
+ def test_cookie_preferences_are_not_economic_news(self):
+  news=GOOD.replace('<description><![CDATA[Informe oficial sobre crédito hipotecario y tipos de interés destinado a explicar la información económica de las entidades.]]></description>','')
+  bad_page='<html><main><p>Podrás elegir las áreas de tu interés para las que quieres recibir nuestras comunicaciones. Política de cookies y privacidad del sitio.</p></main></html>'.encode('utf-8')
+  self.assertEqual(extract(news,today=NOW,feed=FEEDS[0],page_getter=lambda url:bad_page),[])
+ def test_cookie_skipped_and_true_financing_content_accepted(self):
+  news=GOOD.replace('<description><![CDATA[Informe oficial sobre crédito hipotecario y tipos de interés destinado a explicar la información económica de las entidades.]]></description>','')
+  page='<html><main><p>Podrás elegir las áreas de tu interés para las que quieres recibir nuestras comunicaciones.</p><article><p>Los tipos de interés de los préstamos hipotecarios requieren información suficiente antes de firmar el contrato con el banco. Esta noticia se refiere a la financiación de vivienda.</p></article></main></html>'.encode('utf-8')
+  got=extract(news,today=NOW,feed=FEEDS[0],page_getter=lambda url:page)
+  self.assertEqual(len(got),1)
+  self.assertIn('préstamos hipotecarios',got[0]['facts'][1])
+ def test_unrelated_financial_stability_rejected(self):
+  news=GOOD.replace('El Banco de España informa de las hipotecas y tipos de interés','Financial stability outlook shaped by AI valuations')
+  self.assertEqual(extract(news,today=NOW,feed=FEEDS[0]),[])
 if __name__=='__main__':unittest.main()

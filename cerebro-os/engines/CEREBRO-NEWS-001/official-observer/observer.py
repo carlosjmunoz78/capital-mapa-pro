@@ -19,7 +19,8 @@ FEEDS = (
     "https://www.ecb.europa.eu/rss/press.html",
 )
 HOSTS={"www.bde.es","www.ecb.europa.eu"}
-TOPIC=re.compile(r"eur[ií]bor|hipotec|vivienda|pr[eé]stam|cr[eé]dito|financiac|inter[eé]s|monetari|estabilidad financiera",re.I)
+TOPIC=re.compile(r"eur[ií]bor|hipotec|vivienda|pr[eé]stam|cr[eé]dito|financiaci[oó]n|tipos? de inter[eé]s|pol[ií]tica monetaria|mortgage|housing|interest rates?|monetary policy",re.I)
+BOILERPLATE=re.compile(r"podr[aá]s elegir las [aá]reas|recibir nuestras comunicaciones|pol[ií]tica de cookies|preferencias de privacidad|suscr[ií]bete a nuestras comunicaciones|your cookie preferences",re.I)
 STRIP=re.compile(r"\s+")
 class Text(HTMLParser):
     def __init__(self):super().__init__(convert_charrefs=True);self.out=[]
@@ -40,7 +41,7 @@ class Paragraphs(HTMLParser):
     def handle_endtag(self,tag):
         if tag=="p" and self.depth:
             value=STRIP.sub(" "," ".join(self.cur)).strip()
-            if len(value)>36 and TOPIC.search(value):self.parts.append(value)
+            if len(value)>60 and TOPIC.search(value) and not BOILERPLATE.search(value):self.parts.append(value)
             self.depth=0;self.cur=[]
 
 def page_excerpt(url,getter):
@@ -69,7 +70,7 @@ def extract(xml,*,today:date,feed:str,page_getter=None):
         if not url:
             for link in entry.findall("{http://www.w3.org/2005/Atom}link"):
                 if link.attrib.get("rel","alternate")=="alternate":url=link.attrib.get("href","");break
-        if not official_url(url) or len(title)<15 or not TOPIC.search(title+" "+desc):continue
+        if not official_url(url) or len(title)<15 or not TOPIC.search(title) or BOILERPLATE.search(title):continue
         if len(desc)<36 and page_getter is not None:
             try:desc=page_excerpt(url,page_getter)
             except Exception:desc=""
@@ -79,7 +80,7 @@ def extract(xml,*,today:date,feed:str,page_getter=None):
             if dt.tzinfo is None:continue
             published=dt.astimezone(timezone.utc).date()
         except (ValueError,TypeError,OverflowError):continue
-        if (today-published).days not in range(0,15) or len(desc)<36:continue
+        if (today-published).days not in range(0,22) or len(desc)<60 or not TOPIC.search(desc) or BOILERPLATE.search(desc):continue
         # Literal source text only. Does not establish editorial truth or permit a send.
         out.append({"id":"NEWS001-RSS-"+hashlib.sha256(url.encode()).hexdigest()[:24],
          "title":title[:200],"source_url":url,"source_type":"official_primary",

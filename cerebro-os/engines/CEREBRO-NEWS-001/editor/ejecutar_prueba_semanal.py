@@ -50,7 +50,8 @@ def extract_generic_official_signal(records):
     title=entry['title']
     terms={'euríbor':'Euríbor','hipotec':'Hipotecas','tipos de interés':'Tipos de interés','crédito':'Crédito','vivienda':'Vivienda','monetari':'Política monetaria'}
     topic=next((v for k,v in terms.items() if k in title.casefold()),'Actualidad financiera')
-    evidence=[x.strip() for x in entry['facts'] if not BANNED.search(x) and not HYPE.search(x) and 'http' not in x.lower() and 36<=len(x.strip())<=390]
+    irrelevant=re.compile(r'podr[aá]s elegir las [aá]reas|recibir nuestras comunicaciones|pol[ií]tica de cookies|preferencias de privacidad|newsletter',re.I)
+    evidence=[x.strip() for x in entry['facts'] if not BANNED.search(x) and not HYPE.search(x) and not irrelevant.search(x) and 'http' not in x.lower() and 60<=len(x.strip())<=390]
     if not evidence: raise RuntimeError('HOLD_UNSAFE_OR_EMPTY_PRIMARY_FACT')
     return {'type':'generic_official','topic':topic,'fact':evidence[-1],
             'source_date':entry['published_at'], 'source_id':entry['id']}
