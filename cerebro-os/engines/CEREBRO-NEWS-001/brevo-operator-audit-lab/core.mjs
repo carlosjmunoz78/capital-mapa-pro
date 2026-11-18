@@ -1,6 +1,6 @@
 // NEWS001 audit only; never write, contact import or send.
 // The function owner extracts summary metadata, never returns any HTML or PII.
-export const TARGET_IDS=Object.freeze({campaign_b2c:112,campaign_b2b:113,template_b2c:115,lists:[17,18]});
+export const TARGET_IDS=Object.freeze({campaign_b2c:112,campaign_b2b:113,template_b2c:115,template_b2b:114,lists:[17,18]});
 export function htmlCheck(html){
  const s=typeof html==="string"?html:"";
  const blockCount=(s.match(/\bdata-block=/gi)||[]).length;
@@ -42,6 +42,7 @@ export function auditDecision(x){
  return {b2c_draft_validated:!!(b2c?.subject_present&&b2c?.html_present),
   b2b_draft_validated:!!(b2b?.subject_present&&b2b?.html_present),
   b2c_automation_template_active:t?.is_active===true,
+  b2b_automation_template_active:x.template_b2b?.is_active===true,
   b2b_automation_message_exists:false, // UI proof required; do not infer from campaign or templates
   commercial_sending_authorized:false,old_workflow_9_must_remain_active:true};
 }

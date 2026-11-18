@@ -14,7 +14,7 @@ Deno.serve(async (req:Request)=>{
  if(!body||typeof body!=="object"||Array.isArray(body)||(body as Record<string,unknown>).action!=="audit")return out({state:"BAD_ACTION"},400);
  const key=Deno.env.get("BREVO_API_KEY")||"";
  if(!key)return out({state:"BREVO_SECRET_NOT_CONFIGURED",no_send:true},503);
- const allowed=new Set(["/emailCampaigns/112","/emailCampaigns/113","/smtp/templates/115","/smtp/templates?limit=50&offset=0"]);
+ const allowed=new Set(["/emailCampaigns/112","/emailCampaigns/113","/smtp/templates/115","/smtp/templates/114","/smtp/templates?limit=50&offset=0"]);
  const read=async(path:string)=>{
   if(!allowed.has(path))throw Error("DENIED_PATH");
   const controller=new AbortController(),tm=setTimeout(()=>controller.abort(),9000);
@@ -30,6 +30,7 @@ Deno.serve(async (req:Request)=>{
   ["campaign_b2c","/emailCampaigns/112", (x:unknown)=>summarizeCampaign(x,112)],
   ["campaign_b2b","/emailCampaigns/113", (x:unknown)=>summarizeCampaign(x,113)],
   ["template_b2c","/smtp/templates/115",(x:unknown)=>summarizeTemplate(x,115)],
+  ["template_b2b","/smtp/templates/114",(x:unknown)=>summarizeTemplate(x,114)],
   ["templates","/smtp/templates?limit=50&offset=0",(x:unknown)=>summarizeTemplates(x)]
  ] as const;
  const result:Record<string,unknown>={};
