@@ -55,3 +55,28 @@
 2. Si la construcción termina pero no se entrega el evento IAM, conservar la carpeta completa y el outbox, mantener `media_dispatch_enabled=false` y gestionar la recuperación bajo IAM válido.
 3. Ante caída abrupta de host, inspeccionar proceso y target antes de retirar manualmente un lock obsoleto. Nunca eliminar la carpeta de un motor preexistente.
 4. Reversión de este parche: descartar esta rama candidata; la rama `cerebro-engine-factory-v0` permanece sin modificaciones. **La reversión LIVE de un Gateway o despliegue no está probada y no se declara verde.**
+
+## 19/11/2026 · Identidad cloud real, sin GitHub Actions, y cierre del gate de IDs
+
+### EVIDENCIA FÍSICA HISTÓRICA REVALIDADA EN CLOUDFLARE
+- Se recuperaron las pruebas reales originales de 12/11/2026: GitHub Actions `43255769366` completó el alta OIDC de `FACT-OIDC-LAB-E2E-001`; el run `43255172953` acreditó el motor `FACT-OIDC-CANARY-20261112`; el run `43256289803` registró un circuito de imagen privada LAB. **No son altas nuevas efectuadas en esta sesión.**
+- Se accedió **directamente en Cloudflare, en solo lectura**, a las DOS claves específicas del registro privado del provisionador. Se devolvieron exclusivamente estos campos: `engine_id` coincidente, `company_id=fenix`, `environment=LAB`, `state=ACTIVE`, `encrypted_private_key_present=true`, `signing_test=REGISTERED_QA_PENDING`, `activated_at` presente. No se reveló ni copió el cifrado de la clave privada.
+- Cola existente `cerebro-fact001-ums001-enrollment-lab-eu` con un consumidor `cerebro-fact001-ums001-issuer-provisioner-lab-eu`. Los Workers actuales no fueron modificados.
+- El provisionador LAB está habilitado (`FACT_PROVISION_ENABLED=true`) y el puente OIDC también (`OIDC_BRIDGE_ENABLED=true`); sin embargo, el puente exige un JWT OIDC firmado de un workflow/branch/repositorio y SHA exactos. Como GitHub Actions está bloqueado temporalmente, **no se ha generado una identidad sustitutiva ni un ACK positivo nuevo**.
+- El provisionador tiene `const id=/^[A-Z][A-Z0-9-]{2,63}$/;` y el puente `const rxEngine=/^[A-Z][A-Z0-9-]{2,63}$/;`. Ambos rechazan `3RD-001`, que es canónico. La compatibilidad de la fábrica local NO equivale aún a la del cloud.
+
+### IMPLEMENTADO EN PR CANDIDATA, SIN DESPLEGAR
+- El emisor Python `universal_media_enrollment.py` conserva el scaffold canónico de `3RD-001` pero, incluso con las cuatro variables de prueba presentes, devuelve **`HOLD_CLOUD_PROVISIONER_ID_SCOPE`** y `media_dispatch_enabled=false` sin efectuar envío. Otros motores siguen sujetos a los mismos controles IAM y HMAC originales.
+- Nuevo transformador **puro, acotado a dos nombres de Worker LAB**: `cerebro-os/factory/cf_fact_lab_worker_id_policy_candidate.mjs`. Comprueba que hay exactamente UNA coincidencia de la regla de identidad y las señales del código de seguridad; únicamente reemplaza esa expresión. Lanza error si la fuente difiere, es otro Worker o ya se aplicó antes. No se ejecuta despliegue, no se leen secretos ni se habilitan workers.dev.
+- Cloudflare API GET comprobó **en cada Worker desplegado** que el anchor aparece una sola vez, que la sustitución candidata cambia exclusivamente ese fragmento y que los controles `OIDC_BRIDGE_ENABLED` y `FACT_EVENT_SIGNATURE_DENIED` siguen presentes. No se subió ninguna versión.
+- **Pruebas físicas desde Git blob exacto:** 15 smoke, 14 Python (identidad, 177 canónicos, fallos, idempotencia y alcance cloud) y 6 Node (regla cloud en dos Workers, desviación, aplicación doble, IDs válidos/ inválidos). **35/35 VERDES**. Blobs: `factory.py=89d5c42b0d600ccd6589b55cde00e6e13e01e894`, `universal_media_enrollment.py=ecbe2cb9f52db028c4ac4bf632c9cea6e8b77b4e`, `tests/test_fact001_identity_compat_lab.py=809a93755411c34c0a3f9678fda7fd70ab0c0f48`, `cf_fact_lab_worker_id_policy_candidate.mjs=16f6c4e0243e24d28bd650e960371f829111773f`, `tests/fact001_cf_worker_id_policy_candidate.test.mjs=15815a988b9fa7f3b869ffd61c27653fec00bc11`. Se contrastó cada fuente del paquete local con su hash Git blob.
+- Evidencia estructurada: `cerebro-os/factory/FACT001_CLOUD_CONTRACT_CONTINUITY_LAB_2026-11-19.json`. Paquete verificable de código y logs disponible en la conversación `FACT001_CLOUD_CONTRACT_LAB_35_TESTS_2026-11-19.zip`.
+
+### Gate de despliegue y rollback
+1. Preservar una copia íntegra de las versiones actuales de los dos Workers LAB con sus contratos y bindings; **no trasladar ni exportar valores de secretos a repositorios**.
+2. Preparar versiones candidatas **NO desplegadas**, PREPROD/preview privado con Access Free, validar OLD vs NEW, identidad OIDC, anti-replay, company_id/engine_id/environment/version, rechazos entre empresas y roles, protección de claves y de gastos.
+3. Completar un canary LAB firmado con una identidad efectivamente autorizada y verificar el acuse privado de registro. No inventar respuesta ni reutilizar el JWT de propietario.
+4. Medir consumo incremental, demostrar backup/rollback a versión previa sin alterar Workers de otros motores y tribunal independiente. Solo entonces considerar promoción gradual del patch.
+5. Mantener `UMS-001` y las órdenes expresamente rechazadas por propietario en HOLD; la corrección de nombres **no implica permisos de imágenes/publicación**.
+
+**ESTADO VERIFICADO:** dos identidades OIDC previas `ACTIVE`; creación local FACT segura y nueva política probada, **cloud patch NO DESPLEGADO**; nuevos enrollments sin GHA **BLOQUEADOS POR IAM**, autonomía PROD **NO CERTIFICADA**. Cero suscripciones nuevas, consumo marginal en euros NO MEDIDO.
