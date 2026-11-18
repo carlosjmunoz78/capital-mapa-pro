@@ -14,6 +14,10 @@ from pathlib import Path
 ENGINE_RE = re.compile(r"^(?=.{3,64}$)(?=.*[A-Z])[A-Z0-9]+(?:-[A-Z0-9]+)*$")
 # Keep IAM acceptance identical to FACT validation; 3RD-001 is canonical.
 COMPANY_RE = re.compile(r"^[a-z][a-z0-9-]{1,62}$")
+# Cloudflare FACT provisioner deployed on 2026-11-19 still requires first char [A-Z].
+# Canonical 3RD-001 must scaffold normally, but MUST NOT be sent to this
+# narrower production-like LAB queue until the actual provisioner is updated.
+DEPLOYED_PROVISIONER_ENGINE_RE = re.compile(r"^[A-Z][A-Z0-9-]{2,63}$")
 DEFAULT_SCOPES = ("GENERIC",)
 EVENT_NAME = "FACT001_ENGINE_CREATED"
 
@@ -96,6 +100,14 @@ def enroll_factory_engine(
     if not re.fullmatch(r"[0-9a-f]{32}", account_id) or not re.fullmatch(r"[0-9a-f]{32}", queue_id):
         status = {"status": "HOLD_INVALID_TRANSPORT_CONFIG", "event_id": event["event_id"],
                   "media_dispatch_enabled": False}
+        _atomic_record(receipt_path, status)
+        return status
+    # Never claim a successful IAM enrollment for an ID the deployed
+    # provisioner rejects. Preserve the outbox for a gated migration.
+    if not DEPLOYED_PROVISIONER_ENGINE_RE.fullmatch(event["engine_id"]):
+        status = {"status": "HOLD_CLOUD_PROVISIONER_ID_SCOPE", "event_id": event["event_id"],
+                  "company_id": scope, "engine_id": event["engine_id"],
+                  "media_dispatch_enabled": False, "cloud_enrollment_approved": False}
         _atomic_record(receipt_path, status)
         return status
     body = json.dumps({"content_type": "json", "body": _signed_payload(event, key)},
