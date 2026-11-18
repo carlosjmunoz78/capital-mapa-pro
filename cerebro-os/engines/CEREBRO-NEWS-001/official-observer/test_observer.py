@@ -22,7 +22,7 @@ class TestObserver(unittest.TestCase):
   x=GOOD.replace('<pubDate>Tue, 17 Nov 2026 08:00:00 GMT</pubDate>','');self.assertEqual(extract(x,today=NOW,feed=FEEDS[0]),[])
  def test_rss_without_description_uses_official_page(self):
   rss=GOOD.replace('<description><![CDATA[Informe oficial sobre crédito hipotecario y tipos de interés destinado a explicar la información económica de las entidades.]]></description>','')
-  page=b'<html><article><p>Los tipos de interés de los préstamos hipotecarios requieren información suficiente antes de firmar el contrato con el banco.</p></article></html>'
+  page='<html><article><p>Los tipos de interés de los préstamos hipotecarios requieren información suficiente antes de firmar el contrato con el banco.</p></article></html>'.encode('utf-8')
   got=extract(rss,today=NOW,feed=FEEDS[0],page_getter=lambda url:page)
   self.assertEqual(len(got),1)
   self.assertIn('préstamos hipotecarios',got[0]['facts'][1])
