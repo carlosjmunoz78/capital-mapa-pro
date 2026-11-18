@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 HUMAN_EXCEPTION_CODES = [
@@ -70,39 +73,96 @@ def build_manifest(engine_id: str, name: str) -> dict:
 
 
 def scaffold(root: Path, engine_id: str, name: str, company_id: str | None = None) -> Path:
+    """Create a fully staged engine without exposing partially built directories.
+
+    Existing target is never modified. The temporary stage is cleaned on hook
+    failure. A per-engine exclusive lock prevents concurrent FACT writers.
+    Signed enrollment is allowed only *after* committing the complete scaffold.
+    """
     engine_id = validate_engine_id(engine_id)
-    target = root / "engines" / engine_id
+    parent = root / "engines"
+    parent.mkdir(parents=True, exist_ok=True)
+    target = parent / engine_id
     if target.exists():
         raise FileExistsError(f"engine already exists: {engine_id}")
-    for relative in ["config", "contracts", "policies", "events", "jobs", "api", "tests", "evaluation", "observability", "ops", "docs", "training"]:
-        (target / relative).mkdir(parents=True, exist_ok=True)
-    manifest = build_manifest(engine_id, name)
-    (target / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    # Universal UMS-001 hook: new engines automatically inherit the same media contract.
-    # This does not self-authorize an engine, create a Worker, or expose credentials.
-    # Works both as a package import and via "python factory.py ..."
-    import importlib.util
-    media_hook = Path(__file__).with_name("universal_media_hook.py")
-    spec = importlib.util.spec_from_file_location("cerebro_universal_media_hook", media_hook)
-    if spec is None or spec.loader is None:
-        raise RuntimeError("universal media hook unavailable")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    module.write_universal_media_scaffold(target, manifest)
-    # Enrollment outbox and automatic delivery through the shared FACT-001 transport.
-    # Missing credentials leave a durable PENDING receipt; never bypass Gateway IAM.
-    enrollment_hook = Path(__file__).with_name("universal_media_enrollment.py")
-    enroll_spec = importlib.util.spec_from_file_location("cerebro_factory_media_enrollment", enrollment_hook)
-    if enroll_spec is None or enroll_spec.loader is None:
-        raise RuntimeError("universal media enrollment hook unavailable")
-    enroll_module = importlib.util.module_from_spec(enroll_spec)
-    enroll_spec.loader.exec_module(enroll_module)
-    enroll_module.enroll_factory_engine(target, manifest, company_id=company_id)
-    (target / "docs" / "README.md").write_text(f"# {engine_id} · {manifest['name']}\n\nEstado inicial: DEFINED_NOT_BUILT.\n", encoding="utf-8")
-    (target / "ops" / "backup.md").write_text("# Backup\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
-    (target / "ops" / "rollback.md").write_text("# Rollback\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
-    (target / "ops" / "rebuild.md").write_text("# Rebuild\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
-    return target
+
+    lock = parent / f".{engine_id}.factory.lock"
+    fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    os.close(fd)
+    stage: Path | None = None
+    try:
+        if target.exists():
+            raise FileExistsError(f"engine already exists: {engine_id}")
+        stage = Path(tempfile.mkdtemp(prefix=f".{engine_id}.build-", dir=parent))
+        for relative in [
+            "config", "contracts", "policies", "events", "jobs", "api",
+            "tests", "evaluation", "observability", "ops", "docs", "training",
+        ]:
+            (stage / relative).mkdir(parents=True, exist_ok=True)
+        manifest = build_manifest(engine_id, name)
+        (stage / "manifest.json").write_text(
+            json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+        # Retain the existing hooks, but do not let IAM transport send from a
+        # partial engine. Stage an outbox and PENDING receipt with no secrets.
+        import importlib.util
+        media_hook = Path(__file__).with_name("universal_media_hook.py")
+        spec = importlib.util.spec_from_file_location("cerebro_universal_media_hook", media_hook)
+        if spec is None or spec.loader is None:
+            raise RuntimeError("universal media hook unavailable")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        module.write_universal_media_scaffold(stage, manifest)
+
+        enrollment_hook = Path(__file__).with_name("universal_media_enrollment.py")
+        enroll_spec = importlib.util.spec_from_file_location(
+            "cerebro_factory_media_enrollment", enrollment_hook
+        )
+        if enroll_spec is None or enroll_spec.loader is None:
+            raise RuntimeError("universal media enrollment hook unavailable")
+        enroll_module = importlib.util.module_from_spec(enroll_spec)
+        enroll_spec.loader.exec_module(enroll_module)
+        safe_scope = {"CEREBRO_COMPANY_ID": os.environ.get("CEREBRO_COMPANY_ID", "")}
+        enroll_module.enroll_factory_engine(
+            stage, manifest, company_id=company_id, environ=safe_scope
+        )
+        (stage / "docs" / "README.md").write_text(
+            f"# {engine_id} · {manifest['name']}\n\nEstado inicial: DEFINED_NOT_BUILT.\n",
+            encoding="utf-8",
+        )
+        for item, title in [
+            ("backup", "Backup"), ("rollback", "Rollback"), ("rebuild", "Rebuild")
+        ]:
+            (stage / "ops" / f"{item}.md").write_text(
+                f"# {title}\n\nPendiente de implementación y prueba.\n", encoding="utf-8"
+            )
+
+        # FACT writers hold this lock, so the existing target cannot be
+        # replaced by a concurrent FACT call. Fail closed on an external write.
+        if target.exists():
+            raise FileExistsError(f"engine already exists: {engine_id}")
+        stage.rename(target)
+        stage = None
+
+        # Real signed enrollment is never attempted while staging. If the
+        # trusted runtime has ALL four required environment references, it may
+        # now send a signed event. Missing IAM leaves a durable PENDING outbox.
+        required = (
+            "CEREBRO_FACT_ENROLL_EVENT_KEY", "CEREBRO_CLOUDFLARE_API_TOKEN",
+            "CEREBRO_CLOUDFLARE_ACCOUNT_ID", "CEREBRO_FACT_ENROLL_QUEUE_ID",
+        )
+        if all(os.environ.get(k) for k in required):
+            try:
+                enroll_module.enroll_factory_engine(target, manifest, company_id=company_id)
+            except Exception:
+                # A committed scaffold stays intact; PENDING receipt/outbox
+                # remains available for authorized recovery. No auto-retry.
+                pass
+        return target
+    finally:
+        if stage is not None and stage.exists():
+            shutil.rmtree(stage)
+        lock.unlink(missing_ok=True)
 
 
 def main(argv: list[str]) -> int:
