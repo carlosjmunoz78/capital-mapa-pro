@@ -16,7 +16,8 @@ HUMAN_EXCEPTION_CODES = [
     "CUSTOMER_HUMAN_REQUEST",
 ]
 
-ENGINE_ID_RE = re.compile(r"^(?=.{3,64}$)(?=.*[A-Z])[A-Z0-9]+(?:-[A-Z0-9]+)*$")\n# Canonical registry includes 3RD-001: permit digits first, but reject punctuation-only IDs.
+ENGINE_ID_RE = re.compile(r"^(?=.{3,64}$)(?=.*[A-Z])[A-Z0-9]+(?:-[A-Z0-9]+)*$")
+# Canonical registry includes 3RD-001: permit digits first, but reject punctuation-only IDs.
 
 
 def validate_engine_id(engine_id: str) -> str:
