@@ -1,0 +1,28 @@
+name: NEWS001 · lectura REAL fuentes oficiales LAB
+on:
+  workflow_dispatch:
+  push:
+    branches: [cerebro/news001-single-optin-lab-20261118]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/official-observer/**'
+      - '.github/workflows/news001-official-live-smoke-lab.yml'
+permissions:
+  contents: read
+jobs:
+  real-official-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Fetch official RSS directly, no customer data or campaigns
+        run: |
+          cd cerebro-os/engines/CEREBRO-NEWS-001/official-observer
+          python3 observer.py --output "$RUNNER_TEMP/news001_live_official.json"
+          python3 - <<'PY'
+          import json,os
+          x=json.load(open(os.environ['RUNNER_TEMP']+'/news001_live_official.json'))
+          assert x['items'] and all('source_url' in a for a in x['items'])
+          print('REAL_SOURCE_ITEMS',len(x['items']))
+          PY
