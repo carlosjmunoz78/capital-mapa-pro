@@ -85,7 +85,7 @@ def audience_eligibility(contact: dict, *, activation_at: str) -> dict:
             if (contact.get("source_channel") != "social"
                 or not isinstance(platform, str)
                 or not 1 <= len(platform.strip()) <= 64
-                or not re.fullmatch(r"[\\w\\s.-]+", platform.strip(), re.UNICODE)):
+                or not re.fullmatch(r"[\w\s.-]+", platform.strip(), re.UNICODE)):
                 return hold("B2B_SOCIAL_SOURCE_INVALID")
         elif contact.get("source_channel") != "web":
             return hold("B2B_WEB_SOURCE_INVALID")
