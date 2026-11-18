@@ -11,7 +11,8 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-ENGINE_RE = re.compile(r"^(?=.{3,64}$)(?=.*[A-Z])[A-Z0-9]+(?:-[A-Z0-9]+)*$")\n# Keep IAM acceptance identical to FACT validation; 3RD-001 is canonical.
+ENGINE_RE = re.compile(r"^(?=.{3,64}$)(?=.*[A-Z])[A-Z0-9]+(?:-[A-Z0-9]+)*$")
+# Keep IAM acceptance identical to FACT validation; 3RD-001 is canonical.
 COMPANY_RE = re.compile(r"^[a-z][a-z0-9-]{1,62}$")
 DEFAULT_SCOPES = ("GENERIC",)
 EVENT_NAME = "FACT001_ENGINE_CREATED"
