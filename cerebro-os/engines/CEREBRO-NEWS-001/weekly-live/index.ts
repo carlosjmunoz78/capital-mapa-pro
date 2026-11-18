@@ -68,14 +68,14 @@ Deno.serve(async(req:Request)=>{
  const day=pilot?"2026-11-19":now.toISOString().slice(0,10),created=[];
  for(const x of items){
   const old=current.find((y:any)=>y.name===x.name);
-  if(old){created.push({audience:x.audience,id:old.id,state:"ALREADY_EXISTS",status:old.status});continue;}
+  if(old){const pre=await brevo("/emailCampaigns/"+old.id,key);const st=String(pre.status||"").toLowerCase();const at=pre.scheduledAt||"";const plan=day+(x.audience==="pro"?"T10:30:00.000Z":"T10:50:00.000Z");if(!["queued","scheduled","sent"].includes(st)||!at||Math.abs(Date.parse(at)-Date.parse(plan))>60000)throw Error("EXISTING_CAMPAIGN_NOT_VERIFIED");created.push({audience:x.audience,id:old.id,state:"ALREADY_SCHEDULED",status:st,scheduled_at:at});continue;}
   const at=day+(x.audience==="pro"?"T10:30:00.000Z":"T10:50:00.000Z");
   if(Date.parse(at)-now.getTime()<40*60000||Date.parse(at)-now.getTime()>48*3600000)throw Error("SCHEDULE_WINDOW_GATE");
   const n=await newCampaign(key,x,at);
   if(!Number.isInteger(n.id))throw Error("CAMPAIGN_ID_INVALID");
   const v=await brevo("/emailCampaigns/"+n.id,key);
   created.push({audience:x.audience,id:n.id,status:v.status,scheduled_at:v.scheduledAt||null});
-  if(String(v.status).toLowerCase()!=="scheduled")return reply({state:"HOLD_SCHEDULE_NOT_VERIFIED",created},409);
+  if(!["scheduled","queued"].includes(String(v.status).toLowerCase())||!v.scheduledAt||Math.abs(Date.parse(v.scheduledAt)-Date.parse(at))>60000)return reply({state:"HOLD_SCHEDULE_NOT_VERIFIED",created},409);
  }
  return reply({state:"TWO_EDITION_WEEKLY_SCHEDULED",created,quota,editions:info,chatgpt_required:false});
  }catch(e){return reply({state:"HOLD",reason:String(e instanceof Error?e.message:e).slice(0,140),commercial_sending:false},422);}
