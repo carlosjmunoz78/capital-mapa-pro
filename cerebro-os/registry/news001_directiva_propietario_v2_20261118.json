@@ -2,7 +2,7 @@
   "company_id": "fenix",
   "engine_id": "CEREBRO-NEWS-001",
   "environment": "LAB",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "directive_date": "2026-11-18",
   "source": "INSTRUCCION_EXPLICITA_PROPIETARIO",
   "status": "DEFINED_AND_LAB_VALIDATION",
@@ -17,7 +17,14 @@
       "BRAND",
       "UMS_VISUAL",
       "DELIVERY_E2E"
-    ]
+    ],
+    "brand_palette_from_manual_2025": [
+      "#222222",
+      "#870064",
+      "#FFB71B",
+      "#FF5F00"
+    ],
+    "template_brand_palette_ci": "PASS_20261118"
   },
   "b2b": {
     "population": "TODAS_INMOBILIARIAS_EXISTENTES_BREVO",
@@ -39,7 +46,17 @@
     "identify_salinas_before_live_send": true,
     "consent_claim_by_owner": "EL_PROPIETARIO_DECLARA_QUE_PUEDEN_RECIBIR",
     "verify_consent_and_suppression_before_sending": true,
-    "deduplicate_across_lists": true
+    "deduplicate_across_lists": true,
+    "audit_bridge": {
+      "function_slug": "cerebro-news001-brevo-audit-lab",
+      "environment": "LAB",
+      "service_project": "cluhljgonannaafpmblx",
+      "jwt_required": true,
+      "permission_gate": "AUDIT_OFF_BY_DEFAULT",
+      "anonymous_401_verified": true,
+      "ci_run": 44274040549,
+      "send_authorized": false
+    }
   },
   "b2c": {
     "historical_particulares_excluded_all": true,
@@ -58,7 +75,13 @@
     "activation_at": null,
     "activation_rule": "SET_ONLY_ON_REAL_PIPELINE_ACTIVATION",
     "brevo_target_list_id": 17,
-    "consent_verification": "MUST_BE_EVIDENCED_PER_LEAD"
+    "consent_verification": "MUST_BE_EVIDENCED_PER_LEAD",
+    "current_web_optin_audit": {
+      "source": "fenix_prod.clientes aggregate since 2026-09-01",
+      "web_leads": 2,
+      "verified_positive_original_marketing_optins": 0,
+      "production_sending": "HOLD"
+    }
   },
   "current_protection": {
     "commercial_sending": "OFF",
@@ -66,6 +89,7 @@
     "wordpress_prod_changes": "OFF",
     "app_prod_changes": "OFF",
     "brevo_list_mutations": "OFF",
-    "additional_cost_eur": 0
+    "additional_cost_eur": 0,
+    "no_customer_commercial_emails_sent_by_news001": true
   }
 }
