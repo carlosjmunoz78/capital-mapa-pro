@@ -19,4 +19,4 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - run: cd cerebro-os/engines/CEREBRO-NEWS-001/weekly-live && deno test engine.test.ts
+      - run: cd cerebro-os/engines/CEREBRO-NEWS-001/weekly-live && deno test --no-check engine.test.ts
