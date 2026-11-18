@@ -1,0 +1,71 @@
+{
+  "company_id": "fenix",
+  "engine_id": "CEREBRO-NEWS-001",
+  "environment": "LAB",
+  "version": "0.2.0",
+  "directive_date": "2026-11-18",
+  "source": "INSTRUCCION_EXPLICITA_PROPIETARIO",
+  "status": "DEFINED_AND_LAB_VALIDATION",
+  "news_content": {
+    "reuse_old_brevo_newsletters": false,
+    "create_original_b2b": true,
+    "create_original_b2c": true,
+    "templates": "NEW_BRANDED_CANDIDATES",
+    "brevo_send_enabled": false,
+    "qa_pending": [
+      "EDITORIAL",
+      "BRAND",
+      "UMS_VISUAL",
+      "DELIVERY_E2E"
+    ]
+  },
+  "b2b": {
+    "population": "TODAS_INMOBILIARIAS_EXISTENTES_BREVO",
+    "known_source_lists": [
+      9,
+      13,
+      12,
+      18,
+      6
+    ],
+    "staging_list_excluded": [
+      24
+    ],
+    "excluded_business": "Salinas",
+    "exclude_named_business_even_if_otherwise_eligible": true,
+    "exclude_hard_bounces": true,
+    "exclude_unsubscribed": true,
+    "exclude_email_blacklisted": true,
+    "identify_salinas_before_live_send": true,
+    "consent_claim_by_owner": "EL_PROPIETARIO_DECLARA_QUE_PUEDEN_RECIBIR",
+    "verify_consent_and_suppression_before_sending": true,
+    "deduplicate_across_lists": true
+  },
+  "b2c": {
+    "historical_particulares_excluded_all": true,
+    "historical_brevo_lists_do_not_import": [
+      10,
+      15,
+      23
+    ],
+    "new_only": true,
+    "valid_sources": [
+      "web_form",
+      "any_social_network_lead_form"
+    ],
+    "require_verified_optin_at_submission": true,
+    "require_source_platform_timestamp": true,
+    "activation_at": null,
+    "activation_rule": "SET_ONLY_ON_REAL_PIPELINE_ACTIVATION",
+    "brevo_target_list_id": 17,
+    "consent_verification": "MUST_BE_EVIDENCED_PER_LEAD"
+  },
+  "current_protection": {
+    "commercial_sending": "OFF",
+    "crm_prod_writes": "OFF",
+    "wordpress_prod_changes": "OFF",
+    "app_prod_changes": "OFF",
+    "brevo_list_mutations": "OFF",
+    "additional_cost_eur": 0
+  }
+}

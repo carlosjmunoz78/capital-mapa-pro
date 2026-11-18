@@ -1,0 +1,22 @@
+name: NEWS001 · Original newsletters & owner directive LAB
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/templates/**'
+      - 'cerebro-os/registry/news001_directiva_propietario_v2_20261118.json'
+      - 'cerebro-os/tests/test_news001_original_templates.py'
+      - '.github/workflows/news001-new-templates-owner-policy-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-original-templates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify policy, old-particulares exclusion, brand placeholders and unsub link
+        run: python3 -m unittest discover -s cerebro-os/tests -p 'test_news001_original_templates.py' -v
