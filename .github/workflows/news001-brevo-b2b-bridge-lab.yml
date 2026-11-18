@@ -1,0 +1,20 @@
+name: NEWS001 · Brevo isolated audit bridge LAB
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/brevo-b2b-bridge/**'
+      - '.github/workflows/news001-brevo-b2b-bridge-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test B2B source whitelist, global Salinas exclusion, dedupe and no-send
+        run: node --test cerebro-os/engines/CEREBRO-NEWS-001/brevo-b2b-bridge/tests/core.test.mjs
