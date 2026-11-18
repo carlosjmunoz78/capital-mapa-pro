@@ -46,7 +46,7 @@ function fenix_cerebro_rate_key() {
 function fenix_cerebro_marketing_flag($value) {
     if ($value === true || $value === 1) return true;
     if (!is_string($value)) return false;
-    return in_array(mb_strtolower(trim($value), 'UTF-8'), ['true', '1', 'on', 'yes', 'si', 'sí'], true);
+    return preg_match('/\A(?:true|1|on|yes|si|sí)\z/iu', trim($value)) === 1;
 }
 
 function fenix_cerebro_lead_payload($data) {
@@ -155,8 +155,8 @@ function fenix_cerebro_elementor_marketing_flag($fields) {
     if (!is_array($fields)) return false;
     foreach ($fields as $key => $field) {
         if (!is_array($field)) continue;
-        $label = mb_strtolower((string)($field['title'] ?? $field['label'] ?? $key), 'UTF-8');
-        if (!preg_match('/newsletter|boletín|boletin|marketing|comunicaciones? comerciales?|publicidad/i', $label)) continue;
+        $label = (string)($field['title'] ?? $field['label'] ?? $key);
+        if (!preg_match('/newsletter|boletín|boletin|marketing|comunicaciones? comerciales?|publicidad/iu', $label)) continue;
         $value = $field['value'] ?? false;
         if (fenix_cerebro_marketing_flag($value)) return true;
     }
