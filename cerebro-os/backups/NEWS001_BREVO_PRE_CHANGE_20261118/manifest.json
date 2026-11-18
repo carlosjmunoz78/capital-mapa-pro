@@ -1,0 +1,45 @@
+{
+  "company_id": "fenix",
+  "engine_id": "CEREBRO-NEWS-001",
+  "timestamp": "2026-11-18",
+  "state": "BREVO_PRE_CHANGE_BACKUP",
+  "changes_made": false,
+  "items": [
+    {
+      "key": "campaign_b2c_112",
+      "id": 112,
+      "chars": 10182,
+      "backup_path": "cerebro-os/backups/NEWS001_BREVO_PRE_CHANGE_20261118/campaign_b2c_112.html",
+      "subject": "La casa te gusta. Ahora hablemos de los números.",
+      "status": "draft",
+      "isActive": false
+    },
+    {
+      "key": "campaign_b2b_113",
+      "id": 113,
+      "chars": 3164,
+      "backup_path": "cerebro-os/backups/NEWS001_BREVO_PRE_CHANGE_20261118/campaign_b2b_113.html",
+      "subject": "La operación parecía cerrada. ¿Y la financiación?",
+      "status": "draft",
+      "isActive": false
+    },
+    {
+      "key": "template_b2b_114",
+      "id": 114,
+      "chars": 3134,
+      "backup_path": "cerebro-os/backups/NEWS001_BREVO_PRE_CHANGE_20261118/template_b2b_114.html",
+      "subject": "La operación parecía cerrada. ¿Y la financiación?",
+      "status": "",
+      "isActive": false
+    },
+    {
+      "key": "template_b2c_115",
+      "id": 115,
+      "chars": 9474,
+      "backup_path": "cerebro-os/backups/NEWS001_BREVO_PRE_CHANGE_20261118/template_b2c_115.html",
+      "subject": "La casa te gusta. Ahora hablemos de los números.",
+      "status": "",
+      "isActive": false
+    }
+  ]
+}
