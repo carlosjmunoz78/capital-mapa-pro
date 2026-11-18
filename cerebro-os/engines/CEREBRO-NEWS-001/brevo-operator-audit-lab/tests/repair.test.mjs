@@ -1,0 +1,10 @@
+import test from "node:test";import assert from "node:assert/strict";
+import {TARGETS,prepare,verify} from "../repair.mjs";
+test("fixed four targets only",()=>assert.deepEqual(Object.keys(TARGETS).sort(),["campaign_b2b_113","campaign_b2c_112","template_b2b_114","template_b2c_115"]));
+test("reject unknown",()=>assert.throws(()=>prepare("campaign_b2c_9",{id:9}),/TARGET_OR_SOURCE/));
+test("reject unbacked altered source",()=>assert.throws(()=>prepare("campaign_b2b_113",{id:113,status:"draft",htmlContent:"a".repeat(99)}),/SOURCE_CHANGED/));
+test("reject already sent campaign",()=>assert.throws(()=>prepare("campaign_b2b_113",{id:113,status:"sent",htmlContent:"a".repeat(3164)}),/NOT_DRAFT/));
+test("reject activated template",()=>assert.throws(()=>prepare("template_b2b_114",{id:114,isActive:true,htmlContent:"a".repeat(3134)}),/NOT_INACTIVE/));
+test("prepare b2b draft only, list 18",()=>{const p=prepare("campaign_b2b_113",{id:113,status:"draft",htmlContent:"a".repeat(3164)});assert.deepEqual(p.payload.recipients.listIds,[18]);assert.equal("sendNow" in p.payload,false);assert.equal("scheduledAt" in p.payload,false);assert.equal(p.payload.htmlContent.match(/data-block=/g).length,10);});
+test("prepare b2c template stays inactive",()=>{const p=prepare("template_b2c_115",{id:115,isActive:false,htmlContent:"a".repeat(9474)});assert.equal(p.payload.isActive,false);assert.equal(p.payload.recipients,undefined);});
+test("verify needs full content",()=>assert.equal(verify("template_b2b_114",{id:114,isActive:false,htmlContent:"a".repeat(3134)}).verified_full_length,false));
