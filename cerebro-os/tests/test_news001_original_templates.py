@@ -42,7 +42,7 @@ class NewsletterOriginalTemplates(unittest.TestCase):
     def test_no_brevo_send_ever(self):
         p=ROOT/"registry/news001_directiva_propietario_v2_20261118.json"
         r=json.loads(p.read_text(encoding="utf-8"))
-        self.assertIs(r["current_protection"]["brevo_list_mutations"],"OFF")
+        self.assertEqual(r["current_protection"]["brevo_list_mutations"],"OFF")
         self.assertIs(r["news_content"]["brevo_send_enabled"],False)
 
 if __name__=="__main__":

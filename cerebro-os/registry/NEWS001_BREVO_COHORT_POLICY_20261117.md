@@ -23,3 +23,11 @@
 5. Tests de envío solo a buzones internos autorizados y monitor de límites Free; avanzar B2B/B2C separadamente, sin dependencias cruzadas.
 
 Estado: `AUDIENCE_POLICY_DEFINED`, `GUARD_LAB_CODE`, `BREVO_CONTACT_AUDIT_PARTIAL`, `SEND_OFF`, `PROD_HOLD`.
+
+## DECISIÓN SUPERIOR Y VIGENTE 18/11/2026
+Esta sección sustituye cualquier decisión anterior contradictoria; ver también el registro fuente news001_directiva_propietario_v2_20261118.json.
+- NO reutilizar contenidos, diseños ni copias de ninguna newsletter antigua de Brevo; solo dos plantillas originales nuevas, B2B y B2C, con editorial semanal de nueva creación.
+- B2B: destinatarios candidatos, todas las agencias ya registradas en Brevo, de cualquier lista inmobiliaria, EXCEPTO Salinas. Salinas nunca debe recibir newsletters. Respetar bajas y rebotes, prueba de consentimiento, listas sin duplicación. Se verificará la identidad exacta de Salinas antes de cualquier selección real de envío.
+- B2C: todos los contactos antiguos particulares quedan excluidos. Únicamente nuevos leads de formularios de web y cualquier red social desde activation_at efectivo, con aceptación de newsletter registrada, procedencia/timestamp/DOI comprobados según contrato y bajas respetadas.
+- Se han preparado nuevas plantillas responsive solo en LAB, sin fotografías no aprobadas; Brevo SEND OFF, no existen campañas enviadas por este cambio.
+- Gate actualizado: contempla social_lead_form con social_platform libre validada, no solo web; Salinas excluida por nombre/contacto/empresa, y comprobación salinas_screened exigida a B2B.
