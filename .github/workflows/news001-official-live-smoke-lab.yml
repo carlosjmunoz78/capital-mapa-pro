@@ -41,3 +41,27 @@ jobs:
           assert x['items'] and all('source_url' in a for a in x['items'])
           print('REAL_SOURCE_ITEMS',len(x['items']))
           PY
+
+      - name: Build original branded B2B and B2C newsletters from live official facts (LAB only)
+        run: |
+          python3 -m pip install --disable-pip-version-check 'beautifulsoup4==4.12.3'
+          cd cerebro-os/engines/CEREBRO-NEWS-001/editor
+          python3 ejecutar_prueba_semanal.py --date "$(date -u +%F)" --registry "$RUNNER_TEMP/news001_live_official.json"
+          python3 - <<'PY'
+          import json
+          x=json.load(open('out/RESULTADO_PRUEBA.json'))
+          for audience in ('b2c','b2b'):
+              assert x['audiences'][audience]['brevo']['status']=='LAB_PASS'
+              assert len(x['audiences'][audience]['brevo']['blocks'])==10
+          assert not x['send_enabled'] and not x['api_called']
+          print('NEWS001_LIVE_TO_HTML_2X10_PASS')
+          PY
+      - name: Keep verified live HTML drafts private to GitHub Actions, never send
+        uses: actions/upload-artifact@v4
+        with:
+          name: news001-live-official-to-fenix-html-lab
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            cerebro-os/engines/CEREBRO-NEWS-001/editor/out/*.html
+            cerebro-os/engines/CEREBRO-NEWS-001/editor/out/RESULTADO_PRUEBA.json
