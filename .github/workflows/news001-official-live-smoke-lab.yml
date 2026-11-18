@@ -19,6 +19,17 @@ jobs:
       - name: Fetch official RSS directly, no customer data or campaigns
         run: |
           cd cerebro-os/engines/CEREBRO-NEWS-001/official-observer
+          python3 - <<'PY'
+          from observer import FEEDS
+          from urllib.request import Request,urlopen
+          import re
+          for u in FEEDS:
+              try:
+                  with urlopen(Request(u,headers={'User-Agent':'Mozilla/5.0'}),timeout=12) as a:
+                      data=a.read(100_000)
+                      print('LIVE_RSS_DIAG',u,'http',a.status,'bytes_sample',len(data),'actual',a.geturl(),'item_count',len(re.findall(rb'<item(?:\s|>)',data)),'entry_count',len(re.findall(rb'<entry(?:\s|>)',data)),'dates',re.findall(rb'<pubDate>([^<]{5,80})</pubDate>',data)[:3])
+              except Exception as e:print('LIVE_RSS_DIAG_ERROR',u,type(e).__name__,str(e)[:100])
+          PY
           python3 observer.py --output "$RUNNER_TEMP/news001_live_official.json"
           python3 - <<'PY'
           import json,os
