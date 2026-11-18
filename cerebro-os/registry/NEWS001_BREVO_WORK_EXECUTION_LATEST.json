@@ -1,0 +1,104 @@
+{
+  "company_id": "fenix",
+  "engine_id": "CEREBRO-NEWS-001",
+  "environment": "LAB",
+  "version": "0.6.0",
+  "date": "2026-11-18",
+  "provenance": {
+    "source": "personal Library NEWS001_BREVO_WORK_EXECUTION_LATEST.md",
+    "scope": "Work checkpoint 18/11/2026 + read-only Brevo verification"
+  },
+  "tasks": {
+    "10": {
+      "state": "BLOQUEADO",
+      "reason": "NO_SAFE_INTERNAL_E2E_DELIVERY_YET"
+    },
+    "11": {
+      "state": "BLOQUEADO",
+      "reason": "NEW_NOT_VERIFIED; KEEP_OLD_9_ACTIVE"
+    },
+    "12": {
+      "state": "BLOQUEADO",
+      "reason": "AUTO_WEEKLY_SENDING_NOT_CONFIGURED"
+    },
+    "01": {
+      "state": "HECHO",
+      "plan": "Free",
+      "daily_email_limit": 300,
+      "daily_emails_remaining_at_checkpoint": 300
+    },
+    "02": {
+      "state": "PARCIAL",
+      "automations": {
+        "active": [
+          9,
+          8,
+          7,
+          5,
+          2,
+          1
+        ],
+        "inactive": [
+          4
+        ]
+      }
+    },
+    "03": {
+      "state": "HECHO",
+      "git_repo": "carlosjmunoz78/capital-mapa-pro",
+      "branch": "cerebro-engine-factory-v0"
+    },
+    "04": {
+      "state": "HECHO",
+      "sender": "hipotecas@fenixcapital.es",
+      "domain": "fenixcapital.es",
+      "auth_verified_by_work": true
+    },
+    "05": {
+      "state": "PARCIAL",
+      "campaign_id": 112,
+      "audience": "b2c",
+      "intended_list_id": 17,
+      "needs": "NATIVE_BREVO_UNSUBSCRIBE_VALIDATION",
+      "sent": false
+    },
+    "06": {
+      "state": "PARCIAL",
+      "campaign_id": 113,
+      "audience": "b2b",
+      "intended_list_id": 18,
+      "needs": "FINISH_STUCK_EDITOR_AND_VALIDATE_CONTENT",
+      "sent": false
+    },
+    "07": {
+      "state": "BLOQUEADO",
+      "reason": "BREVO_AUTOMATION_NOT_CREATED",
+      "sent": false
+    },
+    "08": {
+      "state": "BLOQUEADO",
+      "reason": "BREVO_AUTOMATION_NOT_CREATED",
+      "sent": false
+    },
+    "09": {
+      "state": "BLOQUEADO",
+      "reason": "NO_REAL_VERIFIED_NEW_LEAD_TO_TARGET_LIST",
+      "sent": false
+    }
+  },
+  "live_list_snapshot": [
+    {
+      "list_id": 17,
+      "subscribers": 0
+    },
+    {
+      "list_id": 18,
+      "subscribers": 0
+    }
+  ],
+  "commercial_sending_enabled": false,
+  "existing_automation_9_paused": false,
+  "rollback": "Both drafts 112 and 113 unprogrammed, no automation changes",
+  "additional_spend_eur": 0,
+  "next_step": "Finish draft 113 in authenticated Brevo, native unsubscribe and contacts test before any production delivery"
+}
