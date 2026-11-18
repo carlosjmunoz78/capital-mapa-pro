@@ -1,5 +1,9 @@
 """NEWS-001 · Brevo audience gate, pure LAB reference implementation.
 
+Single-click consent candidate: require trusted evidence of explicit newsletter opt-in
+but do not mandate a second email confirmation. Never use privacy assent as opt-in.
+
+
 Never treats membership or existence in Brevo as proof of consent.
 Never performs IO, imports, sends, or subscribes contacts.
 """
@@ -78,8 +82,8 @@ def audience_eligibility(contact: dict, *, activation_at: str) -> dict:
         received_time = _valid_time(contact.get("lead_received_at"))
         if activation_time is None or received_time is None or received_time < activation_time:
             return hold("B2B_NEW_LEAD_ACTIVATION_NOT_VERIFIED")
-        if contact.get("lead_form_verified") is not True or contact.get("double_opt_in_confirmed") is not True:
-            return hold("B2B_SOURCE_OR_DOI_NOT_CONFIRMED")
+        if contact.get("lead_form_verified") is not True:
+            return hold("B2B_SOURCE_NOT_VERIFIED")
         if origin == "social_lead_form":
             platform = contact.get("social_platform")
             if (contact.get("source_channel") != "social"
@@ -97,8 +101,6 @@ def audience_eligibility(contact: dict, *, activation_at: str) -> dict:
             return hold("PARTICULAR_LEGACY_OR_ACTIVATION_UNVERIFIED")
         if contact.get("consent_purpose") != "b2c_newsletter":
             return hold("B2C_PURPOSE_INVALID")
-        if contact.get("double_opt_in_confirmed") is not True:
-            return hold("DOI_NOT_CONFIRMED")
         if origin == "social_lead_form":
             platform = contact.get("social_platform")
             if (contact.get("lead_form_verified") is not True

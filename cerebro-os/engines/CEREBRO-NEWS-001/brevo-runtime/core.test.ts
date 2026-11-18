@@ -1,0 +1,13 @@
+import {assertEquals} from "jsr:@std/assert@1.0.16";
+import {plan,gateContact} from "./core.ts";
+const NOW=new Date("2026-11-18T20:00:00Z");
+const e={action:"sync",company_id:"fenix",origin:"fenix_prod_web_lead_ingest",marketing_consent:true,source_marketing_consent:true,synthetic:false,active:true,blocked:false,unsubscribed:false,lead_at:"2026-11-18T19:48:00Z",email:"Test@Example.org",landing_url:"https://fenixcapital.es/hipotecas/",profile:"particulares",name:"Ejemplo"};
+Deno.test("lead B2C valid",()=>assertEquals(plan(e,NOW).list_id,17));
+Deno.test("agency B2B valid",()=>assertEquals(plan({...e,landing_url:"https://fenixcapital.es/inmobiliarias/preok/",profile:"inmobiliarias"},NOW).list_id,18));
+for(const changes of [{marketing_consent:false},{source_marketing_consent:false},{synthetic:true},{active:false},{blocked:true},{unsubscribed:true},{profile:"inmobiliarias"},{landing_url:"https://fake.example/hipotecas/"},{lead_at:"2026-11-01T19:48:00Z"},{email:"not-email"}]) Deno.test("refuse invalid lead "+JSON.stringify(changes),()=>assertEquals(plan({...e,...changes},NOW).state,"HOLD"));
+Deno.test("refuse excluded agency",()=>assertEquals(plan({...e,landing_url:"https://fenixcapital.es/inmobiliarias/",profile:"inmobiliarias",company_name:"Grupo Salinas"},NOW).state,"HOLD"));
+Deno.test("refuse previous unsubscribe",()=>assertEquals(gateContact({emailBlacklisted:false,listIds:[],listUnsubscribed:[17]},17).reason,"BREVO_PREVIOUS_OPTOUT"));
+Deno.test("refuse blacklist",()=>assertEquals(gateContact({emailBlacklisted:true,listIds:[],listUnsubscribed:[]},17).reason,"BREVO_BLACKLISTED_OR_UNKNOWN"));
+Deno.test("refuse other list",()=>assertEquals(gateContact({emailBlacklisted:false,listIds:[18],listUnsubscribed:[]},17).reason,"OTHER_AUDIENCE_PRESENT"));
+Deno.test("unknown unsubscribe list held",()=>assertEquals(gateContact({emailBlacklisted:false,listIds:[]},17).state,"HOLD"));
+Deno.test("idempotent already enrolled",()=>assertEquals(gateContact({emailBlacklisted:false,listIds:[17],listUnsubscribed:[]},17).state,"ALREADY_SUBSCRIBED"));

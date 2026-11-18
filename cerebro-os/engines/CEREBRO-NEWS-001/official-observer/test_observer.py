@@ -1,0 +1,50 @@
+import unittest
+from datetime import date
+from observer import FEEDS, extract, refresh
+NOW=date(2026,11,18)
+GOOD='''<rss><channel><item><title>El Banco de España informa de las hipotecas y tipos de interés</title><link>https://www.bde.es/wbe/es/noticias-eventos/actualidad-banco-espana/prueba.html</link><pubDate>Tue, 17 Nov 2026 08:00:00 GMT</pubDate><description><![CDATA[El informe oficial sobre crédito hipotecario y tipos de interés ofrece cifras verificables sobre préstamos concedidos para viviendas. Las entidades proporcionan esta información para describir las condiciones del mercado hipotecario en su publicación.]]></description></item></channel></rss>'''
+class TestObserver(unittest.TestCase):
+ def test_parses_only_official_fresh(self):
+  a=extract(GOOD,today=NOW,feed=FEEDS[0]);self.assertEqual(len(a),1);self.assertEqual(a[0]['published_at'],'2026-11-17')
+ def test_official_host_required(self):
+  s=GOOD.replace('https://www.bde.es/','https://bad.example/');self.assertEqual(extract(s,today=NOW,feed=FEEDS[0]),[])
+ def test_stale_news_blocked(self):
+  self.assertEqual(extract(GOOD.replace('17 Nov 2026','17 Oct 2026'),today=NOW,feed=FEEDS[0]),[])
+ def test_future_news_blocked(self):
+  self.assertEqual(extract(GOOD.replace('17 Nov 2026','20 Nov 2026'),today=NOW,feed=FEEDS[0]),[])
+ def test_empty_feed_holds(self):
+  with self.assertRaisesRegex(RuntimeError,'HOLD_NO_FRESH'):refresh(today=NOW,getter=lambda u:b'<rss><channel/></rss>')
+ def test_successful_regenerate(self):
+  x=refresh(today=NOW,getter=lambda u:GOOD.encode());self.assertEqual(len(x['items']),1);self.assertEqual(x['verification_policy']['status'],'SOURCE_SNIPPETS_ONLY_PENDING_EDITORIAL_QA')
+ def test_untrusted_feed_denied(self):
+  with self.assertRaisesRegex(ValueError,'UNAPPROVED'):extract(GOOD,today=NOW,feed='https://bad.example/rss')
+ def test_missing_pub_date(self):
+  x=GOOD.replace('<pubDate>Tue, 17 Nov 2026 08:00:00 GMT</pubDate>','');self.assertEqual(extract(x,today=NOW,feed=FEEDS[0]),[])
+ def test_rss_without_description_uses_official_page(self):
+  rss=GOOD.replace('<description><![CDATA[El informe oficial sobre crédito hipotecario y tipos de interés ofrece cifras verificables sobre préstamos concedidos para viviendas. Las entidades proporcionan esta información para describir las condiciones del mercado hipotecario en su publicación.]]></description>','')
+  page='<html><article><p>Los tipos de interés de los préstamos hipotecarios requieren información suficiente antes de firmar el contrato con el banco. Las entidades financieras deben mostrar las condiciones completas de cada operación.</p></article></html>'.encode('utf-8')
+  got=extract(rss,today=NOW,feed=FEEDS[0],page_getter=lambda url:page)
+  self.assertEqual(len(got),1)
+  self.assertIn('préstamos hipotecarios',got[0]['facts'][1])
+ def test_pdf_is_not_treated_as_html_evidence(self):
+  rss=GOOD.replace('.html','.pdf').replace('<description><![CDATA[El informe oficial sobre crédito hipotecario y tipos de interés ofrece cifras verificables sobre préstamos concedidos para viviendas. Las entidades proporcionan esta información para describir las condiciones del mercado hipotecario en su publicación.]]></description>','')
+  self.assertEqual(extract(rss,today=NOW,feed=FEEDS[0],page_getter=lambda url:b'<p>Datos hipotecarios relevantes.</p>'),[])
+ def test_cookie_preferences_are_not_economic_news(self):
+  news=GOOD.replace('<description><![CDATA[El informe oficial sobre crédito hipotecario y tipos de interés ofrece cifras verificables sobre préstamos concedidos para viviendas. Las entidades proporcionan esta información para describir las condiciones del mercado hipotecario en su publicación.]]></description>','')
+  bad_page='<html><main><p>Podrás elegir las áreas de tu interés para las que quieres recibir nuestras comunicaciones. Política de cookies y privacidad del sitio.</p></main></html>'.encode('utf-8')
+  self.assertEqual(extract(news,today=NOW,feed=FEEDS[0],page_getter=lambda url:bad_page),[])
+ def test_cookie_skipped_and_true_financing_content_accepted(self):
+  news=GOOD.replace('<description><![CDATA[El informe oficial sobre crédito hipotecario y tipos de interés ofrece cifras verificables sobre préstamos concedidos para viviendas. Las entidades proporcionan esta información para describir las condiciones del mercado hipotecario en su publicación.]]></description>','')
+  page='<html><main><p>Podrás elegir las áreas de tu interés para las que quieres recibir nuestras comunicaciones.</p><article><p>Los tipos de interés de los préstamos hipotecarios requieren información suficiente antes de firmar el contrato con el banco. Esta noticia se refiere a la financiación de vivienda.</p></article></main></html>'.encode('utf-8')
+  got=extract(news,today=NOW,feed=FEEDS[0],page_getter=lambda url:page)
+  self.assertEqual(len(got),1)
+  self.assertIn('préstamos hipotecarios',got[0]['facts'][1])
+ def test_unrelated_financial_stability_rejected(self):
+  news=GOOD.replace('El Banco de España informa de las hipotecas y tipos de interés','Financial stability outlook shaped by AI valuations')
+  self.assertEqual(extract(news,today=NOW,feed=FEEDS[0]),[])
+ def test_navigation_heading_not_an_official_fact(self):
+  title='El Banco de España informa de las hipotecas y tipos de interés'
+  x=GOOD.replace('<description><![CDATA[El informe oficial sobre crédito hipotecario y tipos de interés ofrece cifras verificables sobre préstamos concedidos para viviendas. Las entidades proporcionan esta información para describir las condiciones del mercado hipotecario en su publicación.]]></description>','')
+  page='<main><p>Our monetary policy strategy, the tools we use and the impact they have</p></main>'.encode()
+  self.assertEqual(extract(x,today=NOW,feed=FEEDS[0],page_getter=lambda u:page),[])
+if __name__=='__main__':unittest.main()

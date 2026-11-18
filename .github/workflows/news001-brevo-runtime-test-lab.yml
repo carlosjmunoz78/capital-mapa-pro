@@ -1,0 +1,23 @@
+name: NEWS001 · Brevo contacto real E2E unit LAB
+on:
+  push:
+    branches: [cerebro/news001-single-optin-lab-20261118]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/brevo-runtime/**'
+      - '.github/workflows/news001-brevo-runtime-test-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Consent, classification, blacklist, opt-out, replay, no sending
+        run: cd cerebro-os/engines/CEREBRO-NEWS-001/brevo-runtime && deno test --no-check core.test.ts

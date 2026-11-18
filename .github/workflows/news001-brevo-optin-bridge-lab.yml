@@ -1,0 +1,20 @@
+name: NEWS001 · CEREBRO optin bridge safety LAB
+on:
+  workflow_dispatch:
+  push:
+    branches: [cerebro/news001-single-optin-lab-20261118]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/subscriber-bridge/**'
+      - '.github/workflows/news001-brevo-optin-bridge-lab.yml'
+permissions:
+  contents: read
+jobs:
+  bridge-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test CEREBRO single opt-in, suppression and API behavior without a real key
+        run: node --test cerebro-os/engines/CEREBRO-NEWS-001/subscriber-bridge/tests/*.test.mjs

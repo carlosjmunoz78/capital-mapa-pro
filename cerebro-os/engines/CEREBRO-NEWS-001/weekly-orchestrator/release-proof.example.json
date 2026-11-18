@@ -1,0 +1,30 @@
+{
+  "company_id": "fenix",
+  "engine_id": "CEREBRO-NEWS-001",
+  "environment": "LAB",
+  "approved": false,
+  "verified_at": null,
+  "provider": "BREVO_FREE",
+  "available_daily_credits": 0,
+  "gates": {
+    "trusted_ingestion_e2e": false,
+    "marketing_consent_evidence": false,
+    "b2b_b2c_routing_e2e": false,
+    "salinas_excluded": false,
+    "unsubscribes_respected": false,
+    "hard_bounces_excluded": false,
+    "sender_verified": false,
+    "real_owner_inbox_e2e": false,
+    "sources_verified_current": false,
+    "images_and_links_checked": false,
+    "brevo_free_quota_verified": false,
+    "old_vs_new_checked": false,
+    "backup_verified": false,
+    "rollback_verified": false,
+    "tribunal_passed": false
+  },
+  "cohorts": {
+    "b2b": {"list_id":18,"verified":false,"consent_evidence_complete":false,"suppression_check_complete":false,"recipients":0},
+    "b2c": {"list_id":17,"verified":false,"consent_evidence_complete":false,"suppression_check_complete":false,"recipients":0}
+  }
+}

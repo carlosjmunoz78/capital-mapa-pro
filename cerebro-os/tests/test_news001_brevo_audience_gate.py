@@ -29,6 +29,9 @@ class TestNews001Cohorts(unittest.TestCase):
         self.check(dict(B2C,lead_received_at="2026-11-16T10:00:00+01:00"),"HOLD")
     def test_old_brevo_particular_excluded(self):
         self.check(dict(B2C,origin="brevo_existing"),"HOLD")
+    def test_single_click_agency_with_valid_website_provenance(self):
+        c=dict(B2B,origin="fenix_cerebro_leads",source_channel="web",lead_form_verified=True,lead_received_at="2026-11-18T10:05:00+01:00",double_opt_in_confirmed=False)
+        self.check(c,"ELIGIBLE_FOR_PREPROD_TEST_ONLY")
     def test_new_agency_not_automatically_imported(self):
         self.check(dict(B2B,origin="fenix_cerebro_leads"),"HOLD")
     def test_marketing_false_denied(self):
@@ -53,8 +56,8 @@ class TestNews001Cohorts(unittest.TestCase):
         self.check(dict(B2B,consent_purpose="b2c_newsletter"),"HOLD")
     def test_missing_list_proof_denied(self):
         self.check(dict(B2B,brevo_list_verified=False),"HOLD")
-    def test_missing_double_opt_in_denied(self):
-        self.check(dict(B2C,double_opt_in_confirmed=False),"HOLD")
+    def test_single_click_consent_valid_without_double_opt_in(self):
+        self.check(dict(B2C,double_opt_in_confirmed=False),"ELIGIBLE_FOR_PREPROD_TEST_ONLY")
     def test_invalid_activation_denied(self):
         self.assertEqual(audience_eligibility(B2C,activation_at="not-a-date")["state"],"HOLD")
     def test_unknown_company_denied(self):

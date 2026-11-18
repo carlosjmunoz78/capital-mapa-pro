@@ -1,0 +1,34 @@
+name: NEWS001 · editorial generic-source contract LAB
+on:
+  push:
+    branches: [cerebro/news001-single-optin-lab-20261118]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/editor/ejecutar_prueba_semanal.py'
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/official-observer/**'
+      - '.github/workflows/news001-generic-editorial-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  generic-editorial-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 -m pip install --disable-pip-version-check 'beautifulsoup4==4.12.3'
+      - name: Two complete distinct newsletters from generic official evidence
+        run: |
+          cd cerebro-os/engines/CEREBRO-NEWS-001/editor
+          python3 ejecutar_prueba_semanal.py --date 2026-11-18 --registry ../official-observer/fixture-generic-lab.json
+          python3 - <<'PY'
+          import json
+          x=json.load(open('out/RESULTADO_PRUEBA.json'))
+          assert x['audiences']['b2b']['brevo']['status']=='LAB_PASS'
+          assert x['audiences']['b2c']['brevo']['status']=='LAB_PASS'
+          assert len(x['audiences']['b2b']['brevo']['blocks'])==10
+          assert len(x['audiences']['b2c']['brevo']['blocks'])==10
+          assert x['audiences']['b2b']['subject']!=x['audiences']['b2c']['subject']
+          assert x['send_enabled'] is False and x['api_called'] is False
+          PY

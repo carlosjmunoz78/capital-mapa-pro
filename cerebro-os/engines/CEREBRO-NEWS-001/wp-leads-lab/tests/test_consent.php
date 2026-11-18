@@ -10,12 +10,13 @@ function ok($v,$expected,$label) {
 foreach ([false,null,0,"", "false","0","off","no","FALSE","FALSE ",[], "null"] as $value) {
     ok(fenix_cerebro_marketing_flag($value),false,"reject unapproved marketing");
 }
-foreach ([true,1,"true","TRUE","1","on","yes","si","sí"] as $value) {
+foreach ([true,1,"true","TRUE","1","on","yes","si","sí","SÍ"] as $value) {
     ok(fenix_cerebro_marketing_flag($value),true,"accept explicit positive marketing");
 }
 ok(fenix_cerebro_elementor_marketing_flag([["title"=>"Aviso de privacidad","value"=>"on"]]),false,"privacy is not marketing");
 ok(fenix_cerebro_elementor_marketing_flag([["title"=>"Newsletter","value"=>"on"]]),true,"explicit newsletter accepted");
 ok(fenix_cerebro_elementor_marketing_flag([["title"=>"Boletín","value"=>"false"]]),false,"string false rejected");
+ok(fenix_cerebro_elementor_marketing_flag([["title"=>"BOLETÍN","value"=>"on"]]),true,"uppercase unicode newsletter label accepted");
 ok(fenix_cerebro_elementor_marketing_flag([["title"=>"Comunicaciones comerciales","value"=>"1"]]),true,"explicit commercial");
 ok(fenix_cerebro_elementor_marketing_flag([["title"=>"Aceptación RGPD","value"=>"on"]]),false,"rgpd not marketing");
 ok(fenix_cerebro_elementor_marketing_flag([["title"=>"Newsletter","value"=>false]]),false,"unchecked newsletter");

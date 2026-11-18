@@ -1,0 +1,29 @@
+name: NEWS001 · CEREBRO weekly schedule candidate (LAB safe)
+on:
+  workflow_dispatch:
+  push:
+    branches: [cerebro/news001-single-optin-lab-20261118]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/weekly-orchestrator/**'
+      - '.github/workflows/news001-weekly-scheduler-lab.yml'
+# No GitHub schedule in LAB: scheduled GitHub Actions only run on default branch.
+# Production release must create a separate approved weekly trigger after all gates pass.
+permissions:
+  contents: read
+concurrency:
+  group: news001-weekly-lab
+  cancel-in-progress: false
+jobs:
+  validate-weekly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify no-send guards and unique weekly campaign plans
+        run: node --test cerebro-os/engines/CEREBRO-NEWS-001/weekly-orchestrator/tests/*.test.mjs
+      - name: Verify single-click routing candidates (no Brevo writes)
+        run: |
+          python3 -m unittest discover -s cerebro-os/tests -p test_news001_brevo_audience_gate.py -v
+          python3 -m unittest discover -s cerebro-os/tests -p test_news001_onboarding_route.py -v

@@ -33,8 +33,8 @@ class TestNews001Onboarding(unittest.TestCase):
   self.assertEqual(run(dict(WEB_B2C,marketing_consent=False,consent_privacy=True))["state"],"HOLD")
  def test_marketing_without_evidence(self):
   self.assertEqual(run(dict(WEB_B2C,consent_evidence_id=""))["state"],"HOLD")
- def test_doi_unconfirmed(self):
-  self.assertEqual(run(dict(WEB_B2C,double_opt_in_confirmed=False))["state"],"HOLD")
+ def test_single_click_consent_without_doi(self):
+  self.assertEqual(run(dict(WEB_B2C,double_opt_in_confirmed=False))["state"],"PREPROD_DRY_RUN_ELIGIBLE")
  def test_unsubscribed(self):
   self.assertEqual(run(dict(WEB_B2B,unsubscribed=True))["state"],"HOLD")
  def test_hard_bounced(self):
@@ -53,15 +53,15 @@ class TestNews001Onboarding(unittest.TestCase):
   self.assertEqual(route_verified_lead(WEB_B2C,activation_at=None,event_id="evt12345678")["state"],"HOLD")
  def test_social_missing_platform(self):
   self.assertEqual(run(dict(SOC_B2C,social_platform=""))["state"],"HOLD")
- def test_inmobiliaria_new_requires_doi(self):
-  self.assertEqual(run(dict(WEB_B2B,double_opt_in_confirmed=False))["state"],"HOLD")
+ def test_inmobiliaria_single_click_consent_without_doi(self):
+  self.assertEqual(run(dict(WEB_B2B,double_opt_in_confirmed=False))["state"],"PREPROD_DRY_RUN_ELIGIBLE")
  def test_no_old_agency_send_without_consent(self):
   o=dict(BASE,persona="inmobiliaria",origin="brevo_existing",consent_purpose="b2b_newsletter",brevo_list_verified=True,salinas_screened=True,agency_name="Agencia")
   self.assertFalse(run(o)["send_enabled"])
  def test_success_is_not_authorization(self):
   for c in (WEB_B2C,SOC_B2C,WEB_B2B,SOC_B2B):
    x=run(c);self.assertEqual(x["state"],"PREPROD_DRY_RUN_ELIGIBLE")
-   self.assertEqual(x["actions"],["plan_verified_subscribe","plan_doi_completed_welcome","plan_following_weekly_issue"])
+   self.assertEqual(x["actions"],["plan_verified_subscribe","plan_single_optin_welcome","plan_following_weekly_issue"])
    self.assertFalse(x["eligible_for_live_send"]);self.assertFalse(x["brevo_contacts_mutation_enabled"])
  def test_no_send_or_write_methods(self):
   import news001_onboarding_route

@@ -1,0 +1,67 @@
+name: NEWS001 · lectura REAL fuentes oficiales LAB
+on:
+  workflow_dispatch:
+  push:
+    branches: [cerebro/news001-single-optin-lab-20261118]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/official-observer/**'
+      - '.github/workflows/news001-official-live-smoke-lab.yml'
+permissions:
+  contents: read
+jobs:
+  real-official-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Fetch official RSS directly, no customer data or campaigns
+        run: |
+          cd cerebro-os/engines/CEREBRO-NEWS-001/official-observer
+          python3 - <<'PY'
+          from observer import FEEDS
+          from urllib.request import Request,urlopen
+          import re
+          for u in FEEDS:
+              try:
+                  with urlopen(Request(u,headers={'User-Agent':'Mozilla/5.0'}),timeout=12) as a:
+                      data=a.read(100_000)
+                      print('LIVE_RSS_DIAG',u,'http',a.status,'bytes_sample',len(data),'actual',a.geturl(),'item_count',len(re.findall(rb'<item(?:\s|>)',data)),'entry_count',len(re.findall(rb'<entry(?:\s|>)',data)),'dates',re.findall(rb'<pubDate>([^<]{5,80})</pubDate>',data)[:3])
+                      import xml.etree.ElementTree as ET
+                      root=ET.fromstring(data)
+                      for e in root.findall('.//item')[:5]:
+                          print('LIVE_RSS_ITEM',repr((e.findtext('title') or '')[:90]),'link',repr((e.findtext('link') or '')[:140]),'desc_len',len(e.findtext('description') or ''),'date',e.findtext('pubDate'))
+              except Exception as e:print('LIVE_RSS_DIAG_ERROR',u,type(e).__name__,str(e)[:100])
+          PY
+          python3 observer.py --output "$RUNNER_TEMP/news001_live_official.json"
+          python3 - <<'PY'
+          import json,os
+          x=json.load(open(os.environ['RUNNER_TEMP']+'/news001_live_official.json'))
+          assert x['items'] and all('source_url' in a for a in x['items'])
+          print('REAL_SOURCE_ITEMS',len(x['items']))
+          PY
+
+      - name: Build original branded B2B and B2C newsletters from live official facts (LAB only)
+        run: |
+          python3 -m pip install --disable-pip-version-check 'beautifulsoup4==4.12.3'
+          cd cerebro-os/engines/CEREBRO-NEWS-001/editor
+          python3 ejecutar_prueba_semanal.py --date "$(date -u +%F)" --registry "$RUNNER_TEMP/news001_live_official.json"
+          python3 - <<'PY'
+          import json
+          x=json.load(open('out/RESULTADO_PRUEBA.json'))
+          for audience in ('b2c','b2b'):
+              assert x['audiences'][audience]['brevo']['status']=='LAB_PASS'
+              assert len(x['audiences'][audience]['brevo']['blocks'])==10
+          assert not x['send_enabled'] and not x['api_called']
+          print('NEWS001_LIVE_TO_HTML_2X10_PASS')
+          PY
+      - name: Keep verified live HTML drafts private to GitHub Actions, never send
+        uses: actions/upload-artifact@v4
+        with:
+          name: news001-live-official-to-fenix-html-lab
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            cerebro-os/engines/CEREBRO-NEWS-001/editor/out/*.html
+            cerebro-os/engines/CEREBRO-NEWS-001/editor/out/RESULTADO_PRUEBA.json
