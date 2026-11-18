@@ -34,7 +34,7 @@ def require_news(registry,kind,today):
 def extract_official_signal(records):
     euribor = next((x for x in records if 'EURIBOR' in x['id']), None)
     ecb = next((x for x in records if 'BCE' in x['id']),None)
-    if not euribor or not ecb: raise RuntimeError('HOLD_NEWS_SIGNAL_NOT_COVERED_BY_FALLBACK')
+    if not euribor or not ecb: return extract_generic_official_signal(records)
     raw=' '.join(euribor['facts'])
     pair=re.search(r'octubre de 2026 fue del (\d,\d+)\s*%,?\s*frente al (\d,\d+)\s*%',raw,re.I)
     if not pair:raise RuntimeError('HOLD_NEWS_NUMBERS_UNRECOGNIZED')
@@ -43,7 +43,57 @@ def extract_official_signal(records):
     return {'euribor':pair.group(1),'previous':pair.group(2),'euribor_date':euribor['published_at'], 'ecb_date':ecb['published_at']}
 
 
+
+def extract_generic_official_signal(records):
+    if not records: raise RuntimeError('HOLD_NO_CURRENT_PRIMARY_SOURCE')
+    entry=records[0]
+    title=entry['title']
+    terms={'euríbor':'Euríbor','hipotec':'Hipotecas','tipos de interés':'Tipos de interés','crédito':'Crédito','vivienda':'Vivienda','monetari':'Política monetaria'}
+    topic=next((v for k,v in terms.items() if k in title.casefold()),'Actualidad financiera')
+    evidence=[x.strip() for x in entry['facts'] if not BANNED.search(x) and not HYPE.search(x) and 'http' not in x.lower() and 36<=len(x.strip())<=390]
+    if not evidence: raise RuntimeError('HOLD_UNSAFE_OR_EMPTY_PRIMARY_FACT')
+    return {'type':'generic_official','topic':topic,'fact':evidence[-1],
+            'source_date':entry['published_at'], 'source_id':entry['id']}
+
+
+def generic_copy(kind, signal):
+    topic=signal['topic'];fact=signal['fact'];published=signal['source_date']
+    when=f'{published[8:10]}/{published[5:7]}/{published[:4]}'
+    introductory=(f'Una publicación oficial del {when} contiene esta información: «{fact}». '
+                  'Es un dato general y no determina el resultado de una solicitud de financiación concreta.')
+    if kind=='b2c':
+        return {
+          'subject':f'🟠 FÉNIX HOGAR | {topic}: una clave antes de comprar',
+          'preheader':f'{topic}, claves prácticas y herramientas para preparar mejor tu vivienda.',
+          'hero_title':'Decidir mejor empieza por entender qué ha cambiado.',
+          'hero_intro':f'La actualidad sobre {topic.lower()} puede afectar a las preguntas que te hagas antes de comprar. Lo importante es distinguir un dato general de las condiciones que te ofrezcan a ti.',
+          'letter':'Reunimos información contrastada y te ayudamos a convertirla en preguntas útiles antes de reservar una vivienda.',
+          'main_title':f'{topic}: qué aporta la última publicación contrastada',
+          'main_intro':introductory,
+          'main_quote':'Ninguna noticia general sustituye el estudio de tu economía y de la vivienda.',
+          'mortgage_body':'Antes de pedir financiación, revisa ahorro, deudas, documentación y gastos. Las condiciones dependerán de la entidad y de tu situación; una simulación no es una aprobación.',
+          'question':'¿Necesitas entender los gastos de compra, la cuota o el riesgo de entregar arras antes de tiempo?',
+          'cta_title':'Pon números a la decisión de comprar',
+          'cta_body':'Podemos ordenar tus documentos, gastos y plazos para que estudies tu operación con mayor claridad. La decisión sobre la financiación corresponde a la entidad.',
+        }
+    return {
+       'subject':f'🟠 FÉNIX PRO | {topic}: puntos clave para tu agencia',
+       'preheader':f'Actualidad de {topic.lower()}, señales de riesgo y recurso práctico para inmobiliarias.',
+       'hero_title':'La operación gana seguridad cuando la financiación se revisa a tiempo.',
+       'hero_intro':f'Una publicación reciente sobre {topic.lower()} puede abrir preguntas entre compradores. Te ayudamos a explicar los datos sin prometer resultados.',
+       'letter':'Separar una noticia económica de la capacidad real de un comprador evita malos entendidos y protege el trabajo de tu agencia.',
+       'main_title':f'{topic}: información verificada que conviene explicar',
+       'main_intro':introductory,
+       'main_quote':'Una cifra de mercado no reemplaza un preanálisis hipotecario.',
+       'case_body':'Un cliente pregunta si una noticia reciente garantiza una mejor hipoteca. Es un ejemplo hipotético: conviene explicar que la oferta depende de su expediente, documentación y criterios de la entidad.',
+       'question':'¿Qué duda se repite más entre tus compradores al hablar de financiación y plazos?',
+       'cta_title':'Revisa la financiación antes de comprometer la operación',
+       'cta_body':'Tu agencia conserva el control comercial. Fénix puede orientar el análisis hipotecario con la autorización y documentos correspondientes, sin prometer aprobaciones.',
+    }
+
+
 def edition_copy(kind,signal):
+    if signal.get('type')=='generic_official':return generic_copy(kind,signal)
     x,y=signal['euribor'],signal['previous']
     if kind=='b2c':
         return {
@@ -124,7 +174,7 @@ def main():
         soup=BeautifulSoup(h.read_text(encoding='utf-8'),'html.parser')
         blocks=[t['data-block'] for t in soup.select('[data-block]')]
         if len(blocks)!=10 or len(set(blocks))!=10:raise RuntimeError('HOLD_MISSING_BLOCKS')
-        if not any('euríbor' in t.lower() for t in soup.stripped_strings):raise RuntimeError('HOLD_MISSING_NEWS')
+        if not any(c['main_title']==t for t in soup.stripped_strings):raise RuntimeError('HOLD_MISSING_CURRENT_NEWS_SECTION')
     report={'engine_id':'CEREBRO-NEWS-001','environment':'LAB','date':today.isoformat(),'weekly_campaign_suffix':current_campaign_suffix(today),'send_enabled':False,'publish_enabled':False,'approved':False,'brevo_campaign_created':False,'api_called':False,'content_origin':'CEREBRO_DETERMINISTIC_VERIFIED_NEWS_FALLBACK_NOT_DEEPSEEK','source_registry_sha256':hashlib.sha256(Path(args.registry).read_bytes()).hexdigest(),'audiences':out}
     (OUT/'RESULTADO_PRUEBA.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     print('CEREBRO_WEEKLY_FALLBACK_PASS', today.isoformat(), {k:(v['preview']['word_count'],len(v['preview']['blocks'])) for k,v in out.items()})

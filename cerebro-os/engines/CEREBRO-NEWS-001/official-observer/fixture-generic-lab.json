@@ -1,0 +1,22 @@
+{
+  "schema": "cerebro-news-verified-sources-v1",
+  "as_of": "2026-11-18",
+  "items": [
+    {
+      "id": "NEWS001-RSS-generic-lab",
+      "title": "Actualización oficial de hipotecas y tipos de interés",
+      "source_url": "https://www.bde.es/wbe/es/noticias-eventos/h.html",
+      "source_type": "official_primary",
+      "published_at": "2026-11-17",
+      "verified_at": "2026-11-18",
+      "audiences": [
+        "b2b",
+        "b2c"
+      ],
+      "facts": [
+        "Una actualización oficial de las hipotecas y sus tipos de interés",
+        "Las entidades publican datos sobre la financiación hipotecaria para facilitar el conocimiento de las condiciones disponibles."
+      ]
+    }
+  ]
+}
