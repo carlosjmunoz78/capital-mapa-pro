@@ -2,7 +2,7 @@ import unittest
 from datetime import date
 from observer import FEEDS, extract, refresh
 NOW=date(2026,11,18)
-GOOD='''<rss><channel><item><title>El Banco de España informa de las hipotecas y tipos de interés</title><link>https://www.bde.es/wbe/es/noticias-eventos/actualidad-banco-espana/prueba.html</link><pubDate>Tue, 17 Nov 2026 08:00:00 GMT</pubDate><description><![CDATA[Informe oficial sobre crédito hipotecario y tipos de interés destinado a explicar la información económica de las entidades.]]></description></item></channel></rss>'''
+GOOD='''<rss><channel><item><title>El Banco de España informa de las hipotecas y tipos de interés</title><link>https://www.bde.es/wbe/es/noticias-eventos/actualidad-banco-espana/prueba.html</link><pubDate>Tue, 17 Nov 2026 08:00:00 GMT</pubDate><description><![CDATA[El informe oficial sobre crédito hipotecario y tipos de interés ofrece cifras verificables sobre préstamos concedidos para viviendas. Las entidades proporcionan esta información para describir las condiciones del mercado hipotecario en su publicación.]]></description></item></channel></rss>'''
 class TestObserver(unittest.TestCase):
  def test_parses_only_official_fresh(self):
   a=extract(GOOD,today=NOW,feed=FEEDS[0]);self.assertEqual(len(a),1);self.assertEqual(a[0]['published_at'],'2026-11-17')
@@ -22,7 +22,7 @@ class TestObserver(unittest.TestCase):
   x=GOOD.replace('<pubDate>Tue, 17 Nov 2026 08:00:00 GMT</pubDate>','');self.assertEqual(extract(x,today=NOW,feed=FEEDS[0]),[])
  def test_rss_without_description_uses_official_page(self):
   rss=GOOD.replace('<description><![CDATA[Informe oficial sobre crédito hipotecario y tipos de interés destinado a explicar la información económica de las entidades.]]></description>','')
-  page='<html><article><p>Los tipos de interés de los préstamos hipotecarios requieren información suficiente antes de firmar el contrato con el banco.</p></article></html>'.encode('utf-8')
+  page='<html><article><p>Los tipos de interés de los préstamos hipotecarios requieren información suficiente antes de firmar el contrato con el banco. Las entidades financieras deben mostrar las condiciones completas de cada operación.</p></article></html>'.encode('utf-8')
   got=extract(rss,today=NOW,feed=FEEDS[0],page_getter=lambda url:page)
   self.assertEqual(len(got),1)
   self.assertIn('préstamos hipotecarios',got[0]['facts'][1])
@@ -42,4 +42,9 @@ class TestObserver(unittest.TestCase):
  def test_unrelated_financial_stability_rejected(self):
   news=GOOD.replace('El Banco de España informa de las hipotecas y tipos de interés','Financial stability outlook shaped by AI valuations')
   self.assertEqual(extract(news,today=NOW,feed=FEEDS[0]),[])
+ def test_navigation_heading_not_an_official_fact(self):
+  title='El Banco de España informa de las hipotecas y tipos de interés'
+  x=GOOD.replace('<description><![CDATA[El informe oficial sobre crédito hipotecario y tipos de interés ofrece cifras verificables sobre préstamos concedidos para viviendas. Las entidades proporcionan esta información para describir las condiciones del mercado hipotecario en su publicación.]]></description>','')
+  page='<main><p>Our monetary policy strategy, the tools we use and the impact they have</p></main>'.encode()
+  self.assertEqual(extract(x,today=NOW,feed=FEEDS[0],page_getter=lambda u:page),[])
 if __name__=='__main__':unittest.main()
