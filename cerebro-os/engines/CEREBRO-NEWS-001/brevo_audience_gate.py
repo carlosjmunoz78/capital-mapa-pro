@@ -67,6 +67,29 @@ def audience_eligibility(contact: dict, *, activation_at: str) -> dict:
         # All existing real estate agencies are candidates except Salinas,
         # subject to validated consent and global unsubscribe/suppression flags.
         segment = AUDIENCES["b2b"]
+    elif persona == "inmobiliaria" and origin in ("fenix_cerebro_leads", "social_lead_form"):
+        if _salinas_match(contact):
+            return hold("USER_EXCLUDED_SALINAS")
+        if contact.get("salinas_screened") is not True:
+            return hold("SALINAS_EXCLUSION_NOT_VERIFIED")
+        if contact.get("consent_purpose") != "b2b_newsletter":
+            return hold("B2B_PURPOSE_INVALID")
+        activation_time = _valid_time(activation_at)
+        received_time = _valid_time(contact.get("lead_received_at"))
+        if activation_time is None or received_time is None or received_time < activation_time:
+            return hold("B2B_NEW_LEAD_ACTIVATION_NOT_VERIFIED")
+        if contact.get("lead_form_verified") is not True or contact.get("double_opt_in_confirmed") is not True:
+            return hold("B2B_SOURCE_OR_DOI_NOT_CONFIRMED")
+        if origin == "social_lead_form":
+            platform = contact.get("social_platform")
+            if (contact.get("source_channel") != "social"
+                or not isinstance(platform, str)
+                or not 1 <= len(platform.strip()) <= 64
+                or not re.fullmatch(r"[\\w\\s.-]+", platform.strip(), re.UNICODE)):
+                return hold("B2B_SOCIAL_SOURCE_INVALID")
+        elif contact.get("source_channel") != "web":
+            return hold("B2B_WEB_SOURCE_INVALID")
+        segment = AUDIENCES["b2b"]
     elif persona == "particular" and origin in ("fenix_cerebro_leads", "social_lead_form"):
         live_at = _valid_time(activation_at)
         lead_at = _valid_time(contact.get("lead_received_at"))

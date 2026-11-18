@@ -1,0 +1,24 @@
+name: NEWS001 · on-boarding by profile (LAB)
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/brevo_audience_gate.py'
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/news001_onboarding_route.py'
+      - 'cerebro-os/tests/test_news001_onboarding_route.py'
+      - '.github/workflows/news001-onboarding-route-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gate-audiences:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify signup, Salinas, consent, DOI, no sends
+        run: python3 -m unittest discover -s cerebro-os/tests -p 'test_news001_onboarding_route.py' -v
+      - name: Verify original audience contract
+        run: python3 -m unittest discover -s cerebro-os/tests -p 'test_news001_brevo_audience_gate.py' -v
