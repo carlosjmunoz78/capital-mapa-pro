@@ -46,15 +46,23 @@ def extract_official_signal(records):
 
 def extract_generic_official_signal(records):
     if not records: raise RuntimeError('HOLD_NO_CURRENT_PRIMARY_SOURCE')
-    entry=records[0]
-    title=entry['title']
     terms={'euríbor':'Euríbor','hipotec':'Hipotecas','tipos de interés':'Tipos de interés','crédito':'Crédito','vivienda':'Vivienda','monetari':'Política monetaria'}
-    topic=next((v for k,v in terms.items() if k in title.casefold()),'Actualidad financiera')
-    irrelevant=re.compile(r'podr[aá]s elegir las [aá]reas|recibir nuestras comunicaciones|pol[ií]tica de cookies|preferencias de privacidad|newsletter',re.I)
-    evidence=[x.strip() for x in entry['facts'] if not BANNED.search(x) and not HYPE.search(x) and not irrelevant.search(x) and 'http' not in x.lower() and 145<=len(x.strip())<=390 and re.search(r'[.!?]\s+',x)]
-    if not evidence: raise RuntimeError('HOLD_UNSAFE_OR_EMPTY_PRIMARY_FACT')
-    return {'type':'generic_official','topic':topic,'fact':evidence[-1],
-            'source_date':entry['published_at'], 'source_id':entry['id']}
+    irrelevant=re.compile(r'podr[aá]s elegir las [aá]reas|recibir nuestras comunicaciones|pol[ií]tica de cookies|preferencias de privacidad|newsletter|our monetary policy strategy',re.I)
+    spanish=re.compile(r'\b(de|del|las|los|para|sobre|que|una|como|con|este|esta|son|han|más|según|datos|tipos|mercado|préstamos|entidades)\b',re.I)
+    english=re.compile(r'\b(the|and|with|which|their|market|future|policy|interest|financial|central|bank|about|from|more|factors|this|there|they)\b',re.I)
+    for entry in records:
+        if not entry['source_url'].startswith('https://www.bde.es/'):continue
+        title=entry['title']
+        for raw in entry['facts']:
+            if not isinstance(raw,str) or BANNED.search(raw) or HYPE.search(raw) or irrelevant.search(raw) or 'http' in raw.lower():continue
+            if len(spanish.findall(raw))<5 or len(english.findall(raw))>2:continue
+            sentences=re.split(r'(?<=[.!?])\s+',raw.strip())
+            complete=[sentence for sentence in sentences if re.search(r'[.!?]$',sentence)]
+            fact=' '.join(complete).strip()
+            if not 145<=len(fact)<=390:continue
+            topic=next((v for k,v in terms.items() if k in title.casefold()),'Actualidad financiera')
+            return {'type':'generic_official','topic':topic,'fact':fact,'source_date':entry['published_at'],'source_id':entry['id']}
+    raise RuntimeError('HOLD_NO_SPANISH_PRIMARY_FACTS_VERIFIED')
 
 
 def generic_copy(kind, signal):
