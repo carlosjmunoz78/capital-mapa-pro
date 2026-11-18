@@ -63,11 +63,10 @@ class NewsletterOriginalTemplates(unittest.TestCase):
         assert reference["require_clickable_links_at_least"] >= 13
         for kind in ("b2b","b2c"):
             s=(ENGINE/f"templates/news001_{kind}_original_lab.html").read_text(encoding="utf-8")
-            from bs4 import BeautifulSoup
-            d=BeautifulSoup(s,"html.parser")
-            broken=(len(d.find_all("img"))<reference["require_images_at_least"]
-                    or len(d.find_all("h2"))<reference["require_h2_at_least"]
-                    or len(d.find_all("a"))<reference["require_clickable_links_at_least"])
+            import re
+            broken=(len(re.findall(r'<img\\b',s,re.I))<reference["require_images_at_least"]
+                    or len(re.findall(r'<h2\\b',s,re.I))<reference["require_h2_at_least"]
+                    or len(re.findall(r'<a\\b',s,re.I))<reference["require_clickable_links_at_least"])
             self.assertTrue(broken, "Rejected-simplified marker must be removed when all design gates are genuinely restored")
         self.assertFalse(r["news_content"]["brevo_send_enabled"])
     def test_no_brevo_send_ever(self):
