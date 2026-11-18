@@ -21,20 +21,20 @@ class TestObserver(unittest.TestCase):
  def test_missing_pub_date(self):
   x=GOOD.replace('<pubDate>Tue, 17 Nov 2026 08:00:00 GMT</pubDate>','');self.assertEqual(extract(x,today=NOW,feed=FEEDS[0]),[])
  def test_rss_without_description_uses_official_page(self):
-  rss=GOOD.replace('<description><![CDATA[Informe oficial sobre crédito hipotecario y tipos de interés destinado a explicar la información económica de las entidades.]]></description>','')
+  rss=GOOD.replace('<description><![CDATA[El informe oficial sobre crédito hipotecario y tipos de interés ofrece cifras verificables sobre préstamos concedidos para viviendas. Las entidades proporcionan esta información para describir las condiciones del mercado hipotecario en su publicación.]]></description>','')
   page='<html><article><p>Los tipos de interés de los préstamos hipotecarios requieren información suficiente antes de firmar el contrato con el banco. Las entidades financieras deben mostrar las condiciones completas de cada operación.</p></article></html>'.encode('utf-8')
   got=extract(rss,today=NOW,feed=FEEDS[0],page_getter=lambda url:page)
   self.assertEqual(len(got),1)
   self.assertIn('préstamos hipotecarios',got[0]['facts'][1])
  def test_pdf_is_not_treated_as_html_evidence(self):
-  rss=GOOD.replace('.html','.pdf').replace('<description><![CDATA[Informe oficial sobre crédito hipotecario y tipos de interés destinado a explicar la información económica de las entidades.]]></description>','')
+  rss=GOOD.replace('.html','.pdf').replace('<description><![CDATA[El informe oficial sobre crédito hipotecario y tipos de interés ofrece cifras verificables sobre préstamos concedidos para viviendas. Las entidades proporcionan esta información para describir las condiciones del mercado hipotecario en su publicación.]]></description>','')
   self.assertEqual(extract(rss,today=NOW,feed=FEEDS[0],page_getter=lambda url:b'<p>Datos hipotecarios relevantes.</p>'),[])
  def test_cookie_preferences_are_not_economic_news(self):
-  news=GOOD.replace('<description><![CDATA[Informe oficial sobre crédito hipotecario y tipos de interés destinado a explicar la información económica de las entidades.]]></description>','')
+  news=GOOD.replace('<description><![CDATA[El informe oficial sobre crédito hipotecario y tipos de interés ofrece cifras verificables sobre préstamos concedidos para viviendas. Las entidades proporcionan esta información para describir las condiciones del mercado hipotecario en su publicación.]]></description>','')
   bad_page='<html><main><p>Podrás elegir las áreas de tu interés para las que quieres recibir nuestras comunicaciones. Política de cookies y privacidad del sitio.</p></main></html>'.encode('utf-8')
   self.assertEqual(extract(news,today=NOW,feed=FEEDS[0],page_getter=lambda url:bad_page),[])
  def test_cookie_skipped_and_true_financing_content_accepted(self):
-  news=GOOD.replace('<description><![CDATA[Informe oficial sobre crédito hipotecario y tipos de interés destinado a explicar la información económica de las entidades.]]></description>','')
+  news=GOOD.replace('<description><![CDATA[El informe oficial sobre crédito hipotecario y tipos de interés ofrece cifras verificables sobre préstamos concedidos para viviendas. Las entidades proporcionan esta información para describir las condiciones del mercado hipotecario en su publicación.]]></description>','')
   page='<html><main><p>Podrás elegir las áreas de tu interés para las que quieres recibir nuestras comunicaciones.</p><article><p>Los tipos de interés de los préstamos hipotecarios requieren información suficiente antes de firmar el contrato con el banco. Esta noticia se refiere a la financiación de vivienda.</p></article></main></html>'.encode('utf-8')
   got=extract(news,today=NOW,feed=FEEDS[0],page_getter=lambda url:page)
   self.assertEqual(len(got),1)
