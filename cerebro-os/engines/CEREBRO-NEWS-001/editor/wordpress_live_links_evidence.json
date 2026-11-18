@@ -1,0 +1,69 @@
+{
+  "company_id": "fenix",
+  "engine_id": "CEREBRO-NEWS-001",
+  "environment": "LAB",
+  "evidence_at": "2026-11-18",
+  "method": "WordPress PROD wp_list_posts, pages 1+2, post_status=publish, reading only",
+  "validation_level": "WP_PAGE_PUBLISHED_WITH_PERMALINK; HTTP_DELIVERY_NOT_EXHAUSTIVELY_VERIFIED",
+  "links": {
+    "b2c": [
+      {
+        "path": "/hipotecas/hipoteca-90/",
+        "slug": "hipoteca-90",
+        "published": true,
+        "permalink": "https://fenixcapital.es/hipotecas/hipoteca-90/"
+      },
+      {
+        "path": "/antes-de-reservar/",
+        "slug": "antes-de-reservar",
+        "published": true,
+        "permalink": "https://fenixcapital.es/antes-de-reservar/"
+      },
+      {
+        "path": "/gastos-compra/",
+        "slug": "gastos-compra",
+        "published": true,
+        "permalink": "https://fenixcapital.es/gastos-compra/"
+      },
+      {
+        "path": "/pre-ok-hipotecario/",
+        "slug": "pre-ok-hipotecario",
+        "published": true,
+        "permalink": "https://fenixcapital.es/pre-ok-hipotecario/"
+      }
+    ],
+    "b2b": [
+      {
+        "path": "/inmobiliarias/evitar-operaciones-caidas/",
+        "slug": "evitar-operaciones-caidas",
+        "published": true,
+        "permalink": "https://fenixcapital.es/inmobiliarias/evitar-operaciones-caidas/"
+      },
+      {
+        "path": "/inmobiliarias/calculadora-preanalisis-hipotecario/",
+        "slug": "calculadora-preanalisis-hipotecario",
+        "published": true,
+        "permalink": "https://fenixcapital.es/inmobiliarias/calculadora-preanalisis-hipotecario/"
+      },
+      {
+        "path": "/inmobiliarias/preok-hipotecario/",
+        "slug": "preok-hipotecario",
+        "published": true,
+        "permalink": "https://fenixcapital.es/inmobiliarias/preok-hipotecario/"
+      },
+      {
+        "path": "/inmobiliarias/formacion-inmobiliarias/",
+        "slug": "formacion-inmobiliarias",
+        "published": true,
+        "permalink": "https://fenixcapital.es/inmobiliarias/formacion-inmobiliarias/"
+      }
+    ]
+  },
+  "policy": {
+    "only_known_exact_urls": true,
+    "no_unverified_extra_links": true,
+    "brand_site": "fenixcapital.es",
+    "no_prod_mutation": true,
+    "send_enabled": false
+  }
+}

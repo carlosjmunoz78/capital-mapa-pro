@@ -39,6 +39,7 @@ jobs:
           python3 ejecutar_prueba_semanal.py --date 2026-11-18
           python3 tests/qa_regresion_semanal.py
           python3 tests/test_cerebro_reproduces_full_design.py
+          python3 tests/test_links_wordpress_contract.py
       - name: Upload only private LAB output, no emails
         uses: actions/upload-artifact@v4
         with:
