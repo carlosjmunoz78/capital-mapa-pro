@@ -39,3 +39,19 @@
 - `FACT-001-IDENTITY-COMPAT-LAB`: regla de identidad unificada en `factory.py` y `universal_media_enrollment.py`, nueva suite de seis pruebas.
 - Próximo gate prioritario: acoplar la identidad real del runtime Python a la firma FACT sin reutilizar credenciales entre motores; confirmar ACK verificable desde el Gateway; seguir usando un único runtime compartido y sin acciones de pago.
 - Estado de autonomía: **SCaffold real probado localmente; Cloudflare enrollment real = BLOQUEADO POR IAM DE RUNTIME; PROD = HOLD**.
+
+## 18/11/2026 · FACT-001 preparación atómica añadida sin alterar la rama original
+- `factory.scaffold` construye primero en un directorio temporal privado del mismo filesystem y, solo tras completar todos los hooks y archivos, mueve la carpeta completa al destino. La reserva `.ENGINE.factory.lock` usa creación exclusiva; una excepción limpia staging y libera la reserva. En un crash abrupto, la reserva podría quedar obsoleta: recuperación manual con verificación de que no hay otro proceso, nunca eliminación automática.
+- El hook de medios UMS se invoca inicialmente con **environ limitado a CEREBRO_COMPANY_ID** (sin credenciales), generando solamente outbox y un estado PENDING. Solo después del commit se evalúa si el runtime físico dispone de cuatro variables IAM necesarias para intentar el envío; no se intenta envío con configuración parcial ni se hacen reintentos automáticos.
+- No hay ninguna operación REAL contra la cola de Cloudflare en estas pruebas. Para probar la secuencia de envío se usa transporte ficticio que verifica el instante de commit; el resultado de esa prueba no es un ACK real.
+- Ensayos nuevos: hook tardío con fallo => 0 carpetas incompletas, 0 locks; concurrencia con dos escritores => exactamente uno obtiene motor completo; fallo de red tras commit => carpeta completa + recibo `HOLD_ENROLLMENT_TRANSPORT`; sin IAM completo => 0 peticiones; no reemplazar motor previo.
+- **27/27 pruebas físicas locales VERDES:** 15 regresiones + 12 pruebas de identidad, protección, fallo y concurrencia. Ambos archivos fuente y test cotejados con Git blob de la revisión actual, `factory.py=89d5c42b0d600ccd6589b55cde00e6e13e01e894`, `test_fact001_identity_compat_lab.py=12ce2bb852f08647426b6c65ac010fbc408ec81c`.
+- Comparación OLD vs NEW por ejecución del mismo engine_id `FACT-OLDNEW-001`: **9/9 archivos iguales en contenido** (después de normalizar solo `issued_at_utc` por ser una marca temporal distinta), `status=PASS`. No cambios a los contratos del motor.
+- Python `compileall` completado sin errores. Evidencia machine-readable: `cerebro-os/factory/FACT001_ATOMIC_SCAFFOLD_EVIDENCE_LAB_2026-11-18.json`. El análisis de fuente Cloudflare confirmó que el Gateway no expone un endpoint de ejecución libre; bridge OIDC autoriza un workflow GitHub específico y el provisioner de la cola exige firma HMAC válida.
+- **Gates aún no acreditados:** backup externo, identidad real del runner para alta Cloudflare, confirmación positiva del provisioner, coste medido, tribunal integral, OLD vs NEW Cloudflare real y rollback PROD. Por tanto `FACT-001_AUTONOMY_CERTIFIED=false`, PR DRAFT, sin merge ni deployment.
+
+## Procedimiento de emergencia si falla la construcción
+1. El generador debe eliminar staging local y liberar el lock, sin dejar un motor registrado.
+2. Si la construcción termina pero no se entrega el evento IAM, conservar la carpeta completa y el outbox, mantener `media_dispatch_enabled=false` y gestionar la recuperación bajo IAM válido.
+3. Ante caída abrupta de host, inspeccionar proceso y target antes de retirar manualmente un lock obsoleto. Nunca eliminar la carpeta de un motor preexistente.
+4. Reversión de este parche: descartar esta rama candidata; la rama `cerebro-engine-factory-v0` permanece sin modificaciones. **La reversión LIVE de un Gateway o despliegue no está probada y no se declara verde.**
