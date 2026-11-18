@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "created_date": "2026-11-18",
+  "company_id": "fenix",
+  "engine_id": "FACT-001",
+  "environment": "LAB",
+  "evidence_type": "ISOLATED_LOCAL_SOURCE_MATCHED_TEST_EXECUTION",
+  "source_branch": "cerebro/fact001-identity-compat-lab-20261118",
+  "original_base_branch": "cerebro-engine-factory-v0",
+  "original_repo": "carlosjmunoz78/capital-mapa-pro",
+  "source_git_blobs": {
+    "cerebro-os/factory/factory.py": "89d5c42b0d600ccd6589b55cde00e6e13e01e894",
+    "cerebro-os/factory/universal_media_hook.py": "ec5d6db39e8a101ddfaed586ae07794411a90a3e",
+    "cerebro-os/factory/universal_media_enrollment.py": "abdc48bb8ab68e9b1d92f700aefea35ba74921c1",
+    "tests/test_fact001_identity_compat_lab.py": "12ce2bb852f08647426b6c65ac010fbc408ec81c"
+  },
+  "tests": {
+    "original_smoke": {
+      "passed": 15,
+      "failed": 0
+    },
+    "compat_and_atomic": {
+      "passed": 12,
+      "failed": 0
+    },
+    "total_passed": 27,
+    "total_failed": 0,
+    "source_blob_sha_matched": true,
+    "canonical_177_scaffolds_temp": true,
+    "concurrency_test": true,
+    "atomic_fault_cleanup_test": true,
+    "postcommit_only_send_test_fake_transport": true,
+    "transport_failure_hold_test": true
+  },
+  "old_vs_new": {
+    "status": "PASS",
+    "compared_files": 9,
+    "files_identical_after_normalizing_execution_timestamp": true,
+    "live_gateway_calls": false
+  },
+  "cloud_verified_inventory": {
+    "queue": "cerebro-fact001-ums001-enrollment-lab-eu",
+    "consumer": "cerebro-fact001-ums001-issuer-provisioner-lab-eu",
+    "queue_dispatch_executed": false,
+    "positive_ack_verified": false
+  },
+  "promoted_to_prod": false,
+  "finished_engine_autonomy_certified": false,
+  "paid_generation_enabled": false,
+  "new_subscriptions_eur": 0,
+  "marginal_usage_eur": "NOT_MEASURED",
+  "live_blocker": "SIGNED_RUNNER_IDENTITY_NOT_AVAILABLE_WITH_GITHUB_ACTIONS_BLOCKED",
+  "rollback": "BRANCH_ONLY; NO DEPLOYMENTS MODIFIED; STAGED_LOCAL_FAULT_CLEANUP_TEST_GREEN",
+  "human_exception": "NONE_FOR_LOCAL_TEST; REQUIRES_VALID_SIGNING_IDENTITY_FOR_CLOUD_PROOF"
+}
