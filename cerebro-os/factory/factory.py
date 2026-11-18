@@ -160,9 +160,11 @@ def scaffold(root: Path, engine_id: str, name: str, company_id: str | None = Non
                 pass
         return target
     finally:
-        if stage is not None and stage.exists():
-            shutil.rmtree(stage)
-        lock.unlink(missing_ok=True)
+        try:
+            if stage is not None and stage.exists():
+                shutil.rmtree(stage)
+        finally:
+            lock.unlink(missing_ok=True)
 
 
 def main(argv: list[str]) -> int:
