@@ -39,6 +39,6 @@ def route_verified_lead(contact: dict, *, activation_at: str | None, event_id: s
             "reason": "SOURCE_SEGMENT_AND_CONSENT_VALIDATED",
             "event_id": event_id, "list_id": target["list_id"],
             "template_family": target["template_family"],
-            "actions": ["plan_verified_subscribe", "plan_doi_completed_welcome",
+            "actions": ["plan_verified_subscribe", "plan_single_optin_welcome",
                         "plan_following_weekly_issue"],
             "eligible_for_live_send": False}
