@@ -1,0 +1,235 @@
+{
+  "company_id": "fenix",
+  "engine_id": "CEREBRO-NEWS-001",
+  "environment": "LAB",
+  "version": "0.5.0",
+  "observed_date": "2026-11-18",
+  "method": "Brevo authenticated automation editors /automation/edit/{id} via Opera read-only; Brevo MCP get_list (subscriber counts)",
+  "audit_status": "7_OF_7_LEGACY_WORKFLOWS_REVIEWED_READ_ONLY",
+  "legacy_flows": [
+    {
+      "id": 1,
+      "title": "mensajes tras check list 100",
+      "state": "active",
+      "trigger": {
+        "type": "contact_added_to_list",
+        "list_id": 2,
+        "list_name": "Particulares · Hipotecas"
+      },
+      "wait": "P1D",
+      "message_subject": "Mucha gente se precipita aquí",
+      "role": "RESOURCE_FOLLOWUP_B2C",
+      "decision": "CONSERVAR_EN_PRODUCCION; FUTURA_REVISION_DE_ESTILO_SIN_DUPLICAR_BIENVENIDA"
+    },
+    {
+      "id": 2,
+      "title": "inmo mensajes tras check list",
+      "state": "active",
+      "trigger": {
+        "type": "contact_added_to_list",
+        "list_id": 6,
+        "list_name": "Inmobiliarias · Partner Hipotecario"
+      },
+      "wait": "P1D",
+      "message_subject": "Lo que suele romper una compraventa",
+      "role": "RESOURCE_FOLLOWUP_B2B",
+      "decision": "CONSERVAR_EN_PRODUCCION; FUTURA_REVISION_DE_ESTILO"
+    },
+    {
+      "id": 4,
+      "title": "mensajes tras checklist autopromotor",
+      "state": "inactive",
+      "trigger": {
+        "type": "contact_added_to_list",
+        "list_id": 11,
+        "list_name": "Leads - Hipoteca Autopromotor"
+      },
+      "wait": "P1D",
+      "message_subject": "La cuota no lo dice todo en autopromotor",
+      "role": "RESOURCE_FOLLOWUP_B2C",
+      "decision": "MANTENER_INACTIVA; NO_REACTIVAR_SIN_REVISAR"
+    },
+    {
+      "id": 5,
+      "title": "lanzamiento calculadora",
+      "state": "active",
+      "trigger": {
+        "type": "contact_added_to_list",
+        "list_id": 12,
+        "list_name": "Inmobiliairas colaboradores"
+      },
+      "wait": "P1DT1H",
+      "message_subject": "Nueva calculadora para revisar operaciones antes de avanzar",
+      "role": "TOOL_ANNOUNCEMENT_B2B",
+      "decision": "CONSERVAR; COMPROBAR_RELEVANCIA_DE_CAMPANA_ANTIGUA"
+    },
+    {
+      "id": 7,
+      "title": "EMAIL CONTACTOS Q NO RESPONDEN",
+      "state": "active",
+      "trigger": {
+        "type": "contact_added_to_list",
+        "list_id": 14,
+        "list_name": "Llamado sin contacto"
+      },
+      "wait": "PT3H",
+      "message_subject": "Te hemos llamado por tu hipoteca",
+      "role": "FOLLOWUP_NO_RESPONSE",
+      "decision": "CONSERVAR_INDEPENDIENTE_DEL_ENVIO_NEWSLETTER"
+    },
+    {
+      "id": 8,
+      "title": "Mensaje de bienvenida",
+      "state": "active",
+      "trigger": {
+        "type": "contact_added_to_list",
+        "list_id": 15,
+        "list_name": "NUEVOS LEADS PARTICULARES"
+      },
+      "wait": "PT1H",
+      "message_subject": "Hemos recibido tu solicitud",
+      "role": "LEAD_ACKNOWLEDGEMENT",
+      "decision": "CONSERVAR_PROVISIONALMENTE; REVISAR_DUPLICIDAD_SI_NUEVOS_LEADS_ENTRAN_A_LISTA_15_Y_17"
+    },
+    {
+      "id": 9,
+      "title": "NEW LETTER PARTICULARES",
+      "state": "active",
+      "trigger": {
+        "type": "contact_added_to_list",
+        "list_id": 10,
+        "list_name": "Particulares · NEW LETTER"
+      },
+      "wait": "PT4H",
+      "message_subject": "¿Se puede comprar una vivienda sin tener el 20% ahorrado?",
+      "role": "LEGACY_NEWSLETTER_B2C",
+      "decision": "LEGACY_INCOMPATIBLE; IMPEDIR_NUEVAS_ALTAS_DESDE_NEWS001; RECOMENDAR_PAUSA_CONTROLADA_TRAS_SNAPSHOT_Y_ROLLBACK; NO_REUTILIZAR_COMO_NEW"
+    }
+  ],
+  "legacy_list_snapshot": [
+    {
+      "list_id": 2,
+      "unique_subscribers": 2,
+      "source": "Brevo get_list"
+    },
+    {
+      "list_id": 6,
+      "unique_subscribers": 0,
+      "source": "Brevo get_list"
+    },
+    {
+      "list_id": 10,
+      "unique_subscribers": 23,
+      "source": "Brevo get_list"
+    },
+    {
+      "list_id": 11,
+      "unique_subscribers": 0,
+      "source": "Brevo get_list"
+    },
+    {
+      "list_id": 12,
+      "unique_subscribers": 0,
+      "source": "Brevo get_list"
+    },
+    {
+      "list_id": 14,
+      "unique_subscribers": 0,
+      "source": "Brevo get_list"
+    },
+    {
+      "list_id": 15,
+      "unique_subscribers": 11,
+      "source": "Brevo get_list"
+    },
+    {
+      "list_id": 17,
+      "unique_subscribers": 0,
+      "source": "Brevo get_list"
+    },
+    {
+      "list_id": 18,
+      "unique_subscribers": 0,
+      "source": "Brevo get_list"
+    }
+  ],
+  "new_newsletters": {
+    "template_source": "cerebro-os/engines/CEREBRO-NEWS-001/editor/",
+    "user_approved_visual": "TEN_MODULES_ORIGINAL_LOGO_HERO_13_LINKS",
+    "audiences": {
+      "inmobiliarias": {
+        "brevo_list_id": 18,
+        "source": "existing_real_estate_agencies_except_salinas_plus_new_verified_web_social",
+        "legacy_list_ids_not_as_news001_targets": [
+          6,
+          12
+        ],
+        "exclude_business": "Salinas"
+      },
+      "particulares": {
+        "brevo_list_id": 17,
+        "source": "only_new_verified_web_or_social_optin_after_activation",
+        "never_import_legacy": [
+          2,
+          10,
+          11,
+          15,
+          23
+        ]
+      }
+    },
+    "immediate_send_policy": "ON_VERIFIED_OPTIN_SEND_ONE_APPROVED_CURRENT_ISSUE_PER_CONTACT_PROFILE; WELCOME_IN_SAME_ISSUE_TO_AVOID_DOUBLE_SEND",
+    "weekly_send_policy": "TWO_PROFILE_SEPARATED_WEEKLY_SENDS_AFTER_APPROVAL_AND_QUOTA",
+    "activation_at": null,
+    "prod_enabled": false
+  },
+  "homogeneous_design_contract": {
+    "master_logo": "https://fenixcapital.es/wp-content/uploads/2026/10/Logo-Fenix-Capital-oficial-color-completo-scaled-1.png",
+    "colors": {
+      "black": "#222222",
+      "orange": "#FF5F00",
+      "yellow": "#FFB71B",
+      "purple": "#870064",
+      "white": "#FFFFFF"
+    },
+    "newsletters": {
+      "layout": "10_MODULES",
+      "links": 13,
+      "graphic_logo": true,
+      "hero_per_audience": true,
+      "responsive": true,
+      "cta_primary": "#FF5F00",
+      "unsubscribe_required": true
+    },
+    "all_customer_emails": {
+      "same_logo": true,
+      "consistent_header_footer": true,
+      "clear_profile_specific_copy": true,
+      "consistent_cta_visual": true,
+      "accessible_mobile_layout": true,
+      "correct_sender": true,
+      "no_broken_links": true
+    },
+    "email_role_distinctions": "ACK vs FOLLOWUP vs WEEKLY; never send two similar welcome messages for one lead"
+  },
+  "non_mutation": {
+    "active_legacy_flows_changed": false,
+    "legacy_flows_paused": false,
+    "legacy_templates_changed": false,
+    "contacts_changed": false,
+    "brevo_campaigns_created": false,
+    "wordpress_changed": false,
+    "crm_changed": false,
+    "app_changed": false,
+    "paid_services_added": false
+  },
+  "blocking_gates": [
+    "EXTRACT_FULL_LEGACY_HTML_AND_SETTINGS_BEFORE_CSS_CHANGES",
+    "PROVE_CHANNEL_TO_BREVO_LIST_17_18_WITH_TRUSTED_OPTIN_AND_SUPPRESSION",
+    "NO_DUPLICATE_WELCOME_WHEN_LEGACY_8_AND_NEWS001_B2C_COINCIDE",
+    "CONTROLLED_PAUSE_LEGACY_9_WITH_SNAPSHOT_ROLLBACK",
+    "FULL_NEW_CEREBRO_EMAIL_RENDERING_AND_DELIVERY_TEST",
+    "APPROVE_FRESH_EDITION_AND_SAFE_SEND_QUOTA",
+    "CONFIRM_AUTOMATION_ACTIVATION"
+  ]
+}

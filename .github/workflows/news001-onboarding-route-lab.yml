@@ -6,6 +6,8 @@ on:
       - 'cerebro-os/engines/CEREBRO-NEWS-001/brevo_audience_gate.py'
       - 'cerebro-os/engines/CEREBRO-NEWS-001/news001_onboarding_route.py'
       - 'cerebro-os/tests/test_news001_onboarding_route.py'
+      - 'cerebro-os/registry/NEWS001_BREVO_AUTOMATION_ALIGNMENT_20261118.json'
+      - 'cerebro-os/tests/test_news001_automation_alignment.py'
       - '.github/workflows/news001-onboarding-route-lab.yml'
   workflow_dispatch:
 permissions:
@@ -20,5 +22,7 @@ jobs:
           persist-credentials: false
       - name: Verify signup, Salinas, consent, DOI, no sends
         run: python3 -m unittest discover -s cerebro-os/tests -p 'test_news001_onboarding_route.py' -v
+      - name: Verify seven legacy workflows remain isolated from NEWS001 and brand contract
+        run: python3 -m unittest discover -s cerebro-os/tests -p 'test_news001_automation_alignment.py' -v
       - name: Verify original audience contract
         run: python3 -m unittest discover -s cerebro-os/tests -p 'test_news001_brevo_audience_gate.py' -v
