@@ -216,5 +216,37 @@ class FactoryIdentityCompatibilityLab(unittest.TestCase):
             self.assertFalse((target.parent / ".FACT-TRANSPORT-FAIL-001.factory.lock").exists())
 
 
+    def test_canonical_3rd_001_is_blocked_at_deployed_cloud_provisioner(self):
+        """The deployed Cloudflare provisioner rejects digit-leading IDs.
+        Local factory may scaffold, but must not submit a doomed signed event.
+        """
+        env = {
+            "CEREBRO_FACT_ENROLL_EVENT_KEY": "s" * 64,
+            "CEREBRO_CLOUDFLARE_API_TOKEN": "FAKE_NEVER_USE",
+            "CEREBRO_CLOUDFLARE_ACCOUNT_ID": "a" * 32,
+            "CEREBRO_FACT_ENROLL_QUEUE_ID": "b" * 32,
+        }
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, env, clear=True):
+            with patch("urllib.request.urlopen") as network:
+                target = factory.scaffold(
+                    Path(tmp), "3RD-001", "Existing canonical engine", company_id="fenix"
+                )
+                network.assert_not_called()
+            status = json.loads(
+                (target / "events" / "UMS001_FACTORY_ENROLLMENT_STATUS.json").read_text()
+            )
+            self.assertEqual(status["status"], "HOLD_CLOUD_PROVISIONER_ID_SCOPE")
+            self.assertFalse(status["media_dispatch_enabled"])
+            self.assertFalse(status["cloud_enrollment_approved"])
+            self.assertTrue((target / "manifest.json").exists())
+            self.assertTrue((target / "events" / "FACT001_ENGINE_CREATED.outbox.json").exists())
+            self.assertFalse((target.parent / ".3RD-001.factory.lock").exists())
+
+    def test_deployed_cloud_provisioner_policy_is_narrower_than_canonical(self):
+        self.assertIsNone(enroll.DEPLOYED_PROVISIONER_ENGINE_RE.fullmatch("3RD-001"))
+        self.assertIsNotNone(enroll.ENGINE_RE.fullmatch("3RD-001"))
+        self.assertIsNotNone(enroll.DEPLOYED_PROVISIONER_ENGINE_RE.fullmatch("FACT-OIDC-LAB-E2E-001"))
+
+
 if __name__ == "__main__":
     unittest.main()
