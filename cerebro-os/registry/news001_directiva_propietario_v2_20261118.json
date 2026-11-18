@@ -2,7 +2,7 @@
   "company_id": "fenix",
   "engine_id": "CEREBRO-NEWS-001",
   "environment": "LAB",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "directive_date": "2026-11-18",
   "source": "INSTRUCCION_EXPLICITA_PROPIETARIO",
   "status": "DEFINED_AND_LAB_VALIDATION",
@@ -17,7 +17,11 @@
       "EMAIL_CLIENT_DELIVERY_E2E",
       "BREVO_IMAGE_URLS",
       "UMS_VISUAL_CONTENT_QA",
-      "CONSENT_WEB_SOCIAL"
+      "CONSENT_WEB_SOCIAL",
+      "LEGACY_9_SAFE_PAUSE_OR_ISOLATION",
+      "BRANDING_7_OLD_EMAILS_FULL_HTML_QA",
+      "BREVO_LIST_17_18_REAL_AUTOMATION_E2E",
+      "CEREBRO_FRESH_NEWS_WEEKLY_FEED"
     ],
     "brand_palette_from_manual_2025": [
       "#222222",
@@ -47,7 +51,28 @@
       "browser_qa_from_github_generated_artifact": "PASS_4_RENDERINGS_2_IMAGES_EACH_NO_OVERFLOW"
     },
     "canonical_editor": "cerebro-os/engines/CEREBRO-NEWS-001/editor/",
-    "canonical_generator_status": "VERIFIED_IN_GITHUB_LAB_BUT_NOT_WEEKLY_SCHEDULED"
+    "canonical_generator_status": "VERIFIED_IN_GITHUB_LAB_BUT_NOT_WEEKLY_SCHEDULED",
+    "brevo_live_automation_audit": {
+      "audit_completed": true,
+      "verified_date": "2026-11-18",
+      "total_workflows": 7,
+      "active_workflows": 6,
+      "inactive_workflows": 1,
+      "source": "cerebro-os/registry/NEWS001_BREVO_AUTOMATION_ALIGNMENT_20261118.json",
+      "legacy_newsletter_workflow_id": 9,
+      "legacy_newsletter_list_id": 10,
+      "legacy_newsletter_status": "ACTIVE_BUT_NOT_NEWS001",
+      "new_b2c_list_id": 17,
+      "new_b2b_list_id": 18,
+      "new_lists_active_members": {
+        "b2b": 0,
+        "b2c": 0
+      },
+      "canon_design_email_coherent": "DEFINED_NOT_DEPLOYED_IN_BREVO",
+      "email_template_visual_comparison": "NOT_YET_PERFORMED_FOR_ALL_7",
+      "automated_new_newsletter_send": "OFF_NOT_E2E_VERIFIED"
+    },
+    "brand_uniformity_policy": "ORIGINAL_10_BLOCKS_ONLY_FOR_NEWSLETTER; SAME_LOGO_HEADER_FOOTER_AND_ORANGE_ACCENTS_FOR_SHORT_FOLLOWUPS; NO_DUPLICATE_WELCOME"
   },
   "b2b": {
     "population": "TODAS_INMOBILIARIAS_EXISTENTES_BREVO",
@@ -113,6 +138,7 @@
     "app_prod_changes": "OFF",
     "brevo_list_mutations": "OFF",
     "additional_cost_eur": 0,
-    "no_customer_commercial_emails_sent_by_news001": true
+    "no_customer_commercial_emails_sent_by_news001": true,
+    "brevo_legacy_automation_mutations": "OFF"
   }
 }
