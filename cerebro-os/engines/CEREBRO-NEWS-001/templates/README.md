@@ -13,3 +13,6 @@
 - B2C: solo nuevos leads desde el momento efectivo de activación, desde web o cualquier formulario verificado en RRSS, con consentimiento explícito y registrado. Excluir absolutamente los particulares antiguos de Brevo.
 - Sender domain DNS Brevo DKIM presente según auditoría Cloudflare; estado del dominio en panel Brevo y entrega real todavía por certificar.
 - No crear listas ni modificar formularios/CRM/WordPress PROD. Coste adicional 0 €.
+
+## Paleta contrastada con Manual de Marca Fénix Capital 2025 (página 5)
+Solo: negro #222222, morado #870064, amarillo #FFB71B, naranja #FF5F00; blanco de soporte #FFFFFF. El prototipo anterior usaba incorrectamente azul/dorado. Corregido en LAB el 18/11/2026. La página 6 restringe Montserrat al logotipo: para texto general se mantiene tipografía estándar de correo electrónico, sin adjuntar ni distribuir archivos de fuentes. El rótulo HTML de marca no sustituye la verificación del logotipo vectorial oficial. Se mantiene NO SEND hasta QA editorial, consentimiento, entregabilidad e imagen aprobada.

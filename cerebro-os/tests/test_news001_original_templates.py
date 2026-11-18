@@ -39,6 +39,17 @@ class NewsletterOriginalTemplates(unittest.TestCase):
         r=json.loads(p.read_text(encoding="utf-8"))
         self.assertEqual(r["b2b"]["excluded_business"],"Salinas")
         self.assertIs(r["b2b"]["exclude_named_business_even_if_otherwise_eligible"],True)
+    def test_brand_palette_matches_manual_2025(self):
+        import re
+        official={'#222222','#870064','#FFB71B','#FF5F00','#FFFFFF'}
+        for kind in ('b2b','b2c'):
+            s=(ENGINE/f'templates/news001_{kind}_original_lab.html').read_text(encoding='utf-8')
+            colors={x.upper() for x in re.findall(r'#[0-9a-fA-F]{6}',s)}
+            self.assertTrue(colors.issubset({x.upper() for x in official}))
+            self.assertIn('#870064',s)
+            self.assertIn('#FFB71B',s)
+            self.assertIn('#FF5F00',s)
+            self.assertNotIn('#142d38',s)
     def test_no_brevo_send_ever(self):
         p=ROOT/"registry/news001_directiva_propietario_v2_20261118.json"
         r=json.loads(p.read_text(encoding="utf-8"))
