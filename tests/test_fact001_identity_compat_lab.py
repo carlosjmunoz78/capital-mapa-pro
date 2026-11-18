@@ -175,5 +175,46 @@ class FactoryIdentityCompatibilityLab(unittest.TestCase):
             self.assertFalse(receipt["media_dispatch_enabled"])
 
 
+    def test_concurrent_factory_calls_publish_only_one_complete_engine(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Barrier
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {}, clear=True):
+            barrier = Barrier(2)
+            def attempt():
+                barrier.wait(timeout=5)
+                try:
+                    return factory.scaffold(Path(tmp), "FACT-CONCURRENT-001", "Same ID", company_id="fenix")
+                except FileExistsError:
+                    return None
+            with ThreadPoolExecutor(max_workers=2) as workers:
+                values = list(workers.map(lambda _: attempt(), range(2)))
+            self.assertEqual(sum(x is not None for x in values), 1)
+            target = Path(tmp) / "engines" / "FACT-CONCURRENT-001"
+            self.assertTrue((target / "manifest.json").is_file())
+            self.assertTrue((target / "ops" / "rebuild.md").is_file())
+            self.assertEqual(list(target.parent.glob(".FACT-CONCURRENT-001.build-*")), [])
+            self.assertFalse((target.parent / ".FACT-CONCURRENT-001.factory.lock").exists())
+
+    def test_transient_transport_failure_keeps_committed_scaffold_in_hold(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {
+            "CEREBRO_FACT_ENROLL_EVENT_KEY": "q" * 64,
+            "CEREBRO_CLOUDFLARE_API_TOKEN": "fake-lab-token",
+            "CEREBRO_CLOUDFLARE_ACCOUNT_ID": "a" * 32,
+            "CEREBRO_FACT_ENROLL_QUEUE_ID": "b" * 32,
+        }, clear=True):
+            def reject_network(request, timeout=8):
+                raise OSError("INTENTIONAL_LAB_QUEUE_UNAVAILABLE")
+            with patch("urllib.request.urlopen", new=reject_network):
+                target = factory.scaffold(
+                    Path(tmp), "FACT-TRANSPORT-FAIL-001", "Transport hold", company_id="fenix"
+                )
+            self.assertTrue((target / "manifest.json").exists())
+            self.assertTrue((target / "events" / "FACT001_ENGINE_CREATED.outbox.json").is_file())
+            receipt = json.loads((target / "events" / "UMS001_FACTORY_ENROLLMENT_STATUS.json").read_text())
+            self.assertEqual(receipt["status"], "HOLD_ENROLLMENT_TRANSPORT")
+            self.assertFalse(receipt["media_dispatch_enabled"])
+            self.assertFalse((target.parent / ".FACT-TRANSPORT-FAIL-001.factory.lock").exists())
+
+
 if __name__ == "__main__":
     unittest.main()
