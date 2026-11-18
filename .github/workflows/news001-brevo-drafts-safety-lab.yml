@@ -1,0 +1,20 @@
+name: NEWS001 Brevo original draft factory safety LAB
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - 'cerebro-os/engines/CEREBRO-NEWS-001/brevo-draft-factory/**'
+      - '.github/workflows/news001-brevo-drafts-safety-lab.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-draft-factory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test strict draft-only REST contract with NO API access
+        run: node --test cerebro-os/engines/CEREBRO-NEWS-001/brevo-draft-factory/tests/factory.test.mjs

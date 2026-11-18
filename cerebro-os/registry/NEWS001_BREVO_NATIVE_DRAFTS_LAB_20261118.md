@@ -1,0 +1,7 @@
+# NEWS001 Brevo native draft factory LAB 2026-11-18
+
+New isolated module for native Brevo API drafts from the canonical 10-module CEREBRO outputs. Brevo API POST /v3/emailCampaigns creates draft campaigns; no sending, scheduling, or trigger edits. Default disabled unless NEWS001_CREATE_DRAFTS=true and BREVO_API_KEY exists at runtime. No new secret or paid service requested.
+Two distinct targets: list 18 for agencies excluding Salinas, list 17 for new consented particulars only. Prior legacy list 10 never selected; old automation #9 remains active; preserve other flows.
+Source must provide CEREBRO verified report with SHA256, logo + hero public on fenixcapital.es, 10 blocks, 13 links, and unsub token. API create requires an authenticated sender; hipotecas@fenixcapital.es remains a candidate until sender status is verified.
+To exercise safely: run canonical editor for the current official news then pass its out directory to prepare({dir, enable:true, key:...}) from secure backend only, and check resulting draft IDs. Never commit the credential, never run from public clients. Repo CI only tests the code and never uses the credential.
+Hard gates remain: original image delivery and email preview to approved test inbox, unique events with explicit marketing opt-in, no Salinas, suppression, rollback and quota, new automations status and ending old #9 through Brevo authenticated UI. Not marked operational. Test links are not sends. No change to App/CRM/WordPress PROD.
