@@ -50,6 +50,26 @@ class NewsletterOriginalTemplates(unittest.TestCase):
             self.assertIn('#FFB71B',s)
             self.assertIn('#FF5F00',s)
             self.assertNotIn('#142d38',s)
+    def test_visual_acceptance_fail_closed_and_no_false_positive(self):
+        """Color-only CI cannot approve a design that loses blocks/logo/images."""
+        p=ROOT/"registry/news001_directiva_propietario_v2_20261118.json"
+        r=json.loads(p.read_text(encoding="utf-8"))
+        assert r["news_content"]["templates"]=="SIMPLIFIED_CANDIDATES_REJECTED"
+        assert r["news_content"]["visual_qa_status"].startswith("FAILED_")
+        reference=r["news_content"]["visual_reference"]
+        assert reference["require_images_at_least"] >= 2
+        assert reference["require_h2_at_least"] >= 8
+        assert reference["require_true_logo"] is True
+        assert reference["require_clickable_links_at_least"] >= 13
+        for kind in ("b2b","b2c"):
+            s=(ENGINE/f"templates/news001_{kind}_original_lab.html").read_text(encoding="utf-8")
+            from bs4 import BeautifulSoup
+            d=BeautifulSoup(s,"html.parser")
+            broken=(len(d.find_all("img"))<reference["require_images_at_least"]
+                    or len(d.find_all("h2"))<reference["require_h2_at_least"]
+                    or len(d.find_all("a"))<reference["require_clickable_links_at_least"])
+            self.assertTrue(broken, "Rejected-simplified marker must be removed when all design gates are genuinely restored")
+        self.assertFalse(r["news_content"]["brevo_send_enabled"])
     def test_no_brevo_send_ever(self):
         p=ROOT/"registry/news001_directiva_propietario_v2_20261118.json"
         r=json.loads(p.read_text(encoding="utf-8"))

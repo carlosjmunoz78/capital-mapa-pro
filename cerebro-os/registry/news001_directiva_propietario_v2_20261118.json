@@ -2,7 +2,7 @@
   "company_id": "fenix",
   "engine_id": "CEREBRO-NEWS-001",
   "environment": "LAB",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "directive_date": "2026-11-18",
   "source": "INSTRUCCION_EXPLICITA_PROPIETARIO",
   "status": "DEFINED_AND_LAB_VALIDATION",
@@ -10,7 +10,7 @@
     "reuse_old_brevo_newsletters": false,
     "create_original_b2b": true,
     "create_original_b2c": true,
-    "templates": "NEW_BRANDED_CANDIDATES",
+    "templates": "SIMPLIFIED_CANDIDATES_REJECTED",
     "brevo_send_enabled": false,
     "qa_pending": [
       "EDITORIAL",
@@ -24,7 +24,20 @@
       "#FFB71B",
       "#FF5F00"
     ],
-    "template_brand_palette_ci": "PASS_20261118"
+    "template_brand_palette_ci": "PASS_PALETTE_ONLY_NOT_VISUAL_ACCEPTANCE",
+    "visual_qa_status": "FAILED_MISSING_ORIGINAL_LOGO_HERO_AND_MODULES",
+    "visual_reference": {
+      "status": "RECOVERED_LOCAL_LAB_NOT_PUBLISHED_TO_GITHUB",
+      "source": "CEREBRO_NEWS_001_PRUEBA_DOS_NEWSLETTERS_20261117.zip",
+      "sha256_b2b_selfcontained": "7a089bd9d071fa31e99e41389593b10a6179fb1e93e3860ea5534e6687ebfb75",
+      "sha256_b2c_selfcontained": "4946ebe5437629924aa458f3f3fd93c396b55d1115a9c3ca437498310eaea4d3",
+      "local_restored_zip_sha256": "0558a62273853b86a79b1ae49cc76b1523e85e67ef5743120034456802042311",
+      "require_h2_at_least": 8,
+      "require_images_at_least": 2,
+      "require_true_logo": true,
+      "require_clickable_links_at_least": 13,
+      "forbid_simplified_template": true
+    }
   },
   "b2b": {
     "population": "TODAS_INMOBILIARIAS_EXISTENTES_BREVO",
