@@ -30,12 +30,58 @@ class DiscoveryQueue:
           added_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
         CREATE INDEX IF NOT EXISTS idx_b2b_spool ON prospects(priority,municipality,business_name);
+        CREATE TABLE IF NOT EXISTS territory_tasks (
+          ine_code TEXT PRIMARY KEY,
+          province TEXT NOT NULL,
+          municipality TEXT NOT NULL,
+          priority INTEGER NOT NULL CHECK(priority BETWEEN 1 AND 15),
+          status TEXT NOT NULL DEFAULT 'DISCOVERY_PENDING'
+            CHECK(status IN ('DISCOVERY_PENDING','RESEARCHED','SOURCE_REVIEW_REQUIRED')),
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_b2b_territory ON territory_tasks(priority,municipality,status);
         CREATE TABLE IF NOT EXISTS progress (
           scope TEXT PRIMARY KEY,
           last_reviewed_key TEXT NOT NULL,
           reviewed_count INTEGER NOT NULL DEFAULT 0,
           updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );""")
+
+    def seed_territories(self):
+        """Idempotently materialize ONE uninterrupted 784-municipality route in LAB."""
+        from queue_planner import municipality_route
+        route = municipality_route()
+        inserted = 0
+        with self.db:
+            for row in route:
+                c = self.db.execute("""
+                  INSERT OR IGNORE INTO territory_tasks
+                    (ine_code,province,municipality,priority)
+                  VALUES(?,?,?,?)""",
+                  (row["ine_code"],row["province"],row["municipality"],int(row["queue_priority"])))
+                inserted += c.rowcount
+        return {"total": len(route), "inserted": inserted, "already_present": len(route)-inserted, "emails_sent": 0}
+
+    def next_territories(self, n=10):
+        """Priority order is not a phase boundary; any later area stays in same queue."""
+        if type(n) is not int or not 1 <= n <= 100:
+            raise ValueError("invalid territory batch")
+        return [dict(row) for row in self.db.execute("""
+            SELECT ine_code,province,municipality,priority,status
+              FROM territory_tasks WHERE status='DISCOVERY_PENDING'
+              ORDER BY priority,municipality,ine_code LIMIT ?""",(n,))]
+
+    def mark_territory_researched(self, ine_code, *, sources_checked):
+        if type(sources_checked) is not int or sources_checked < 0:
+            raise ValueError("source count required")
+        state = "RESEARCHED" if sources_checked > 0 else "SOURCE_REVIEW_REQUIRED"
+        with self.db:
+            c=self.db.execute("""
+              UPDATE territory_tasks SET status=?,updated_at=CURRENT_TIMESTAMP
+              WHERE ine_code=? AND status='DISCOVERY_PENDING'""",(state,ine_code))
+        if c.rowcount != 1:
+            raise ValueError("unknown or already processed territory")
+        return {"municipality_ine_code":ine_code,"status":state,"emails_sent":0}
 
     def ingest(self, prepared):
         if prepared.get("state") != "LAB_PLANNED_NO_SEND" or prepared.get("emails_sent") != 0:
@@ -84,8 +130,10 @@ class DiscoveryQueue:
             "SELECT state,count(*) total FROM prospects GROUP BY state")}
         progress=self.db.execute("SELECT last_reviewed_key,reviewed_count,updated_at FROM progress WHERE scope=?",
                                  ("fenix/B2B-PROSPECT-001/LAB",)).fetchone()
+        territories = {r["status"]: r["total"] for r in self.db.execute(
+            "SELECT status,count(*) AS total FROM territory_tasks GROUP BY status")}
         return {"company_id":"fenix","engine_id":"B2B-PROSPECT-001","environment":"LAB",
-                "state":"LAB_NO_SEND", "counts":counts,"cursor":dict(progress) if progress else None,
+                "state":"LAB_NO_SEND", "counts":counts,"territories":territories,"cursor":dict(progress) if progress else None,
                 "emails_sent":0,"extra_cost_eur":0}
 
     def export_checkpoint(self, filename):
