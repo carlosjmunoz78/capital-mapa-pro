@@ -1,0 +1,45 @@
+name: CEREBRO Knowledge LAB - UMS OIDC
+
+on:
+  push:
+    branches: [cerebro/knowledge-factory-appsscript-lab-v0-20261119]
+    paths:
+      - '.github/workflows/cerebro-ums001-knowledge-oidc-lab.yml'
+      - 'cerebro-os/knowledge/appsscript_lab_v0/knowledge_agent_bridge_lab/ums-run-request.json'
+
+permissions: {}
+jobs:
+  evaluate-ums-knowledge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      id-token: write
+    steps:
+      - name: Authenticate real UMS issuer and evaluate approved knowledge
+        env:
+          KNOWLEDGE_URL: https://cerebro-knowledge-agent-bridge-lab.carlosj-munozcabeza.workers.dev/ums
+        run: |
+          node --input-type=module <<'NODE'
+          const endpoint = process.env.KNOWLEDGE_URL;
+          const anon = await fetch(endpoint, {method:"POST", redirect:"error", signal:AbortSignal.timeout(10000)});
+          if (anon.status !== 401) throw Error("UNAUTHENTICATED_REQUEST_NOT_DENIED");
+          const idRequest = new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);
+          idRequest.searchParams.set("audience", endpoint);
+          const response = await fetch(idRequest, {
+            headers:{authorization:"Bearer "+process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN},
+            redirect:"error", signal:AbortSignal.timeout(10000)
+          });
+          if(!response.ok) throw Error("ISSUER_UNAVAILABLE");
+          const token = (await response.json()).value;
+          if (typeof token !== "string" || token.split(".").length !== 3) throw Error("ISSUER_TOKEN_INVALID");
+          const result = await fetch(endpoint, {method:"POST",redirect:"error",
+            headers:{authorization:"Bearer "+token},signal:AbortSignal.timeout(50000)});
+          const event = await result.json();
+          if(event.consumer_id!=="FACT-OIDC-LAB-E2E-001") throw Error("CONSUMER_ID_MISMATCH_"+result.status);
+          if(result.status===409 && event.status==="UMS_OIDC_VERIFIED_RECEIPT_PENDING"){
+            console.log(JSON.stringify({status:event.status,request_id:event.request_id,anonymous_denied:true}));
+          }else if(result.ok && event.status==="UMS_CONSUMED_KNOWLEDGE" && event.external_actions===0 && event.certified===0){
+            console.log(JSON.stringify({status:event.status,request_id:event.request_id,decision:event.decision,
+              knowledge_sha256:event.knowledge_sha256,decision_sha256:event.decision_sha256,anonymous_denied:true}));
+          }else{throw Error("UMS_KNOWLEDGE_GATE_FAILED_"+result.status);}
+          NODE
