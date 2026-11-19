@@ -61,6 +61,26 @@ class CatalogTests(unittest.TestCase):
         self.assertFalse(z["queue"][0]["send_authorized"])
 
 class PersistenceTests(unittest.TestCase):
+    def test_single_784_territory_queue_survives_restart(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            db=Path(tmp)/"territory.sqlite"
+            s=DiscoveryQueue(db)
+            self.assertEqual(s.seed_territories()["inserted"],784)
+            self.assertEqual(s.seed_territories()["already_present"],784)
+            self.assertEqual(sum(s.report()["territories"].values()),784)
+            first=s.next_territories(1)[0]
+            self.assertEqual(first["priority"],1)
+            self.assertEqual(first["province"],"Córdoba")
+            self.assertEqual(s.mark_territory_researched(first["ine_code"],sources_checked=0)["status"],
+                             "SOURCE_REVIEW_REQUIRED")
+            s.close()
+            s=DiscoveryQueue(db)
+            self.assertEqual(s.next_territories(1)[0]["priority"],1)
+            self.assertNotEqual(s.next_territories(1)[0]["ine_code"],first["ine_code"])
+            self.assertEqual(s.report()["territories"]["SOURCE_REVIEW_REQUIRED"],1)
+            self.assertEqual(s.report()["territories"]["DISCOVERY_PENDING"],783)
+            s.close()
+
     def test_spool_reopens_no_duplicate_and_tracks_cursor(self):
         with tempfile.TemporaryDirectory() as tmp:
             db=Path(tmp)/"lab.sqlite"
