@@ -39,3 +39,10 @@ Se inspeccionaron las cuatro páginas de los dos pares duplicados y se dejó ano
 - InmoCampo: el registro con teléfono +34 654 066 633 conserva Estado anterior «No llamado»; su par no tiene teléfono y muestra igualmente «No llamado».
 - Inmobiliaria Reina Victoria: el registro con teléfono +34 957 201 259 muestra Estado anterior «Sin revisar», mientras el par sin teléfono dice «No llamado». **Diferencia histórica relevante; no fusionar automáticamente.**
 - Ambas parejas siguen pendientes de cotejo de identidad y estado con el CRM de origen en modalidad solo lectura; en indicadores deduplicados cuentan una vez por Clave.
+
+
+## Ampliación en la misma sesión · Nueva Carteya
+- **Inmobiliaria Fernández**, Nueva Carteya, INE 14046: Habitaclia y Fotocasa confirman agencia con cartera de 4 inmuebles, dirección Francisco Merino 60, +34 695 470 805 y rafegeser@gmail.com. Ficha: https://app.notion.com/p/41d81b1a756d815e9947e1120c6812f4.
+- Municipio actualizado de 0 a 1 agencia y a VERIFICADO por existencia (NO exhaustividad).
+- Consulta SQL de cierre: **4.563 fichas**, **4.561 claves distintas**, **2.791 con correo**, **4.357 con teléfono**. **312 municipios con al menos una ficha**, **472 sin ficha**, **2 municipios con comprobación independiente VERIFICADO** (Bujalance, Nueva Carteya), **Villa del Río pendiente de comprobar vigencia**.
+- Primera ruta pendiente ahora: Córdoba **39** municipios sin fichas; Jaén **44**; Sevilla **60**, suma **143**. No se activan campañas ni se modifican CRM/NEWS-001/PROD.
