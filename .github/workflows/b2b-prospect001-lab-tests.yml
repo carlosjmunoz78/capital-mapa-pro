@@ -1,0 +1,20 @@
+name: B2B-PROSPECT-001 LAB queue tests (no send)
+on:
+  push:
+    branches: [cerebro/b2b-prospect001-continuity-lab-20261119]
+    paths:
+      - 'cerebro-os/engines/B2B-PROSPECT-001/**'
+      - '.github/workflows/b2b-prospect001-lab-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  no-network-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Deterministic queue and no-send gates
+        run: cd cerebro-os/engines/B2B-PROSPECT-001 && python -m unittest discover -v -p 'test_*.py'

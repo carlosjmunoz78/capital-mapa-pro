@@ -1,0 +1,146 @@
+{
+  "engine_id": "B2B-PROSPECT-001",
+  "name": "Prospección inmobiliaria Andalucía · cola única continua · LAB",
+  "company_scope": "GLOBAL_OR_SCOPED",
+  "environment": "LAB",
+  "version": "0.1.0",
+  "status": "DOCUMENTED_PARTIAL",
+  "owner": "FENIX_CAPITAL",
+  "inputs": [
+    "OFFICIAL_MUNICIPALITY_REGISTRY",
+    "BUSINESS_DISCOVERY_READONLY",
+    "CRM_AGENCIES_READONLY",
+    "BREVO_CONTACTS_READONLY",
+    "APPROVED_MARKETING_BASIS"
+  ],
+  "outputs": [
+    "DEDUPLICATED_PROSPECT_CATALOG",
+    "PRIORITY_QUEUE_PREVIEW",
+    "DAILY_CAPACITY_PREVIEW",
+    "OWNER_EDITORIAL_REVIEW_REQUIRED"
+  ],
+  "permissions": [
+    "public_business_discovery:read",
+    "crm:readonly",
+    "brevo:readonly",
+    "gitops:lab_write"
+  ],
+  "policies": [
+    "zero_new_cost",
+    "preserve_app_crm_and_news001",
+    "single_continuous_queue_exact_15_priorities",
+    "no_prospect_email_before_commercial_copy_review",
+    "no_send_without_verified_eligibility",
+    "suppress_unsubscribed_and_blacklisted",
+    "exclude_salinas",
+    "deduplicate",
+    "brevo_free_shared_300_daily",
+    "stop_on_quota_or_provider_failure",
+    "no_google_calendar",
+    "do_not_ask_for_sensitive_borrower_documents_via_insecure_email"
+  ],
+  "events_in": [
+    "PROSPECT_DISCOVERED",
+    "PROSPECT_VERIFIED",
+    "CONTACT_REPLY"
+  ],
+  "events_out": [
+    "PROSPECT_CLASSIFIED",
+    "QUEUE_PLANNED",
+    "HUMAN_REQUIRED"
+  ],
+  "tests": [
+    "priority_order_unit",
+    "no_send_guard_unit",
+    "dedupe_unit",
+    "quota_headroom_unit",
+    "suppression_unit"
+  ],
+  "evaluation": [
+    "source_provenance_gate",
+    "compliance_eligibility_gate",
+    "editorial_owner_gate",
+    "rollback_gate",
+    "cost_gate"
+  ],
+  "observability": [
+    "company_id",
+    "engine_id",
+    "environment",
+    "version",
+    "origin",
+    "municipality",
+    "priority",
+    "idempotency_key",
+    "run_id",
+    "cost_eur",
+    "suppressed_count",
+    "attempted_send_count"
+  ],
+  "cost_budget": {
+    "target_additional_eur": 0,
+    "currency": "EUR"
+  },
+  "backup": {
+    "required": true,
+    "verified": false,
+    "strategy": "GitHub branch + per-run snapshot pending"
+  },
+  "rollback": {
+    "required": true,
+    "verified": false,
+    "strategy": "unmerged LAB GitOps branch; no production changes"
+  },
+  "rebuild": {
+    "required": true,
+    "verified": false,
+    "strategy": "FACT-001 engine scaffold; tests and documented inputs"
+  },
+  "dependencies": [
+    "FACT-001",
+    "CEREBRO-NEWS-001",
+    "BREVO_FREE",
+    "CRM_READONLY"
+  ],
+  "autonomy_level": "LAB_DISCOVERY_ONLY",
+  "human_exception_codes": [
+    "LEGAL_REQUIRED",
+    "SIGNATURE_REQUIRED",
+    "LOW_CONFIDENCE",
+    "HIGH_RISK",
+    "POLICY_CONFLICT",
+    "SECURITY_INCIDENT",
+    "MONEY_LIMIT",
+    "CUSTOMER_HUMAN_REQUEST"
+  ],
+  "company_id": "fenix",
+  "content_gate": "HUMAN_REQUIRED:HIGH_RISK",
+  "marketing_send_enabled": false,
+  "discovery_plan_enabled": true,
+  "reply_to": "hipotecas@fenixcapital.es",
+  "phone_public": "614572469",
+  "phone_owner_identification": "Belen (as stated by owner)",
+  "website_links": [
+    "https://fenixcapital.es/inmobiliarias/",
+    "https://fenixcapital.es/contacto/"
+  ],
+  "pricing_owner_approved_base_eur": 1100,
+  "route_exact_order": [
+    "Cordoba:towns",
+    "Jaen:towns",
+    "Jaen:capital",
+    "Sevilla:towns",
+    "Sevilla:capital",
+    "Malaga:towns",
+    "Malaga:capital",
+    "Granada:towns",
+    "Granada:capital",
+    "Cadiz:towns",
+    "Cadiz:capital",
+    "Almeria:towns",
+    "Almeria:capital",
+    "Huelva:towns",
+    "Huelva:capital"
+  ],
+  "initial_stage": "LAB_SCaffold_AND_PRIORITY_QUEUE_TESTS_ONLY"
+}
