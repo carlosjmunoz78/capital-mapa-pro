@@ -20,6 +20,7 @@ class TestKnowledgeHook(unittest.TestCase):
             p=register_agent_candidate(target,"SEO-AGENT", "SEO-SA-001")
             self.assertEqual(p,register_agent_candidate(target,"SEO-AGENT", "SEO-SA-001"))
             self.assertFalse(json.loads(p.read_text())["permissions_granted"])
+            self.assertIsNotNone(register_agent_candidate(target,"SEO-PF01:DIRECTOR", "SEO-D01:SPECIALIST:01"))
             with self.assertRaises(FileExistsError):write_knowledge_scaffold(target,ENGINE)
     def test_reject_prod_and_path_traversal(self):
         with tempfile.TemporaryDirectory() as root:

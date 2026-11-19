@@ -6,15 +6,23 @@ not a verified API delivery, and not agent qualification.
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 from pathlib import Path
 
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+SAFE_AGENT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 FACTORY = "KNOWLEDGE-FACTORY-001"
 
 
 def _safe_identifier(value: str, kind: str) -> str:
     if not isinstance(value, str) or not SAFE_ID.fullmatch(value):
+        raise ValueError(f"invalid {kind}")
+    return value
+
+
+def _safe_agent_identifier(value: str, kind: str) -> str:
+    if not isinstance(value, str) or not SAFE_AGENT_ID.fullmatch(value):
         raise ValueError(f"invalid {kind}")
     return value
 
@@ -84,15 +92,16 @@ def write_knowledge_scaffold(target: Path, engine: dict, company_id: str | None 
 
 def register_agent_candidate(target: Path, agent_id: str, subagent_id: str | None = None) -> Path:
     """For agent creators to call. Does not declare training or grant permissions."""
-    agent_id = _safe_identifier(agent_id, "agent_id")
-    subagent_id = _safe_identifier(subagent_id, "subagent_id") if subagent_id else None
+    agent_id = _safe_agent_identifier(agent_id, "agent_id")
+    subagent_id = _safe_agent_identifier(subagent_id, "subagent_id") if subagent_id else None
     manifest_file = target / "training" / "knowledge_factory_enrollment.json"
     if not manifest_file.is_file():
         raise FileNotFoundError("missing FACT knowledge contract")
     manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
     if manifest.get("environment") != "LAB" or manifest.get("enrollment_status") != "PENDING_FACTORY_IAM":
         raise PermissionError("unsafe agent registration context")
-    dest = target / "training" / "knowledge_candidates" / f"{agent_id}{'.'+subagent_id if subagent_id else ''}.json"
+    fingerprint = hashlib.sha256(json.dumps([agent_id, subagent_id], ensure_ascii=False).encode("utf-8")).hexdigest()[:24]
+    dest = target / "training" / "knowledge_candidates" / f"agent-{fingerprint}.json"
     dest.parent.mkdir(parents=True, exist_ok=True)
     record = {
         "schema_version": "1.0.0",
