@@ -1,0 +1,24 @@
+name: B2B-PROSPECT-001 Andalucia Geofabrik PBF LAB (no send)
+on:
+  push:
+    branches:
+      - cerebro/b2b-prospect001-continuity-lab-20261119
+    paths:
+      - .github/workflows/b2b-prospect001-geofabrik-lab.yml
+permissions:
+  contents: read
+concurrency:
+  group: b2b-geofabrik-region-lab
+  cancel-in-progress: false
+jobs:
+  all-andalucia-once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install deterministic open-source parser
+        run: python3 -m pip install --disable-pip-version-check --quiet osmium 'shapely>=2.0,<3'
+      - name: Inspect all Andalucía OpenStreetMap agency POIs once, no sends
+        run: python3 -u cerebro-os/engines/B2B-PROSPECT-001/scripts/collect_geofabrik_regional.py
