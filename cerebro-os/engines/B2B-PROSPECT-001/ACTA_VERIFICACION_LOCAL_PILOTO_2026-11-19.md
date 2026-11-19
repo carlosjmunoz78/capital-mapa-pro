@@ -144,3 +144,38 @@ En las cinco páginas municipales se conserva `Comprobación independiente=PENDI
 ### Seguridad y próximos pasos
 - CEREBRO LAB: ninguna modificación de CRM PROD, App, WordPress, DNS, main ni NEWS-001. **0 campañas**, **0 contactos añadidos a Brevo** por esta operación; sin contratación de nuevas suscripciones.
 - **next_block:** completar búsqueda focalizada de los 26 municipios cordobeses sin fichas, pero priorizar de forma creciente **calidad/vigencia por encima de cantidad**; revisar y desambiguar estos 5 candidatos más los anteriores con `PENDIENTE`. No promover un municipio a `VERIFICADO` sin evidencia comprobable de negocio actual. Luego Jaén→Sevilla.
+
+
+## B2B-PROSPECT-001 · Quinta tanda · Control de calidad y no duplicación · 2026-11-20
+
+**Objetivo:** priorizar calidad de prospectos B2B antes de nuevas altas. Ejecutado contraste web/nombres/sedes, cotejo con Notion de empresa existente, notas de procedencia y actualización de fichas **sin cambiar claves, tratamientos, denominaciones ni recuentos**. No se ha modificado PROD, CRM, listas Brevo ni NEWS-001.
+
+### Resultado verificable: 8 páginas de Notion ampliadas
+1. [OcasiónCasa Peñarroya — ficha existente](https://app.notion.com/p/41d81b1a756d81c092c3d4585436471f): se enlaza [perfil Julio León Tejero en Idealista](https://www.idealista.com/pro/julioleontejero/) que declara dirección Av. Universidad 12, 14240 Belmez, [anuncio de Belmez](https://www.idealista.com/inmueble/112241742/) que identifica a **OcasiónCasa Oficina Peñarroya** y el número 957 567 018 **ya registrado**. También [reseñas de la oficina](https://agenciasinmobiliarias.com.es/es-es/i/11446-ocasion-casa/) citan a Julio y ventas en Belmez. **Decisión:** probable agente comercial/equipo OcasiónCasa, no dar de alta una segunda inmobiliaria sin evidencia de sede jurídica/operativa separada. Conservar datos Overture originales.
+2. [Municipio Belmez](https://app.notion.com/p/41d81b1a756d81aabb17c10aede44b34): revisión documentada; anuncios en la zona y perfil con dirección Belmez **no prueban oficina B2B independiente**. Se conserva 0 fichas de negocio local único y `PENDIENTE`, con pista para verificación física posterior.
+3. [Inmobiliaria Gestimor](https://app.notion.com/p/41d81b1a756d8140a520c87b4bbce22e): [Yaencontre](https://www.yaencontre.com/inmobiliarias/inmobiliaria-gestimor-82886) muestra 19 anuncios y [piso de Moriles actualizado 20/10/2026](https://ca.yaencontre.com/venda/pis/immoble-82886-112853464). **Actividad anunciante en 2026 confirmada, sede exacta Moriles no confirmada**. Sin teléfono inventado.
+4. [Municipio Moriles](https://app.notion.com/p/41d81b1a756d810bb702c639c96c1083): diferencia actividad en municipio vs establecimiento residente; conservado `PENDIENTE`.
+5. [Gestiones Integrales e Inmobiliarias La Campiña](https://app.notion.com/p/41d81b1a756d8108a769dd8352af22c7): [BORME](https://www.boe.es/diario_borme/txt.php?id=BORME-A-2019-119-14) y [Cinco Días](https://cincodias.elpais.com/directorio-empresas/empresa/8566908/gestiones-integrales-e-inmobiliarias-la-campina) ubican domicilio social **Delicias 30, Santaella**, mientras directorios como [Gestoría Leal](https://gestorialealvilches.es/gestiones-integrales-e-inmobiliarias-la-campina/) ubican atención comercial en **Delicias 29**. **No sobreescribir una dirección por otra sin comprobar ambas**. No consta cartera propia reciente ni intermediación residencial actual verificada.
+6. [Municipio Santaella](https://app.notion.com/p/41d81b1a756d81fb97f1cc684a199f9d): confirmación de conflicto direcciones 29/30 y calidad mercantil; permanece `PENDIENTE`.
+7. [Municipio Espejo](https://app.notion.com/p/41d81b1a756d81cebc81f9c5b2320d28): [gestoría local](https://gestoriascordoba.es/municipio/espejo) no acredita actividad de agencia residencial; [Mubasol de Espejo](https://www.boe.es/diario_borme/txt.php?id=BORME-A-2023-140-14) es principalmente solar/energía (CNAE 3519), no debe agregarse como agencia por compraventa accesoria; [Pérez Escribano](https://perezescribano.net/) opera desde Castro del Río pese a comercializar inmuebles en Espejo. **Cero altas falsas**.
+8. [Municipio Fuente Obejuna](https://app.notion.com/p/41d81b1a756d81c7a660ca9257688ddb): [Idealista](https://www.idealista.com/agencias-inmobiliarias/fuente-obejuna-cordoba/inmobiliarias) enumera agencias que venden allí, pero ninguna demuestra oficina local a partir de ese directorio; OcasiónCasa Peñarroya ya inventariada. **Cero duplicaciones por zona de cartera**.
+
+### Nueva disciplina de evidencia (documental, sin cambiar esquema Notion)
+- **AGENCIA_LOCAL_VERIFICADA**: identificación de empresa + actividad de intermediación actual + base/establecimiento en municipio sustentado por fuentes. No equivale a censo municipal completo.
+- **AGENTE_ASOCIADO / MISMA_RED**: profesional o perfil distinto vinculado a agencia ya existente; relacionar sin crear duplicado de empresa.
+- **COMERCIALIZA_EN_MUNICIPIO**: anuncios actuales, pero sede empresarial está en otro lugar o sin verificar; conservar la cobertura como nota, no como oficina física local.
+- **MERCANTIL_O_GESTORIA_PENDIENTE**: objeto CNAE/BORME o directorio de asesoría sin prueba de actividad efectiva residencial.
+- **DESCARTADO_COMO_AGENCIA**: empresa ajena al negocio B2B de intermediación, por ejemplo energía solar o promotor por cuenta propia.
+- **CONTACTO_COMERCIAL** separado: ni email público ni teléfono publicado demuestran base para campañas. Conservar `Autorización comercial=NO_VERIFICADA` y respetar `NO_CONTACTAR`, colaboradores y oposiciones.
+
+### Cierre SQL Notion, sin alteración de contadores por diseño
+- **4.576 fichas**, **4.574 claves distintas**; 2.793 fichas con email y 4.363 con teléfono.
+- **325 municipios con ficha** (5 `VERIFICADO` de presencia, 320 `PENDIENTE`), **459 sin ficha**, 784 total.
+- Pendientes `SIN_FICHAS_EN_FUENTES`: **Córdoba 26, Jaén 44, Sevilla 60**; total primera ruta **130**.
+- No se crearon fichas nuevas en esta tanda ni se tocaron los 2 pares duplicados anteriores; todas las acciones de escritura fueron **append no destructivo** de evidencia en 8 páginas, con resultados aceptados por Notion.
+
+### next_block
+1. De los 26 municipios cordobeses aún sin ficha, priorizar nombres con **dirección empresarial en el municipio + cartera activa reciente**; si no existe evidencia, documentar resultado sin crear sociedades/inmobiliarias por CNAE genérico.
+2. Verificar relación comercial y sede real de Julio León/OcasiónCasa; verificar sede Moriles de Gestimor y domicilios de La Campiña. No modificar estados de autonomía ni `VERIFICADO` hasta contraste independiente.
+3. Priorizar la **lista deduplicada de agencias realmente operativas**, conservando referencias del histórico y sin campañas o altas de Brevo.
+4. Mantener rama LAB, CRM/App/NEWS-001/PROD y recursos contratados sin alteración; gasto adicional contratado 0 €.
