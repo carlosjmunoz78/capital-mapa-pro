@@ -1,0 +1,19 @@
+name: B2B-PROSPECT-001 UNEXIA Historical Contact Recovery LAB
+on:
+  push:
+    branches:
+      - cerebro/b2b-prospect001-continuity-lab-20261119
+    paths:
+      - .github/workflows/b2b-prospect001-unexia-recovery-lab.yml
+permissions:
+  contents: read
+jobs:
+  historical-contact-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Recover public archived professional business contacts read-only
+        run: python3 cerebro-os/engines/B2B-PROSPECT-001/scripts/collect_unexia_expanded.py
