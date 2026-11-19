@@ -1,7 +1,10 @@
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+from factory import scaffold
 from knowledge_factory_hook import knowledge_manifest, write_knowledge_scaffold, register_agent_candidate
 
 ENGINE = {"engine_id":"TEST-001", "environment":"LAB", "version":"0.1.0"}
@@ -37,5 +40,21 @@ class TestKnowledgeHook(unittest.TestCase):
             p=register_agent_candidate(target,"A1")
             p.write_text("conflict")
             with self.assertRaises(FileExistsError):register_agent_candidate(target,"A1")
+
+    def test_factory_emits_candidates_only_for_explicit_identities(self):
+        with tempfile.TemporaryDirectory() as root, patch.dict(os.environ, {}, clear=True):
+            target = scaffold(Path(root), "TEST-001", "Test", agent_inventory=[
+                {"agent_id": "AGT-1"},
+                {"agent_id": "AGT-1", "subagent_id": "AGT-1:SUB"},
+                {"agent_id": "AGT-1"},
+            ])
+            candidates = [json.loads(path.read_text()) for path in
+                          (target / "training" / "knowledge_candidates").glob("*.json")]
+            self.assertEqual(len(candidates), 2)
+            self.assertTrue(all(not item["permissions_granted"] and
+                                not item["dispatch_enabled"] for item in candidates))
+            with self.assertRaises(ValueError):
+                scaffold(Path(root), "TEST-002", "Test", agent_inventory=[{"agent_id": "../invalid"}])
+            self.assertFalse((Path(root) / "engines" / "TEST-002").exists())
 
 if __name__ == '__main__':unittest.main()

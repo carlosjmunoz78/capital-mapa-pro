@@ -124,3 +124,19 @@ def register_agent_candidate(target: Path, agent_id: str, subagent_id: str | Non
         return dest
     dest.write_text(content, encoding="utf-8")
     return dest
+
+
+def validate_agent_inventory(records: object) -> tuple[tuple[str, str | None], ...]:
+    """Validate actual creator output before the engine scaffold writes any files."""
+    if not isinstance(records, (list, tuple)):
+        raise ValueError("agent inventory must be an array of identity records")
+    identities = []
+    for entry in records:
+        if not isinstance(entry, dict) or set(entry) - {"agent_id", "subagent_id"}:
+            raise ValueError("invalid agent inventory record")
+        agent_id = _safe_agent_identifier(entry.get("agent_id"), "agent_id")
+        subagent_id = entry.get("subagent_id")
+        if subagent_id is not None:
+            subagent_id = _safe_agent_identifier(subagent_id, "subagent_id")
+        identities.append((agent_id, subagent_id))
+    return tuple(dict.fromkeys(identities))
