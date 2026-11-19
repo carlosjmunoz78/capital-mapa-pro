@@ -46,3 +46,35 @@ Se inspeccionaron las cuatro páginas de los dos pares duplicados y se dejó ano
 - Municipio actualizado de 0 a 1 agencia y a VERIFICADO por existencia (NO exhaustividad).
 - Consulta SQL de cierre: **4.563 fichas**, **4.561 claves distintas**, **2.791 con correo**, **4.357 con teléfono**. **312 municipios con al menos una ficha**, **472 sin ficha**, **2 municipios con comprobación independiente VERIFICADO** (Bujalance, Nueva Carteya), **Villa del Río pendiente de comprobar vigencia**.
 - Primera ruta pendiente ahora: Córdoba **39** municipios sin fichas; Jaén **44**; Sevilla **60**, suma **143**. No se activan campañas ni se modifican CRM/NEWS-001/PROD.
+
+
+## B2B-PROSPECT-001 · Segunda tanda local · 2026-11-20
+**Estado:** HECHO para ingesta auditada de 5 candidatos; PARCIAL para verificación independiente de municipio y exhaustividad.
+
+### Altas en Notion (sin contactos comerciales)
+| Municipio | Ficha | Evidencia | Comprobación independiente |
+| --- | --- | --- | --- |
+| Luque | [INMOLUQUE](https://app.notion.com/p/41d81b1a756d81d98386edf6412fe373) | Web propia https://inmobiliarialuque.com/ + https://agencias.selectra.es/14880, Carrera 45, teléfono de empresa publicado | VERIFICADO: presencia, no exhaustividad |
+| Espiel | [Guadiato Gestión Inmobiliaria](https://app.notion.com/p/41d81b1a756d813b9136cc3144501c4a) | Web propia https://guadiatogestioninmobiliaria.es/contacto/ y cartera https://guadiatogestioninmobiliaria.es/inmuebles/, Ánimas 2, teléfono/email publicados | VERIFICADO: presencia, no exhaustividad |
+| Santaella | [Gestiones Integrales e Inmobiliarias La Campiña](https://app.notion.com/p/41d81b1a756d8108a769dd8352af22c7) | https://gestoriascordoba.es/especialidad/inmobiliaria y BORME 2019; diferencia Calle Delicias 29 vs 30, actividad presente por comprobar | PENDIENTE |
+| Doña Mencía | [Mencicasa](https://app.notion.com/p/41d81b1a756d81fbaba3f56028b58ddb) | https://www.todosbiz.es/mencicasa_3o-957-69-52-87 y https://cordoba.buscalis.com/inmobiliarias-dona-mencia; directorios, sin sitio propio ni prueba de actividad actual | PENDIENTE |
+| Moriles | [Inmobiliaria Gestimor](https://app.notion.com/p/41d81b1a756d8140a520c87b4bbce22e) | https://www.yaencontre.com/inmobiliarias/inmobiliaria-gestimor-82886 + https://www.idealista.com/pro/inmobiliaria-gestimor/venta-viviendas/moriles-cordoba/; cartera visible, oficina física no confirmada | PENDIENTE |
+
+Todas las 5 fichas nuevas = `PROSPECTO_REVISAR` + `Autorización comercial: NO_VERIFICADA`. Sin importación a Brevo, comunicaciones ni escritura al CRM.
+
+### Recuento post-escritura · lectura directa de Notion
+- **4.568 fichas**, **4.566 claves distintas** (persisten los dos pares de duplicados históricos), **2.792 con email**, **4.361 con teléfono**.
+- **317 municipios con al menos una ficha**, **467 municipios sin ficha**, de los 784.
+- **4 municipios con evidencia independiente marcada VERIFICADO** en todo el directorio de municipios (Bujalance, Nueva Carteya, Luque, Espiel). Los demás continúan PENDIENTE.
+- **Córdoba:** 42 con fichas / 34 sin fichas. **Jaén:** 53 / 44. **Sevilla:** 46 / 60.
+- Primera ruta: **138 municipios aún SIN_FICHAS_EN_FUENTES** (34 + 44 + 60).
+- Se han verificado acciones de alta y consultas SQL; no se afirma censo completo ni validación individual de teléfono/email.
+
+### Precauciones metodológicas
+No confundir **agencia que comercializa inmuebles en un municipio** con **oficina ubicada en ese municipio**. Fuentes secundarias pueden estar desactualizadas y el campo CON_AGENCIAS indica que existe una ficha candidata, no que sea definitivamente válida. Mantener `Comprobación independiente=PENDIENTE` salvo evidencia suficiente de presencia empresarial actual. No derivar permiso comercial de datos públicos.
+
+### next_block
+1. Continuar los **34 municipios de Córdoba** sin fichas, distinguiendo establecimiento local / cobertura desde otro pueblo / promotora no intermediaria.
+2. Confirmar vigencia de Mencicasa, La Campiña, Gestimor e INMOVILLA 2003 SL antes de promover su estatus; descartar falsas coincidencias manteniendo trazabilidad.
+3. Mantener protegidos colaboradores y reactivaciones, pares duplicados documentados, y las listas Brevo sin contactos.
+4. Después verificar Jaén (44) y Sevilla (60), con entregas parciales auditadas.
