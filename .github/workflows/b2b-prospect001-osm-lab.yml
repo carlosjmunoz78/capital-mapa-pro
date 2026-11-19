@@ -17,3 +17,5 @@ jobs:
           persist-credentials: false
       - name: Read OSM public corporate contacts with mandatory municipality validation
         run: python3 cerebro-os/engines/B2B-PROSPECT-001/scripts/collect_osm_public.py
+
+# Retry once using validated current free public endpoint; remains read-only.
