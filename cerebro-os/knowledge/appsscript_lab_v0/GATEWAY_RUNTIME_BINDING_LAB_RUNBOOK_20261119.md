@@ -4,6 +4,8 @@
 
 **No equivale a 3 lecturas E2E reales, autorización de agentes, formación profesional ni certificación.**
 
+**Actualización:** el binding se ejecutó de forma privada en Cloud Shell con 2 lecturas reales respaldadas por recibos, denegaciones y desactivación verificadas. Falta un runtime LAB elegible e identidad permanente. Véase [evidencia física y rollback](GATEWAY_RUNTIME_BINDING_LIVE_EVIDENCE_20261119.md).
+
 ## 1. Evidencia real existente
 
 | Elemento | Evidencia | Estado |
