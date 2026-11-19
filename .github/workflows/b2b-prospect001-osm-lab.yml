@@ -1,0 +1,19 @@
+name: B2B-PROSPECT-001 OSM Read-only LAB (no send)
+on:
+  push:
+    branches:
+      - cerebro/b2b-prospect001-continuity-lab-20261119
+    paths:
+      - .github/workflows/b2b-prospect001-osm-lab.yml
+permissions:
+  contents: read
+jobs:
+  osm-contact-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read OSM public corporate contacts with mandatory municipality validation
+        run: python3 cerebro-os/engines/B2B-PROSPECT-001/scripts/collect_osm_public.py
