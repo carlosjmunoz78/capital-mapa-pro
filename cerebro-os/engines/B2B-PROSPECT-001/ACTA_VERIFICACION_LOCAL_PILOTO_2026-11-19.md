@@ -78,3 +78,35 @@ No confundir **agencia que comercializa inmuebles en un municipio** con **oficin
 2. Confirmar vigencia de Mencicasa, La Campiña, Gestimor e INMOVILLA 2003 SL antes de promover su estatus; descartar falsas coincidencias manteniendo trazabilidad.
 3. Mantener protegidos colaboradores y reactivaciones, pares duplicados documentados, y las listas Brevo sin contactos.
 4. Después verificar Jaén (44) y Sevilla (60), con entregas parciales auditadas.
+
+
+## B2B-PROSPECT-001 · Tercera tanda local · 2026-11-20 (continuación)
+
+**Alcance:** revisar fuentes locales en municipios cordobeses sin fichas; distinguir intermediarios con presencia actual de gestores mercantiles, promotoras, empresas municipales y agencias que solo anuncian propiedades en la zona. Todos los datos nuevos se han guardado exclusivamente en la base Notion de PROSPECTOS (NO ENVÍO), sin afectar CRM ni Brevo.
+
+### Nuevas fichas (3) y comprobación
+1. **Mar de Encinas · Cardeña (INE 14016)**. Web propia [quiénes somos](https://mardeencinas.es/sobre-nosotros) declara inicio en 2026 y base en Cardeña, [contacto](https://mardeencinas.es/contacto), y [anuncio profesional en Idealista](https://www.idealista.com/inmueble/112713212/) corrobora gestión/venta de vivienda en Cardeña. Teléfono +34 614 43 61 89 y email info@mardeencinas.es publicados en la web de negocio. [Ficha Notion](https://app.notion.com/p/41d81b1a756d81e6838bd0a89eb67b9f). `Comprobación independiente=VERIFICADO` **solo para presencia de negocio**, sin llamada ni visita física ni censo exhaustivo.
+2. **Hermanos Caracuel Luque C.B. · Carcabuey (INE 14015)**. [Inmueble24](https://www.inmueble24.es/empresa-hermanos-caracuel-luque-en-carcabuey-42164) lo categoriza como agentes inmobiliarios y administradores de fincas en Obispo Pérez Muñoz 12. [eInforma](https://www.einforma.com/informes-empresas/CORDOBA/Carcabuey/Empresas-2.html) confirma denominación en el municipio. [Ficha Notion](https://app.notion.com/p/41d81b1a756d8129a497c5ec1cfa5aa0). `PENDIENTE` verificación de actividad, negocio abierto, contacto y mediación actual.
+3. **San Acacio Gestiones Inmobiliarias S.L. · Montemayor (INE 14041)**. [Empresite](https://empresite.eleconomista.es/SAN-ACACIO-GESTIONES-INMOBILIARIAS.html) y [Kompass](https://es.kompass.com/v/montemayor/es_01_14_14041/) identifican sociedad de gestión inmobiliaria en San Acacio 11; no se obtuvo web ni oferta vigente. [Ficha Notion](https://app.notion.com/p/41d81b1a756d817fb61ddcbac4b62f1e). `PENDIENTE` confirmar servicio comercial actual y diferencia entre agencia y administración/tenencia.
+
+Las tres fichas conservan `Tratamiento=PROSPECTO_REVISAR` y `Autorización comercial=NO_VERIFICADA`. Las tres páginas municipales anotan los vínculos y limitaciones; Carcabuey y Montemayor NO se promueven a verificado.
+
+### Exclusiones analizadas (no insertar como agencia local)
+- **HORDESA, Hornachuelos**: referencias del [Ayuntamiento](https://hornachuelos.es/ayuntamiento/catastro/) y [comisión liquidadora](https://hornachuelos.es/?p=6013) muestran empresa pública municipal, no agencia B2B privada corriente; no crear falso prospecto.
+- **Villarejo Siglo XXI SL, Pedro Abad**: la [ficha mercantil](https://cincodias.elpais.com/directorio-empresas/empresa/1145930/villarejo-siglo-xxi) describe promoción/construcción, no intermediación residencial externa probada; no añadir como agencia de captación.
+- **Andalusí Brokers 1492 SL**: aunque hay directorios que la atribuyen a Carcabuey, [EmpresaSite](https://empresite.eleconomista.es/ANDALUSI-BROKERS-1492.html) y [Cylex/Firmania](https://firmania.es/priego-de-cordoba/andalus%C3%AD-brokers-1492-1839024) sitúan su sede en Carretera Zagrilla, **Priego de Córdoba**, por lo que no se asigna falsamente a Carcabuey.
+- **Agropisar**: la [guía oficial de Guadalcanal](https://www.guadalcanal.es/es/municipio/guia-local/empresas/Agropisar-S.L./) documenta actividad/localización sevillana; aparición en un agregador de Fuente Obejuna no basta para confirmar oficina cordobesa.
+- **Seriedad Inmobiliaria Lainez**: publica propiedades en Bélmez, pero no consta en esta revisión que tenga oficina allí. No convertir cartera fuera de localidad en oficina.
+- **Gestimor (Moriles)**: [Idealista](https://www.idealista.com/pro/inmobiliaria-gestimor/) y [Yaencontre](https://www.yaencontre.com/inmobiliarias/inmobiliaria-gestimor-82886) muestran cartera activa; no se confirmó oficina física. Sigue PENDIENTE.
+- **Mencicasa / La Campiña / INMOVILLA**: resultados localizables en fuentes secundarias o mercantiles, pero persisten dudas de vigencia, ubicación y/o tipo de servicio. Ninguna se eleva a `VERIFICADO` por ese solo hecho.
+
+### Lectura SQL posterior de Notion
+- `fichas = 4.571`, `COUNT(DISTINCT Clave) = 4.569`, `con_email = 2.793`, `con_telefono = 4.362`.
+- `CON_AGENCIAS = 320` municipios, con `VERIFICADO=5` (presencia, no exhaustividad) y `PENDIENTE=315`.
+- `SIN_FICHAS_EN_FUENTES = 464` municipios; la ausencia de ficha NO confirma ausencia de agentes.
+- Córdoba: **45 con fichas / 31 sin fichas** (76 de ruta); Jaén: **53 / 44**; Sevilla: **46 / 60**.
+- Ruta prioritaria restante sin fichas: **135 municipios** (31 + 44 + 60). Baseline anterior: 138. No se reescribieron claves/estados históricos ni se eliminaron registros duplicados.
+
+### Gate y siguiente bloque
+- **0 campañas lanzadas**, 0 nuevos contactos importados en Brevo, sin activar NEWS-001 ni comunicaciones; sin cambios en App/CRM PROD, WordPress, DNS o main. No se contrató servicio adicional.
+- **next_block:** revisar municipios cordobeses restantes priorizando fuentes oficiales, webs propias y establecimientos físicamente atribuibles; separar localización de agentes que solo comercializan inmuebles en la zona; no declarar exhaustividad. Preparar verificación no invasiva de candidatos pendientes. Después Jaén y Sevilla.
