@@ -30,7 +30,7 @@ def req(endpoint):
  return json.loads(blob)
 def main():
  data=None
- for endpoint in ["https://overpass.kumi.systems/api/interpreter","https://overpass-api.de/api/interpreter"]:
+ for endpoint in ["https://overpass.private.coffee/api/interpreter"]:
   try:
    data=req(endpoint);print("OSM_PROVIDER_OK "+endpoint+" "+str(len(data.get("elements",[]))),flush=True);break
   except Exception as ex:print("OSM_PROVIDER_ERROR "+endpoint+" "+type(ex).__name__+" "+str(ex)[:120],flush=True)
