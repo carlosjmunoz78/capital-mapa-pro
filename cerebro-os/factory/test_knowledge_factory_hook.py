@@ -57,4 +57,19 @@ class TestKnowledgeHook(unittest.TestCase):
                 scaffold(Path(root), "TEST-002", "Test", agent_inventory=[{"agent_id": "../invalid"}])
             self.assertFalse((Path(root) / "engines" / "TEST-002").exists())
 
+    def test_ums_scaffold_links_source_profile_without_enabling_consumption(self):
+        with tempfile.TemporaryDirectory() as root, patch.dict(os.environ, {}, clear=True):
+            target = scaffold(Path(root), "UMS-001", "Productora LAB",
+                              agent_inventory=[{"agent_id": "TEST-ONLY", "subagent_id": "QA-1"}])
+            enrollment = json.loads((target / "training" / "knowledge_factory_enrollment.json").read_text())
+            self.assertEqual(enrollment["source_registry_ref"],
+                             "cerebro-os/knowledge/appsscript_lab_v0/ums001_source_profile.lab.json")
+            self.assertEqual(enrollment["company_id"], "UNRESOLVED_TRUSTED_FACTORY_CONTEXT")
+            candidate = register_agent_candidate(target, "TEST-ONLY", "QA-1")
+            self.assertEqual(len(list(candidate.parent.glob("*.json"))), 1)
+            record = json.loads(candidate.read_text())
+            self.assertFalse(record["permissions_granted"])
+            self.assertFalse(record["dispatch_enabled"])
+            self.assertFalse(record["gateway_consumed"])
+
 if __name__ == '__main__':unittest.main()

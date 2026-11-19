@@ -13,6 +13,7 @@ from pathlib import Path
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 SAFE_AGENT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 FACTORY = "KNOWLEDGE-FACTORY-001"
+UMS_SOURCE_PROFILE = "cerebro-os/knowledge/appsscript_lab_v0/ums001_source_profile.lab.json"
 
 
 def _safe_identifier(value: str, kind: str) -> str:
@@ -48,7 +49,7 @@ def knowledge_manifest(engine: dict, company_id: str | None = None) -> dict:
         "knowledge_status": "NOT_INGESTED",
         "trained_agents": 0,
         "certified_agents": 0,
-        "source_registry_ref": "PENDING_SOURCE_REGISTRY",
+        "source_registry_ref": UMS_SOURCE_PROFILE if engine_id == "UMS-001" else "PENDING_SOURCE_REGISTRY",
         "gateway_consumer_status": "NOT_AUTHENTICATED",
         "delivery_status": "NOT_SENT",
         "security": {

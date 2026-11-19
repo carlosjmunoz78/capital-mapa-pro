@@ -1,0 +1,30 @@
+# KNOWLEDGE-FACTORY-001 · continuidad de Gateway y UMS-001 · LAB
+
+Verificado 2026-11-19T12:26:27.353Z. PR #278 DRAFT. Evidencia previa del binding al commit `98ad75426e247a5e1ea1859ef68b5c748ef3c0fb`. El alcance es LAB exclusivamente.
+
+## Gate económico y runtime
+
+- Proyecto exacto Vercel `cerebro-fact001-vercel-lab-20261111`, equipo `team_qnh6u1Ofy2WPp0MGEKlyMA50`. La sesión autenticada confirmó **Hobby** y 27.923 de 1.000.000 invocaciones en Usage. El conector de facturación devolvió `costs_not_found`. La cuota es capacidad técnica. El [uso permitido en Hobby](https://vercel.com/docs/limits/fair-use-guidelines#commercial-usage) es personal y no comercial. El uso permanente de agentes empresariales queda fuera de ese plan. La consulta del conector vio un solo equipo. Protección del proyecto configurada, despliegue vigente estático acreditado en el corte anterior. No hubo despliegue, modificación de protección ni configuración de OIDC/WIF.
+- Cloud Run en FORGE: la evidencia acreditada identifica `cerebro-advisory-preprod` como único servicio. Esa revisión queda fuera de LAB. Cloud Shell es una sonda de operador, nunca un runtime permanente.
+- Alternativa existente Cloudflare consultada en solo lectura: `cerebro-fact001-gateway-lab-eu-20261109`, `cerebro-ums001-universal-runtime-broker-lab-eu` y `cerebro-ums001-producer-private-gateway-lab-eu`. Los tres respondieron a consulta de settings, workers.dev apagado y previews apagadas. Los Service Bindings observados enlazan el Gateway con el broker y productor de medios. El binding `KNOWLEDGE.READ` a Google no está conectado. Integrarlo por esa ruta requeriría intervenir en Workers originales excluidos por la misión y acreditar federación sin claves con un principal LAB específico.
+- No se identificó un runtime existente, autorizado y con coste marginal 0 € acreditable para este uso. No se contrató infraestructura, se activó IA, se cambiaron identidades ni se tocó producción. Incremento por las operaciones de este bloque: 0 €.
+
+## Productora, perfiles y fuentes
+
+- El [registro de conocimiento audiovisual](https://github.com/carlosjmunoz78/fenix-capital-inmo-map/blob/main/cerebro/knowledge/creative-media-knowledge-registry-v1.json) versión 1.3.0 fija el snapshot de referencia por commit `ec63622ac3b28b23a3311af076b91965757f1391`. Sus **12 entradas** son familias y consumidores potenciales; permanecen en Perfiles_Transversales. No se deducen agentes ejecutables de las etiquetas.
+- La [evidencia del Gateway privado de medios](https://github.com/carlosjmunoz78/fenix-capital-inmo-map/blob/cerebro/ums001-private-ai-image-e2e-lab-20261112/cerebro/media-studio/v2/evidence/UMS001_CEREBRO_SHARED_GATEWAY_E2E_2026-11-12.json) acredita históricamente `FACT-OIDC-LAB-E2E-001` en IMAGE.SYNTHETIC y recuperó el JPEG privado con SHA-256. Esa identidad es un candidato ejecutable para una futura prueba con UMS. La evidencia histórica del broker cuenta tres identidades activas para medios y no identifica a todas individualmente. Un permiso de medios no habilita acceso de conocimiento.
+- Google actualizado físicamente en [UMS_Conocimiento_LAB](https://docs.google.com/spreadsheets/d/1mzG1X15gkD7-zWpoq6I76MNm0ejCprb9_quyIQjR9Lc/edit#gid=1806111901) y [Cobertura_Universal, fila 179](https://docs.google.com/spreadsheets/d/1mzG1X15gkD7-zWpoq6I76MNm0ejCprb9_quyIQjR9Lc/edit#gid=385009224&range=A179:I179). Se registraron **seis referencias** con versión, blob, especialidad y condición de verificación o revisión. No se copiaron packs al motor de recibos, no se añadió un candidato como agente y no se asignó empresa por inferencia.
+- FACT-001 enlaza el perfil compartido `ums001_source_profile.lab.json` desde el manifiesto del scaffold UMS-001. Se reutiliza el alta idempotente de agentes y subagentes verificados; el flujo de permisos, despacho y activación sigue sujeto a los gates originales. Pasaron cinco pruebas, incluida creación por el punto de entrada `scaffold`, referencia correcta, alta idempotente, empresa sin resolver y ausencia de grants o consumo. Este cambio está en la rama DRAFT. Queda que un creador desplegado emita el alta firmada y que se ingiera/asigne una fuente aprobada.
+
+## Cola Google y pruebas físicas
+
+- 600 recibos auténticos de 1.722, Facebook 527, Instagram 73, LinkedIn 0, SEO 0. Quedan 1122. Biblioteca: 1.927 elementos. Configuración viva: 25 por lote y 600 por día. La última auditoría sigue en estado parcial y el temporizador de continuación acreditado en el corte previo se conserva. No se reinició ni se escribió en Entregas_LAB.
+- A y B pendientes. No hay agente Facebook ni consumidor UMS con consumo E2E acreditado desde Gateway permanente. No se generó ni publicó contenido.
+- C acreditada en la sonda privada anterior, con dos lecturas verificadas, denegaciones, fault injection para hash y fallo de credencial. D pendiente. E acreditada en la sonda anterior para apagado y recuperación. El rollback de un despliegue permanente queda pendiente.
+- Para retirar el alcance nuevo de este bloque, deshacer solo el commit LAB y restaurar F179 a `Productora UMS-001 / arquitectura y código` e I179 a `INVENTARIO_AGENTES_PENDIENTE`. Conservar o archivar la pestaña UMS como evidencia. Estos pasos no afectan a los recibos.
+
+## Siguiente bloque
+
+1. Identificar un runtime privado ya autorizado para uso empresarial, con identidad de workload asignable y 0 € marginal acreditable. Con el runtime exacto, comprobar el emisor e identidad y otorgar exclusivamente la federación a la cuenta lectora de Google y al ámbito `spreadsheets.readonly`. Mantener aislados los tenants.
+2. Obtener el tercer recibo físico (LinkedIn o SEO) y un recibo UMS asociado a un agente y especialidad acreditados. Usar el mismo adaptador ya probado, con grants exactos y auditoría durable. No confundir capacidades IMAGE.SYNTHETIC y KNOWLEDGE.READ.
+3. Ejecutar A–E con identidades reales, y para UMS un QA controlado de selección, licencia/procedencia o accesibilidad con fixture LAB, sin generación ni publicación. Evidencia mínima: principal autenticado, empresa, motor, versión, referencias, SHA-256, resultado, comprobación y auditoría.
