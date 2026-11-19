@@ -97,6 +97,15 @@ def scaffold(root: Path, engine_id: str, name: str, company_id: str | None = Non
     enroll_module = importlib.util.module_from_spec(enroll_spec)
     enroll_spec.loader.exec_module(enroll_module)
     enroll_module.enroll_factory_engine(target, manifest, company_id=company_id)
+    # KNOWLEDGE-FACTORY-001: durable LAB request for every new engine.
+    # No external API, no Google credentials, no agent qualification or PROD rights.
+    knowledge_hook = Path(__file__).with_name("knowledge_factory_hook.py")
+    knowledge_spec = importlib.util.spec_from_file_location("cerebro_knowledge_factory_hook", knowledge_hook)
+    if knowledge_spec is None or knowledge_spec.loader is None:
+        raise RuntimeError("knowledge factory hook unavailable")
+    knowledge_module = importlib.util.module_from_spec(knowledge_spec)
+    knowledge_spec.loader.exec_module(knowledge_module)
+    knowledge_module.write_knowledge_scaffold(target, manifest, company_id=company_id)
     (target / "docs" / "README.md").write_text(f"# {engine_id} · {manifest['name']}\n\nEstado inicial: DEFINED_NOT_BUILT.\n", encoding="utf-8")
     (target / "ops" / "backup.md").write_text("# Backup\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
     (target / "ops" / "rollback.md").write_text("# Rollback\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
