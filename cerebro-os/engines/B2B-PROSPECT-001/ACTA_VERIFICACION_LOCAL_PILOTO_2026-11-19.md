@@ -110,3 +110,37 @@ Las tres fichas conservan `Tratamiento=PROSPECTO_REVISAR` y `Autorización comer
 ### Gate y siguiente bloque
 - **0 campañas lanzadas**, 0 nuevos contactos importados en Brevo, sin activar NEWS-001 ni comunicaciones; sin cambios en App/CRM PROD, WordPress, DNS o main. No se contrató servicio adicional.
 - **next_block:** revisar municipios cordobeses restantes priorizando fuentes oficiales, webs propias y establecimientos físicamente atribuibles; separar localización de agentes que solo comercializan inmuebles en la zona; no declarar exhaustividad. Preparar verificación no invasiva de candidatos pendientes. Después Jaén y Sevilla.
+
+
+## B2B-PROSPECT-001 · Cuarta tanda local · 2026-11-20
+
+**Ámbito:** investigación de los 31 municipios cordobeses que aún figuraban `SIN_FICHAS_EN_FUENTES`. Se realizó contraste dirigido de fuentes municipales, buscadores, portales inmobiliarios y BORME (consultado en texto HTML). A las fichas activas se aplicó búsqueda previa de duplicados en Notion. **Resultado: 5 fichas candidatas nuevas / 5 municipios de fuentes ampliadas / 0 nuevos municipios con presencia comercial independiente acreditada.**
+
+### Altas auditadas en Notion
+| Municipio (INE) | Nueva ficha | Evidencia y clasificación |
+| --- | --- | --- |
+| Pedroche (14051) | [InmoPedroche S.C.P.](https://app.notion.com/p/41d81b1a756d8112bdebedd6fce67f82) | Blog propio https://inmopedroche.blogspot.com/ con anuncios de 2016–2018; denominación en https://www.einforma.com/informes-empresas/CORDOBA/Pedroche.html y https://www.axesor.es/Informes-Empresas/n/7326706/INMOPEDROCHE_SCP.html ; contacto en Vymaps no contrastado (625 525 722); direcciones diversas entre fuentes. **HISTÓRICO / PENDIENTE vigencia 2026**. |
+| Hornachuelos (14036) | [SMRG Propiedades S.L.](https://app.notion.com/p/41d81b1a756d81fbabf1e7ace3c617da) | [BORME 2024](https://www.boe.es/diario_borme/txt.php?id=BORME-A-2024-233-14) y [Empresia](https://www.empresia.es/empresa/smrg-propiedades/): Calle San Calixto 47, CNAE 68.32; no demuestra agencia intermediadora activa. **MERCANTIL / PENDIENTE**. |
+| Obejo (14047) | [Agrogestión y Derecho S.L.](https://app.notion.com/p/41d81b1a756d81f19c73f44484f09c02) | [BORME 2024](https://www.boe.es/diario_borme/txt.php?id=BORME-A-2024-58-14) y [Empresia](https://www.empresia.es/empresa/agrogestion-y-derecho/): Media Luna 22, Obejo (Cerro Muriano), objeto incluye actividades inmobiliarias por cuenta de terceros. **MERCANTIL / PENDIENTE actividad**. |
+| La Victoria (14065) | [InvTur](https://app.notion.com/p/41d81b1a756d812c91ceddafba6ccc6b) | [LinkedIn empresa](https://es.linkedin.com/company/invtur) y [directorio de referencia](https://nova-inmobiliaria.es/invtur/) identifican gestión inmobiliaria **turística** en Clara Campoamor 12, La Victoria; no prueban oficina residencial activa ni actividad en 2026. **TURÍSTICA / PENDIENTE**. |
+| Montalbán de Córdoba (14040) | [DC Patrimonial S.L.](https://app.notion.com/p/41d81b1a756d8131a8b4c239260af0a1) | [BORME 2026](https://www.boe.es/diario_borme/txt.php?id=BORME-A-2026-42-14) / [Empresia](https://www.empresia.es/empresa/dc-patrimonial/): constituida en febrero 2026, La Encina 16, objeto incluye compraventa, alquiler e intermediación. **MERCANTIL / PENDIENTE prueba de actividad real**. |
+
+En las cinco páginas municipales se conserva `Comprobación independiente=PENDIENTE`. El contador `CON_AGENCIAS` significa **hay una ficha candidata**, no que esté verificado establecimiento abierto, intermediación operativa ni exhaustividad. Cada nueva ficha tiene procedencia, fecha, `PROSPECTO_REVISAR` y `Autorización comercial=NO_VERIFICADA`.
+
+### Casos descartados / prevención de falsos positivos
+- Portales Idealista, Fotocasa, Yaencontre o SoloCasa pueden mostrar una **agencia que comercializa un inmueble del municipio pero tiene oficina en otro lugar** (Lainez en Peñarroya, API Pérez Escribano en Castro del Río, etc.). No crear falsas oficinas locales.
+- El listado https://nova-inmobiliaria.es/category/villanueva-del-duque incluye una granja avícola y alojamientos rurales bajo paraguas inmobiliario: **no equivale a siete agencias inmobiliarias**.
+- Los resultados sobre **Pérez & Alcaraz** corresponden a Palma del Río, no a Montalbán; [web propia](https://www.perezalcaraz.com/sobre-nosotros/).
+- **Gestiones Inmobiliarias Silper S.L.** aparece en directorios de Montalbán pero está incluida en la [resolución BOE-A-2022-14753 de revocación de NIF](https://boe.es/diario_boe/txt.php?id=BOE-A-2022-14753) para B14694491. Es antecedente jurídico histórico, **no prueba de estado actual**, y no se incorpora sin comprobación jurídica y comercial posterior.
+- **Promotoras / tenedoras / gestorías** requieren clasificación diferenciada, no atribuirles automáticamente mediación inmobiliaria de terceros.
+
+### Cierre con consultas SQL directas a Notion
+- Directorio: **4.576 fichas**, **4.574 claves únicas**; **2.793 con email**, **4.363 con teléfono**. Persisten las 2 claves históricas duplicadas sin borrar.
+- Distribución tratamiento/permiso: **4.529 PROSPECTO_REVISAR**, **25 REACTIVACION_REVISAR**, **18 COLABORADOR_PROTEGIDO**, **4 DUPLICADO_REVISAR**; todas con autorización `NO_VERIFICADA` según consulta de estado.
+- Municipios: **325 CON_AGENCIAS (320 PENDIENTE + 5 VERIFICADO)**, **459 SIN_FICHAS_EN_FUENTES**, total **784**.
+- Primera ruta pendiente: **Córdoba 26**, **Jaén 44**, **Sevilla 60** municipios sin ficha. Total **130**, de los cuales Córdoba bajó 31→26.
+- Todas las nuevas fichas y cinco páginas municipales comprobadas mediante respuestas de escritura y SELECT de Notion; cifras confirmadas contra la base, no proyecciones.
+
+### Seguridad y próximos pasos
+- CEREBRO LAB: ninguna modificación de CRM PROD, App, WordPress, DNS, main ni NEWS-001. **0 campañas**, **0 contactos añadidos a Brevo** por esta operación; sin contratación de nuevas suscripciones.
+- **next_block:** completar búsqueda focalizada de los 26 municipios cordobeses sin fichas, pero priorizar de forma creciente **calidad/vigencia por encima de cantidad**; revisar y desambiguar estos 5 candidatos más los anteriores con `PENDIENTE`. No promover un municipio a `VERIFICADO` sin evidencia comprobable de negocio actual. Luego Jaén→Sevilla.
