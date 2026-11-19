@@ -51,7 +51,7 @@ class Agency(osmium.SimpleHandler):
   phone=t.get("contact:phone") or t.get("phone") or t.get("telephone") or t.get("mobile") or None
   web=t.get("contact:website") or t.get("website") or t.get("url") or None
   if not (email or phone or web):self.c["no_contact_or_web"]+=1;return
-  etype="node" if o.is_node() else "way" if o.is_way() else "relation"
+  etype="node" if isinstance(o,osmium.osm.Node) else "way" if isinstance(o,osmium.osm.Way) else "relation"
   url=f"https://www.openstreetmap.org/{etype}/{o.id}"
   if url in self.seen:return
   self.seen.add(url)
