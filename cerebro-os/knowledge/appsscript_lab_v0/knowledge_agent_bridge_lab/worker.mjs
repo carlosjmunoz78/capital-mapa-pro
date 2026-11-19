@@ -129,7 +129,13 @@ async function runUms(request,env){
   if(env.UMS_READ_ENABLED!=="true") return Response.json({status:"CAPABILITY_DISABLED"},{status:503});
   let caller;
   try {caller=await verifyUmsOidc(request.headers.get("authorization"));}
-  catch {return Response.json({status:"IDENTITY_DENIED"},{status:401});}
+  catch(error) {
+    if(request.headers.has("authorization")) {
+      const reason=String(error?.message??"");
+      console.log(JSON.stringify({status:"UMS_IDENTITY_DENIED",reason:/^OIDC_[A-Z0-9_]{1,35}$/.test(reason)?reason:"OIDC_RUNTIME"}));
+    }
+    return Response.json({status:"IDENTITY_DENIED"},{status:401});
+  }
   const id=caller.request_id;
   try {
     const gateway=await client(env,UMS);

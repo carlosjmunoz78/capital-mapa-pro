@@ -1,24 +1,31 @@
 """Offline contract checks of the additive LAB knowledge Gateway registration."""
-import os
+from importlib.util import module_from_spec, spec_from_file_location
+from pathlib import Path
 import sys
 import unittest
 
-ROOT = os.path.dirname(__file__)
-# Execute this test with the source repo's existing gateway/connector directories
-# on PYTHONPATH, or from cerebro-os/tests where paths are derived from the repo.
-for base in (
-    os.path.join(ROOT, "..", "gateway"),
-    os.path.join(ROOT, "..", "connectors"),
-    ROOT,
-):
-    if os.path.isdir(base) and base not in sys.path:
-        sys.path.insert(0, base)
-from service import Gateway, GatewayRequest
-from registry import ConnectorRegistry, ConnectorCapability
-from knowledge_read_lab_registry import (
-    CAPABILITY, CONNECTOR_ID, LAB_ENGINE_SCOPES,
-    register_knowledge_lab_capabilities, knowledge_lab_policy,
-)
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_contract_module(name, relative_path):
+    spec = spec_from_file_location(name, ROOT / relative_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(relative_path)
+    module = module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+gateway_module = load_contract_module("_knowledge_lab_gateway_service", "gateway/service.py")
+connector_module = load_contract_module("_knowledge_lab_connector_registry", "connectors/registry.py")
+knowledge_module = load_contract_module("_knowledge_lab_registry", "gateway/knowledge_read_lab_registry.py")
+Gateway, GatewayRequest = gateway_module.Gateway, gateway_module.GatewayRequest
+ConnectorRegistry, ConnectorCapability = connector_module.ConnectorRegistry, connector_module.ConnectorCapability
+CAPABILITY, CONNECTOR_ID = knowledge_module.CAPABILITY, knowledge_module.CONNECTOR_ID
+LAB_ENGINE_SCOPES = knowledge_module.LAB_ENGINE_SCOPES
+register_knowledge_lab_capabilities = knowledge_module.register_knowledge_lab_capabilities
+knowledge_lab_policy = knowledge_module.knowledge_lab_policy
 
 
 class KnowledgeLabConnectorContracts(unittest.TestCase):
