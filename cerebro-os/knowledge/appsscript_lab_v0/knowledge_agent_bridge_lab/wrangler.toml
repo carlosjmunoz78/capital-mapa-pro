@@ -1,0 +1,22 @@
+name = "cerebro-knowledge-agent-bridge-lab"
+main = "worker.mjs"
+compatibility_date = "2026-11-19"
+workers_dev = true
+preview_urls = false
+
+[vars]
+FB_READ_ENABLED = "false"
+UMS_READ_ENABLED = "false"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+invocation_logs = false
+
+[[durable_objects.bindings]]
+name = "AUDIT"
+class_name = "KnowledgeAudit"
+script_name = "cerebro-knowledge-audit-lab"

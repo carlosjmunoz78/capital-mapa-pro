@@ -1,0 +1,166 @@
+{
+  "schema_version": "1.0.0",
+  "factory_id": "KNOWLEDGE-FACTORY-001",
+  "environment": "LAB",
+  "status": "PENDING_SOURCE_RESEARCH",
+  "dispatch_enabled": false,
+  "agent_access_granted": false,
+  "certification_allowed": false,
+  "coverage_ref": "Google Sheet KNOWLEDGE-FACTORY-001 LAB / Cobertura_Universal and Perfiles_Transversales",
+  "requests": [
+    {
+      "engine_id": "UMS-001",
+      "area": "Productora audiovisual",
+      "company_id": null,
+      "company_source_status": "POR_RESOLVER",
+      "inventory_reference": "Productora UMS-001 / arquitectura y código",
+      "status": "PENDING_VERIFIED_IDENTITIES_AND_PRIMARY_SOURCES",
+      "required": [
+        "verified creator or active runtime identity",
+        "authorized company and department",
+        "primary-source references and validity interval",
+        "evaluation rubric and examiner identity"
+      ]
+    },
+    {
+      "engine_id": "MKT-001",
+      "area": "Marketing",
+      "company_id": null,
+      "company_source_status": "POR_RESOLVER",
+      "inventory_reference": "cerebro-os/registry/canonical_177.json",
+      "status": "PENDING_VERIFIED_IDENTITIES_AND_PRIMARY_SOURCES",
+      "required": [
+        "verified creator or active runtime identity",
+        "authorized company and department",
+        "primary-source references and validity interval",
+        "evaluation rubric and examiner identity"
+      ]
+    },
+    {
+      "engine_id": "SALE-001",
+      "area": "Comercial",
+      "company_id": null,
+      "company_source_status": "POR_RESOLVER",
+      "inventory_reference": "cerebro-os/registry/canonical_177.json",
+      "status": "PENDING_VERIFIED_IDENTITIES_AND_PRIMARY_SOURCES",
+      "required": [
+        "verified creator or active runtime identity",
+        "authorized company and department",
+        "primary-source references and validity interval",
+        "evaluation rubric and examiner identity"
+      ]
+    },
+    {
+      "engine_id": "LRN-001",
+      "area": "Aprendizaje",
+      "company_id": null,
+      "company_source_status": "POR_RESOLVER",
+      "inventory_reference": "cerebro-os/registry/canonical_177.json",
+      "status": "PENDING_VERIFIED_IDENTITIES_AND_PRIMARY_SOURCES",
+      "required": [
+        "verified creator or active runtime identity",
+        "authorized company and department",
+        "primary-source references and validity interval",
+        "evaluation rubric and examiner identity"
+      ]
+    },
+    {
+      "engine_id": "TRN-001",
+      "area": "Formación",
+      "company_id": null,
+      "company_source_status": "POR_RESOLVER",
+      "inventory_reference": "cerebro-os/registry/canonical_177.json",
+      "status": "PENDING_VERIFIED_IDENTITIES_AND_PRIMARY_SOURCES",
+      "required": [
+        "verified creator or active runtime identity",
+        "authorized company and department",
+        "primary-source references and validity interval",
+        "evaluation rubric and examiner identity"
+      ]
+    },
+    {
+      "engine_id": "TRNBOOT-001",
+      "area": "Training empresa",
+      "company_id": null,
+      "company_source_status": "POR_RESOLVER",
+      "inventory_reference": "cerebro-os/registry/canonical_177.json",
+      "status": "PENDING_VERIFIED_IDENTITIES_AND_PRIMARY_SOURCES",
+      "required": [
+        "verified creator or active runtime identity",
+        "authorized company and department",
+        "primary-source references and validity interval",
+        "evaluation rubric and examiner identity"
+      ]
+    },
+    {
+      "engine_id": "HR-004",
+      "area": "Skills / capacitación",
+      "company_id": null,
+      "company_source_status": "POR_RESOLVER",
+      "inventory_reference": "cerebro-os/registry/canonical_177.json",
+      "status": "PENDING_VERIFIED_IDENTITIES_AND_PRIMARY_SOURCES",
+      "required": [
+        "verified creator or active runtime identity",
+        "authorized company and department",
+        "primary-source references and validity interval",
+        "evaluation rubric and examiner identity"
+      ]
+    },
+    {
+      "engine_id": "ENGACT-001",
+      "area": "Ingeniería / nuevas empresas",
+      "company_id": null,
+      "company_source_status": "POR_RESOLVER",
+      "inventory_reference": "cerebro-os/registry/canonical_177.json",
+      "status": "PENDING_VERIFIED_IDENTITIES_AND_PRIMARY_SOURCES",
+      "required": [
+        "verified creator or active runtime identity",
+        "authorized company and department",
+        "primary-source references and validity interval",
+        "evaluation rubric and examiner identity"
+      ]
+    },
+    {
+      "engine_id": "APP-001",
+      "area": "Ingeniería Apps",
+      "company_id": null,
+      "company_source_status": "POR_RESOLVER",
+      "inventory_reference": "cerebro-os/registry/canonical_177.json",
+      "status": "PENDING_VERIFIED_IDENTITIES_AND_PRIMARY_SOURCES",
+      "required": [
+        "verified creator or active runtime identity",
+        "authorized company and department",
+        "primary-source references and validity interval",
+        "evaluation rubric and examiner identity"
+      ]
+    },
+    {
+      "engine_id": "SEC-001",
+      "area": "Otro motor CEREBRO",
+      "company_id": null,
+      "company_source_status": "POR_RESOLVER",
+      "inventory_reference": "cerebro-os/registry/canonical_177.json",
+      "status": "PENDING_VERIFIED_IDENTITIES_AND_PRIMARY_SOURCES",
+      "required": [
+        "verified creator or active runtime identity",
+        "authorized company and department",
+        "primary-source references and validity interval",
+        "evaluation rubric and examiner identity"
+      ]
+    },
+    {
+      "engine_id": "QA-001",
+      "area": "Otro motor CEREBRO",
+      "company_id": null,
+      "company_source_status": "POR_RESOLVER",
+      "inventory_reference": "cerebro-os/registry/canonical_177.json",
+      "status": "PENDING_VERIFIED_IDENTITIES_AND_PRIMARY_SOURCES",
+      "required": [
+        "verified creator or active runtime identity",
+        "authorized company and department",
+        "primary-source references and validity interval",
+        "evaluation rubric and examiner identity"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,295 @@
+{
+  "base": "8bd8a46e83d6ee8d6690d18d2ba2e45bdcd3ada7",
+  "vercel": {
+    "deployment": "dpl_ERrToaCfji2on4z7JWaZfr8Hy6GM",
+    "url": "https://cerebro-fact001-vercel-lab-20261111-dqacye843.vercel.app/api/knowledge-agents",
+    "target": "preview",
+    "alias": [],
+    "share_expires_at": "2026-11-22T17:15:08Z"
+  },
+  "cloudflare": {
+    "worker": "cerebro-knowledge-agent-bridge-lab",
+    "version": "dd58093ad6cb44bbb704a6944ef91774",
+    "audit_worker": "cerebro-knowledge-audit-lab",
+    "queue_final": {
+      "queue": "cerebro-facebook-w24-read-canary-lab-eu",
+      "consumers": 0,
+      "producers": 0
+    },
+    "preview_urls": false,
+    "anonymous_access": "DENIED",
+    "cost_plan": "Workers Free"
+  },
+  "ums": {
+    "status": "OIDC_AUTHENTICATED_RECEIPT_PENDING",
+    "run_id": 44576006778,
+    "job_id": 135746657576,
+    "request_id": "ums-44576006778-5",
+    "actual_consumption": false
+  },
+  "automation": {
+    "enabled": false,
+    "error": "too_many_active_automations",
+    "limit": 5,
+    "active": 5
+  },
+  "events": [
+    {
+      "s": {
+        "result": "AGENT_AUDIT_VERIFY",
+        "request_id": "fb-agent-e2e-20261119-a",
+        "read": 1,
+        "decision": 1
+      },
+      "trace": "8d6397c70340c50f5e7c1af3dc76a2fa",
+      "id": "01M7TCR1FB000000000000000E",
+      "version": "8febb75f-7954-473e-af83-5152ca7b9db7"
+    },
+    {
+      "s": {
+        "result": "AGENT_CONSUMED_KNOWLEDGE",
+        "request_id": "fb-restored-20261119-a",
+        "consumer_id": "FB-00.SA-001",
+        "knowledge_sha256": "0e3166ac244cf80290eb3242711d04260074f629d733d21673aeb57c6c044416",
+        "decision": "BLOCK_GEOGRAPHIC_INFERENCE",
+        "decision_sha256": "a67db53586038ddef298f27ba1766191c230bccb308767c81c0b6295f502774f",
+        "audit_read": "INSERTED",
+        "audit_decision": "INSERTED",
+        "audit_recorded_at": "2026-11-19T17:12:53.790Z",
+        "external_actions": 0,
+        "certified": 0
+      },
+      "trace": "77e78b8b53c22d2a7a86c03a117c0758",
+      "id": "01M7TCR1A4000000000000000Z",
+      "version": "8febb75f-7954-473e-af83-5152ca7b9db7"
+    },
+    {
+      "s": {
+        "result": "AGENT_AUDIT_VERIFY",
+        "request_id": "fb-audit-closed-20261119-a",
+        "read": 0,
+        "decision": 0
+      },
+      "trace": "c04a68a486ea6f3a5179d612f2be4ab2",
+      "id": "01M7TCPA4C000000000000000E",
+      "version": "7e51b22f-5b75-4a4a-8e97-1190beb812b3"
+    },
+    {
+      "s": {
+        "result": "AGENT_AUDIT_VERIFY",
+        "request_id": "fb-agent-e2e-20261119-a",
+        "read": 1,
+        "decision": 1
+      },
+      "trace": "2b15cefa337cd41129c5f42d15a98638",
+      "id": "01M7TCP9X9000000000000000E",
+      "version": "7e51b22f-5b75-4a4a-8e97-1190beb812b3"
+    },
+    {
+      "s": {
+        "result": "CAPABILITY_DISABLED",
+        "request_id": "fb-capability-off-20261119-a"
+      },
+      "trace": "3c9d87ebbb232f95936dd8c3c38854fa",
+      "id": "01M7TCP9P90000000000000006",
+      "version": "7e51b22f-5b75-4a4a-8e97-1190beb812b3"
+    },
+    {
+      "s": {
+        "result": "AGENT_FAIL",
+        "request_id": "fb-audit-closed-20261119-a",
+        "code": "INTERNAL_OR_AUDIT_FAILURE"
+      },
+      "trace": "2d8ec3751dbc5e9f0396d2f16816bcba",
+      "id": "01M7TCNCP90000000000000007",
+      "version": "4c2ef8e0-b66a-4ea1-b84a-3ba039ed398d"
+    },
+    {
+      "s": {
+        "result": "AGENT_AUDIT_VERIFY",
+        "request_id": "fb-agent-e2e-20261119-a",
+        "read": 1,
+        "decision": 1
+      },
+      "trace": "2ea1923f8e41a99b1bc457cb9784050d",
+      "id": "01M7TCM092000000000000000E",
+      "version": "a147682b-274b-4479-acbc-62d125a133ee"
+    },
+    {
+      "s": {
+        "result": "AGENT_CONSUMED_KNOWLEDGE",
+        "request_id": "fb-agent-e2e-20261119-a",
+        "consumer_id": "FB-00.SA-001",
+        "knowledge_sha256": "0e3166ac244cf80290eb3242711d04260074f629d733d21673aeb57c6c044416",
+        "decision": "BLOCK_GEOGRAPHIC_INFERENCE",
+        "decision_sha256": "a67db53586038ddef298f27ba1766191c230bccb308767c81c0b6295f502774f",
+        "audit_read": "EXISTING",
+        "audit_decision": "EXISTING",
+        "audit_recorded_at": "2026-11-19T17:09:58.719Z",
+        "external_actions": 0,
+        "certified": 0
+      },
+      "trace": "333351db9ebda87d0eda8fe72aa9dc40",
+      "id": "01M7TCM040000000000000000Z",
+      "version": "a147682b-274b-4479-acbc-62d125a133ee"
+    },
+    {
+      "s": {
+        "result": "AGENT_NEGATIVES_PASS",
+        "request_id": "fb-negative-20261119-a",
+        "checks": [
+          [
+            "identity",
+            401
+          ],
+          [
+            "company",
+            403
+          ],
+          [
+            "version",
+            403
+          ],
+          [
+            "permission",
+            403
+          ],
+          [
+            "hash",
+            409
+          ]
+        ]
+      },
+      "trace": "fdabde75a9fc7a5ffd1fdde5485cf7bb",
+      "id": "01M7TCKXVQ000000000000001V",
+      "version": "a147682b-274b-4479-acbc-62d125a133ee"
+    },
+    {
+      "s": {
+        "result": "AGENT_CONSUMED_KNOWLEDGE",
+        "request_id": "fb-agent-e2e-20261119-a",
+        "consumer_id": "FB-00.SA-001",
+        "knowledge_sha256": "0e3166ac244cf80290eb3242711d04260074f629d733d21673aeb57c6c044416",
+        "decision": "BLOCK_GEOGRAPHIC_INFERENCE",
+        "decision_sha256": "a67db53586038ddef298f27ba1766191c230bccb308767c81c0b6295f502774f",
+        "audit_read": "INSERTED",
+        "audit_decision": "INSERTED",
+        "audit_recorded_at": "2026-11-19T17:09:58.719Z",
+        "external_actions": 0,
+        "certified": 0
+      },
+      "trace": "73c05cc4930644d9d8266c97227a56aa",
+      "id": "01M7TCJPCB000000000000000Z",
+      "version": "a147682b-274b-4479-acbc-62d125a133ee"
+    },
+    {
+      "s": {
+        "result": "AGENT_AUDIT_VERIFY",
+        "request_id": "fb-dual-gateway-20261119-a",
+        "read": 1,
+        "decision": 1
+      },
+      "trace": "203209e22b40db4eca85c2be8dcbf767",
+      "id": "01M7TDE7AG000000000000000E",
+      "version": "cd1c6fda-50f1-4c68-acc9-745213a7ebc2"
+    },
+    {
+      "s": {
+        "result": "AGENT_NEGATIVES_PASS",
+        "request_id": "fb-shared-negatives-20261119-a",
+        "checks": [
+          [
+            "identity",
+            401
+          ],
+          [
+            "company",
+            403
+          ],
+          [
+            "version",
+            403
+          ],
+          [
+            "permission",
+            403
+          ],
+          [
+            "hash",
+            409
+          ]
+        ]
+      },
+      "trace": "7b1029064e1ea008eb50e40788442916",
+      "id": "01M7TDE75J000000000000001V",
+      "version": "cd1c6fda-50f1-4c68-acc9-745213a7ebc2"
+    },
+    {
+      "s": {
+        "status": "UMS_OIDC_VERIFIED_RECEIPT_PENDING",
+        "request_id": "ums-44576006778-5",
+        "consumer_id": "FACT-OIDC-LAB-E2E-001",
+        "commit": "31e1e54a5ac4236412c49d1e15f3c0c7192fafd2"
+      },
+      "trace": "7a53b35ad2cc800cd6bb03da2adbe2af",
+      "id": "01M7TDDZG40000000000000007",
+      "version": "cd1c6fda-50f1-4c68-acc9-745213a7ebc2"
+    },
+    {
+      "s": {
+        "result": "AGENT_CONSUMED_KNOWLEDGE",
+        "request_id": "fb-dual-gateway-20261119-a",
+        "consumer_id": "FB-00.SA-001",
+        "knowledge_sha256": "0e3166ac244cf80290eb3242711d04260074f629d733d21673aeb57c6c044416",
+        "decision": "BLOCK_GEOGRAPHIC_INFERENCE",
+        "decision_sha256": "a67db53586038ddef298f27ba1766191c230bccb308767c81c0b6295f502774f",
+        "audit_read": "INSERTED",
+        "audit_decision": "INSERTED",
+        "audit_recorded_at": "2026-11-19T17:16:10.521Z",
+        "external_actions": 0,
+        "certified": 0
+      },
+      "trace": "397f746e9f7c7c6dc01fe25a9b577656",
+      "id": "01M7TCY1EY000000000000000Z",
+      "version": "113532f7-4fdc-4319-85d1-860c43be53df"
+    },
+    {
+      "s": {
+        "result": "AGENT_AUDIT_VERIFY",
+        "request_id": "fb-dual-gateway-20261119-a",
+        "read": 1,
+        "decision": 1
+      },
+      "trace": "33fb1aa8def9b170b6f8f70e2d39e7e9",
+      "id": "01M7TDFYX8000000000000000E",
+      "version": "b2f45c75-fdad-4b32-9ee1-48f4e4ed3db7"
+    },
+    {
+      "s": {
+        "result": "CAPABILITY_DISABLED",
+        "request_id": "fb-shared-off-20261119-a"
+      },
+      "trace": "7ab1a461ab9af7ec255a7f9a4d74edc2",
+      "id": "01M7TDFYQX0000000000000006",
+      "version": "b2f45c75-fdad-4b32-9ee1-48f4e4ed3db7"
+    },
+    {
+      "s": {
+        "result": "AGENT_CONSUMED_KNOWLEDGE",
+        "request_id": "fb-shared-restored-20261119-a",
+        "consumer_id": "FB-00.SA-001",
+        "knowledge_sha256": "0e3166ac244cf80290eb3242711d04260074f629d733d21673aeb57c6c044416",
+        "decision": "BLOCK_GEOGRAPHIC_INFERENCE",
+        "decision_sha256": "a67db53586038ddef298f27ba1766191c230bccb308767c81c0b6295f502774f",
+        "audit_read": "INSERTED",
+        "audit_decision": "INSERTED",
+        "audit_recorded_at": "2026-11-19T17:26:34.579Z",
+        "external_actions": 0,
+        "certified": 0
+      },
+      "trace": "69ad057cd4e3dfdbac8bacb736b4a278",
+      "id": "01M7TDH2WV000000000000000Z",
+      "version": "dd58093a-d6cb-44bb-b704-a6944ef91774"
+    }
+  ]
+}

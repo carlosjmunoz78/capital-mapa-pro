@@ -1,0 +1,129 @@
+{
+  "company_id": "fenix",
+  "consumer_id": "FACT-OIDC-LAB-E2E-001",
+  "engine_id": "FACT-OIDC-LAB-E2E-001",
+  "provider_engine_id": "UMS-001",
+  "environment": "LAB",
+  "version": "0.1.0",
+  "status": "STAGED_VALIDATED_PENDING_RECEIPT_AND_GRANT",
+  "expected_bundle_sha256": "de48e2154999a46698cac68b3238c182ced60f981e746a53b69655e9b28f01cd",
+  "rows_start_1_based": {
+    "Departamentos": 6,
+    "Agentes": 178,
+    "Especialistas": 1724,
+    "Biblioteca": 1929,
+    "Asignaciones": 1724
+  },
+  "rows": {
+    "Departamentos": [
+      [
+        "fenix",
+        "ums",
+        "FACT-OIDC-LAB-E2E-001",
+        "LAB"
+      ]
+    ],
+    "Agentes": [
+      [
+        "fenix",
+        "FACT-OIDC-LAB-E2E-001",
+        "LAB",
+        "FACT-OIDC-LAB-E2E-001",
+        "Consumidor FACT de UMS-001 LAB",
+        1,
+        "ROLE:FACT-OIDC-LAB-E2E-001",
+        "STAGED_NOT_INJECTED",
+        "NOT_CERTIFIED",
+        "FALSE"
+      ]
+    ],
+    "Especialistas": [
+      [
+        "fenix",
+        "FACT-OIDC-LAB-E2E-001",
+        "LAB",
+        "FACT-OIDC-LAB-E2E-001",
+        "FACT-OIDC-LAB-E2E-001",
+        "Evaluación de licencia y procedencia UMS-001",
+        "CREATIVE_QA",
+        "OVERLAY:FACT-OIDC-LAB-E2E-001",
+        "STAGED_NOT_INJECTED",
+        "KNOWLEDGE_QA_PENDING",
+        "NOT_CERTIFIED",
+        "FALSE",
+        0,
+        "0.1.0",
+        "",
+        "NOT_INJECTED"
+      ]
+    ],
+    "Biblioteca": [
+      [
+        "ROLE:FACT-OIDC-LAB-E2E-001",
+        "ROLE",
+        "fenix",
+        "LAB",
+        "FACT-OIDC-LAB-E2E-001",
+        "UMS-001-QA-SOURCE-1.2.0",
+        "FACT-001 manifest aa01124f294b0f7b05d1aaf47d2a863e3f58bd6f",
+        "{\"consumer_id\":\"FACT-OIDC-LAB-E2E-001\",\"version\":\"0.1.0\",\"company_id\":\"fenix\",\"environment\":\"LAB\",\"provider_engine\":\"UMS-001\",\"existing_capability\":\"IMAGE.SYNTHETIC\",\"scope\":\"QA_ONLY\",\"may_generate\":false,\"may_publish\":false}",
+        "STAGED_NOT_REVIEWED",
+        "https://github.com/carlosjmunoz78/capital-mapa-pro/blob/46e6ffd3e8b963f15a93a82a8572dd6ab39a0403/cerebro-os/engines/FACT-OIDC-LAB-E2E-001/manifest.json"
+      ],
+      [
+        "OVERLAY:FACT-OIDC-LAB-E2E-001",
+        "SPECIALIST",
+        "fenix",
+        "LAB",
+        "FACT-OIDC-LAB-E2E-001",
+        "UMS-001-QA-SOURCE-1.2.0",
+        "CEREBRO-CREATIVE-MEDIA-KNOWLEDGE-MASTER-V1 blob fb8aad09ffa3f8c6122d54d0ba22184d560a6b74",
+        "{\"component_id\":\"FACT-OIDC-LAB-E2E-001\",\"gate\":\"LICENSE_PROVENANCE_QA\",\"mode\":\"EVALUATE_EXISTING_METADATA_ONLY\",\"rule_ref\":\"RULE:UMS-001-LICENSE-PROVENANCE-QA\",\"production_authorized\":false}",
+        "STAGED_NOT_REVIEWED",
+        "https://github.com/carlosjmunoz78/fenix-capital-cerebro-social/blob/ec63622ac3b28b23a3311af076b91965757f1391/config/creative-media-knowledge-master-v1.json"
+      ],
+      [
+        "RULE:UMS-001-LICENSE-PROVENANCE-QA",
+        "RULE",
+        "fenix",
+        "LAB",
+        "FACT-OIDC-LAB-E2E-001",
+        "UMS-001-QA-SOURCE-1.2.0",
+        "CEREBRO-CREATIVE-MEDIA-KNOWLEDGE-MASTER-V1 blob fb8aad09ffa3f8c6122d54d0ba22184d560a6b74",
+        "{\"source_id\":\"CEREBRO-CREATIVE-MEDIA-KNOWLEDGE-MASTER-V1\",\"source_version\":\"1.2.0\",\"gate\":\"LICENSE_PROVENANCE_QA\",\"licensing_baseline\":{\"source_provenance_required\":true,\"commercial_rights_check_required\":true,\"canva_source_info_check_when_using_library_assets\":true,\"canva_license_hardening_required\":true,\"do_not_assume_free_means_unrestricted\":true,\"do_not_use_editorial_only_content_for_commercial_promotion\":true,\"do_not_claim_ownership_of_third_party_stock\":true,\"do_not_extract_or_redistribute_pro_content_as_standalone_asset\":true,\"music_rights_must_be_checked_per_destination_and_use_case\":true,\"popular_music_uses_separate_license_context\":true,\"client_transfer_rules_must_be_respected\":true,\"ai_generated_asset_provenance_should_be_recorded\":true}}",
+        "STAGED_NOT_REVIEWED",
+        "https://github.com/carlosjmunoz78/fenix-capital-cerebro-social/blob/ec63622ac3b28b23a3311af076b91965757f1391/config/creative-media-knowledge-master-v1.json"
+      ]
+    ],
+    "Asignaciones": [
+      [
+        "fenix",
+        "FACT-OIDC-LAB-E2E-001",
+        "FACT-OIDC-LAB-E2E-001",
+        "ROLE:FACT-OIDC-LAB-E2E-001",
+        "OVERLAY:FACT-OIDC-LAB-E2E-001",
+        "RULE:UMS-001-LICENSE-PROVENANCE-QA",
+        "UMS-001-QA-SOURCE-1.2.0",
+        "STAGED_NOT_INJECTED",
+        "FALSE",
+        "",
+        "FACT-OIDC-LAB-E2E-001",
+        "LAB",
+        "ums"
+      ]
+    ]
+  },
+  "apps_script_validation": {
+    "at": "2026-11-19T16:33:55.781Z",
+    "status": "PASS",
+    "result": {
+      "status": "LAB_BUNDLE_RESOLUTION_PASS",
+      "agents": 177,
+      "total": 1723,
+      "agent_consumed": 0,
+      "certified": 0
+    }
+  },
+  "daily_cap": 600,
+  "receipts_today": 600
+}
