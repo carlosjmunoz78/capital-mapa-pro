@@ -3,8 +3,8 @@
   "name": "Prospección inmobiliaria Andalucía · cola única continua · LAB",
   "company_scope": "GLOBAL_OR_SCOPED",
   "environment": "LAB",
-  "version": "0.1.0",
-  "status": "DOCUMENTED_PARTIAL",
+  "version": "0.2.0",
+  "status": "LAB_DISCOVERY_PARTIAL",
   "owner": "FENIX_CAPITAL",
   "inputs": [
     "OFFICIAL_MUNICIPALITY_REGISTRY",
@@ -54,7 +54,16 @@
     "no_send_guard_unit",
     "dedupe_unit",
     "quota_headroom_unit",
-    "suppression_unit"
+    "suppression_unit",
+    "official_municipality_counts",
+    "capital_flag_fail_closed",
+    "invalid_municipality_fail_closed",
+    "crm_readonly_match_exclusion",
+    "brevo_snapshot_match_exclusion",
+    "stable_idempotency_key",
+    "durable_queue_restart",
+    "no_send_sqlite_check",
+    "priority_reentry_after_cursor"
   ],
   "evaluation": [
     "source_provenance_gate",
@@ -75,7 +84,11 @@
     "run_id",
     "cost_eur",
     "suppressed_count",
-    "attempted_send_count"
+    "attempted_send_count",
+    "municipality_ine_code",
+    "crm_name_match_status",
+    "brevo_snapshot_status",
+    "lab_sqlite_cursor"
   ],
   "cost_budget": {
     "target_additional_eur": 0,
@@ -84,12 +97,12 @@
   "backup": {
     "required": true,
     "verified": false,
-    "strategy": "GitHub branch + per-run snapshot pending"
+    "strategy": "Unmerged branch + pinned 2026 source + SQLite checkpoint export; live durable DB deployment pending"
   },
   "rollback": {
     "required": true,
     "verified": false,
-    "strategy": "unmerged LAB GitOps branch; no production changes"
+    "strategy": "No PROD changes; drop LAB-only SQLite database or revert isolated Git branch"
   },
   "rebuild": {
     "required": true,
@@ -142,5 +155,32 @@
     "Huelva:towns",
     "Huelva:capital"
   ],
-  "initial_stage": "LAB_SCaffold_AND_PRIORITY_QUEUE_TESTS_ONLY"
+  "initial_stage": "LAB_INE_2026_CATALOG_AND_10_AGENCY_SEED_WITH_NO_SEND",
+  "data_sources": [
+    {
+      "type": "OFFICIAL_DERIVED",
+      "asof": "2026-01-01",
+      "name": "INE municipio registry through CodeForSpain pin",
+      "upstream_commit": "1e9c99280ef4d7a12def33cafc3df59d9fc1f688",
+      "registry": "data/municipalities_ine_2026_andalucia.csv",
+      "total_andalusia": 785,
+      "route_included": 784,
+      "cordoba_capital_excluded": 1,
+      "direct_ine_excel_crosscheck": "PENDING"
+    },
+    {
+      "type": "PUBLIC_CORPORATE_WEBSITES",
+      "asof": "2026-11-19",
+      "registry": "data/discovery_seed_cordoba_2026-11-19.json",
+      "total_agencies": 10,
+      "crm_name_matches": 5,
+      "brevo_contact_crosscheck": "PENDING"
+    }
+  ],
+  "send_blockers": [
+    "OWNER_EDITORIAL_APPROVAL_PENDING",
+    "LEGAL_EMAIL_ELIGIBILITY_UNVERIFIED",
+    "BREVO_SUPPRESSIONS_CONTACT_SNAPSHOT_PENDING",
+    "PROD_NOT_AUTHORIZED"
+  ]
 }
