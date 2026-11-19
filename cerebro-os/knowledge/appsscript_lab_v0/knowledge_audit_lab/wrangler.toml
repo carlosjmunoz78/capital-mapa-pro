@@ -1,0 +1,17 @@
+name = "cerebro-knowledge-audit-lab"
+main = "worker.mjs"
+compatibility_date = "2026-11-19"
+workers_dev = false
+preview_urls = false
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[[durable_objects.bindings]]
+name = "AUDIT"
+class_name = "KnowledgeAudit"
+
+[[migrations]]
+tag = "audit-v1"
+new_sqlite_classes = ["KnowledgeAudit"]
