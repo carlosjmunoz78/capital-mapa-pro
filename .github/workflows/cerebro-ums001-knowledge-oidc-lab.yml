@@ -7,9 +7,21 @@ on:
       - '.github/workflows/cerebro-ums001-knowledge-oidc-lab.yml'
       - 'cerebro-os/knowledge/appsscript_lab_v0/knowledge_agent_bridge_lab/ums-run-request.json'
 
+  pull_request:
+    types: [synchronize]
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - '.github/workflows/cerebro-ums001-knowledge-oidc-lab.yml'
+      - 'cerebro-os/knowledge/appsscript_lab_v0/knowledge_agent_bridge_lab/ums-run-request.json'
+
 permissions: {}
 jobs:
   evaluate-ums-knowledge:
+    if: >-
+      github.event_name == 'push' ||
+      (github.event.pull_request.number == 278 &&
+       github.event.pull_request.head.repo.id == 1139292249 &&
+       github.head_ref == 'cerebro/knowledge-factory-appsscript-lab-v0-20261119')
     runs-on: ubuntu-latest
     timeout-minutes: 2
     permissions:

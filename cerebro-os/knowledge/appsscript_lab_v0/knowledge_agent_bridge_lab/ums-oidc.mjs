@@ -1,7 +1,15 @@
 const ISSUER="https://token.actions.githubusercontent.com";
 const REPOSITORY="carlosjmunoz78/capital-mapa-pro";
 const REF="refs/heads/cerebro/knowledge-factory-appsscript-lab-v0-20261119";
-const WORKFLOW=REPOSITORY+"/.github/workflows/cerebro-ums001-knowledge-oidc-lab.yml@"+REF;
+const WORKFLOW=REPOSITORY+"/.github/workflows/cerebro-ums001-knowledge-oidc-lab.yml@";
+const MERGE_REF="refs/pull/278/merge";
+function allowedTrigger(c){
+  return (c.event_name==="push"&&c.ref===REF&&c.workflow_ref===WORKFLOW+REF&&
+    c.sub==="repo:"+REPOSITORY+":ref:"+REF)||
+    (c.event_name==="pull_request"&&c.ref===MERGE_REF&&c.workflow_ref===WORKFLOW+MERGE_REF&&
+     c.head_ref==="cerebro/knowledge-factory-appsscript-lab-v0-20261119"&&c.base_ref==="cerebro-engine-factory-v0"&&
+     c.sub==="repo:"+REPOSITORY+":pull_request");
+}
 export const AUDIENCE="https://cerebro-knowledge-agent-bridge-lab.carlosj-munozcabeza.workers.dev/ums";
 const encoder=new TextEncoder();
 
@@ -18,8 +26,7 @@ export async function verifyUmsOidc(header,fetchKeys=fetch,now=Math.floor(Date.n
   const [protectedHeader,claims]=parts.slice(0,2).map(value=>JSON.parse(decoder.decode(decode(value))));
   if(protectedHeader.alg!=="RS256"||!/^[A-Za-z0-9_-]{1,128}$/.test(protectedHeader.kid)||claims.iss!==ISSUER||
      claims.aud!==AUDIENCE||claims.repository!==REPOSITORY||String(claims.repository_id)!=="1139292249"||
-     claims.ref!==REF||claims.workflow_ref!==WORKFLOW||claims.event_name!=="push"||
-     claims.sub!=="repo:"+REPOSITORY+":ref:"+REF||
+     !allowedTrigger(claims)||
      !Number.isSafeInteger(claims.nbf)||claims.nbf>now+10||!Number.isSafeInteger(claims.iat)||
      claims.iat>now+10||claims.iat<now-360||!Number.isSafeInteger(claims.exp)||claims.exp<=now||
      claims.exp-claims.iat>600||!/^\d{1,20}$/.test(claims.run_id)||!/^\d{1,8}$/.test(claims.run_attempt)||
