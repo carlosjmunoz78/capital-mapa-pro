@@ -32,3 +32,10 @@ Consultas SQL sobre fuentes Notion confirmaron:
 2. Ampliar verificación local de los **40 municipios cordobeses todavía SIN_FICHAS_EN_FUENTES**, antes de Jaén (44) y Sevilla (60), priorizando fuentes oficiales y webs corporativas.
 3. Alta solo cuando se haya comprobado en Notion que no existe clave/negocio equivalente, con procedencia, fecha y estado NO_VERIFICADA.
 4. Conservar CRM PROD y Brevo sin modificación, y exigir gate comercial/privacidad para cualquier envío.
+
+
+## Conciliación documental adicional (sin borrado)
+Se inspeccionaron las cuatro páginas de los dos pares duplicados y se dejó anotado en cada una el vínculo a su pareja y la ficha candidata que conserva más información, **sin alterar el tratamiento DUPLICADO_REVISAR**.
+- InmoCampo: el registro con teléfono +34 654 066 633 conserva Estado anterior «No llamado»; su par no tiene teléfono y muestra igualmente «No llamado».
+- Inmobiliaria Reina Victoria: el registro con teléfono +34 957 201 259 muestra Estado anterior «Sin revisar», mientras el par sin teléfono dice «No llamado». **Diferencia histórica relevante; no fusionar automáticamente.**
+- Ambas parejas siguen pendientes de cotejo de identidad y estado con el CRM de origen en modalidad solo lectura; en indicadores deduplicados cuentan una vez por Clave.
