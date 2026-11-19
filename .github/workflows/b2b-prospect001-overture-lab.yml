@@ -1,0 +1,25 @@
+name: B2B-PROSPECT-001 Overture Andalucia all municipalities LAB
+on:
+  push:
+    branches:
+      - cerebro/b2b-prospect001-continuity-lab-20261119
+    paths:
+      - .github/workflows/b2b-prospect001-overture-lab.yml
+permissions:
+  contents: read
+jobs:
+  overture-open-places:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [west, central, middle, east]
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    env:
+      OSM_BBOX_SHARD: ${{ matrix.shard }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m pip install --quiet --disable-pip-version-check overturemaps 'shapely>=2.0,<3'
+      - name: Read-free open Overture Maps POIs; no messages or remote writes
+        run: python3 -u cerebro-os/engines/B2B-PROSPECT-001/scripts/collect_overture_regional.py
