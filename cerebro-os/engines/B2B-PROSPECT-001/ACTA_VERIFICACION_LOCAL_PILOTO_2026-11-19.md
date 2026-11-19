@@ -179,3 +179,37 @@ En las cinco páginas municipales se conserva `Comprobación independiente=PENDI
 2. Verificar relación comercial y sede real de Julio León/OcasiónCasa; verificar sede Moriles de Gestimor y domicilios de La Campiña. No modificar estados de autonomía ni `VERIFICADO` hasta contraste independiente.
 3. Priorizar la **lista deduplicada de agencias realmente operativas**, conservando referencias del histórico y sin campañas o altas de Brevo.
 4. Mantener rama LAB, CRM/App/NEWS-001/PROD y recursos contratados sin alteración; gasto adicional contratado 0 €.
+
+
+## 2026-11-20 · Decisión del propietario: simplificar barrido y segmentar Brevo por 8 provincias
+
+**Orden solicitada:** ampliar directorio de inmobiliarias andaluzas mediante Páginas Amarillas y otras fuentes públicas, recolectando nombre y preferiblemente email/teléfono/dirección, usar 8 listas provinciales y segmentación por ciudad, después preparar campaña gráfica premium con variante provincial/municipal, enlaces locales, secuencia, límites por envío y control de entregabilidad.
+
+**Hallazgo Brevo en vivo:** ya existen 8 listas vacías en carpeta 5, NO duplicar:
+- Córdoba 25, Jaén 26, Sevilla 27, Málaga 28, Granada 29, Cádiz 30, Almería 31, Huelva 32.
+- Listas NEWS-001 #17/#18 y contactos asociados sin tocar.
+- Conector Brevo actual expone gestión de listas y `add_contact_to_list` solo para **contactos que ya existen**; no expone creación/importación general de contactos.
+
+**Recuento exacto en Notion por provincia (SELECT 2026-11-20):**
+| Provincia | Fichas | Fichas con email | Emails distintos por provincia | Con teléfono |
+|---|---:|---:|---:|---:|
+| Córdoba | 507 | 276 | 276 | 442 |
+| Jaén | 252 | 107 | 105 | 197 |
+| Sevilla | 635 | 410 | 410 | 624 |
+| Málaga | 1711 | 1065 | 1065 | 1657 |
+| Granada | 437 | 295 | 295 | 432 |
+| Cádiz | 526 | 334 | 334 | 513 |
+| Almería | 352 | 216 | 216 | 344 |
+| Huelva | 156 | 90 | 90 | 154 |
+| **Total** | **4576** | **2793** | **2791** (deduplicación dentro de provincia) | **4363** |
+
+**GATE LEGAL/PROVEEDOR:** artículos 20–21 LSSI https://www.boe.es/eli/es/l/2002/07/11/34 y política Brevo https://help.brevo.com/hc/es/articles/213405965-Cree-una-base-de-datos-de-contactos-leg%C3%ADtima-para-lograr-una-entregabilidad-y-un-cumplimiento-%C3%B3ptimos . Brevo prohíbe **importar listas de direcciones copiadas de sitios públicos y directorios por scraping**, y exige listas legítimas; el email públicamente visible no acredita consentimiento ni excepción legal suficiente para campaña. En Notion, el campo `Autorización comercial` fue consultado: **0 VERIFICADA**. Por tanto no importar indiscriminadamente, no activar listas ni lanzar email masivo. Una relación contractual previa lícita y mensajes sobre servicios similares pueden requerir evaluación específica, incluida ausencia de oposición; no asumir cumplimiento de todas las fichas.
+
+**Plan de ejecución simplificado, sin reabrir arquitectura:**
+1. Fuente Páginas Amarillas de las 8 provincias, directorios oficiales/profesionales y webs de empresas; alta y dedupe en Notion por empresa+municipio+teléfono/dominio, con fecha, fuente, evidencia, y tipo de actividad. Capturar dirección cuando fuente la documente; no inventarla; distinguir oficina real de municipio donde vende.
+2. Segmentación **8 provincias (listas existentes)** y atributo ciudad/municipio, para personalización local sin proliferar listas. Conector Brevo no crea atributos/contactos actualmente; resolver con capacidad ya disponible o importación lícita posterior.
+3. Separar `IDENTIFICADA`/`VALIDADA`/`APTA_LEGAL_Y_BREVO`/`OPOSICION` para no mezclar mera captura con permisos de envío. Respetar 18 colaboradores protegidos, 25 reactivaciones históricas y oposiciones.
+4. Solo para destinatarios cuya inclusión cumpla ley y Brevo: creatividad y copy premium provincial/local, enlace relevante por ciudad, desuscripción, SPF/DKIM/DMARC, límites y lotes supervisados.
+5. No afirmar ni prometer bandeja Principal/Notificaciones de Gmail: el proveedor destinatario decide la pestaña; autenticación y reputación pueden mejorar entregabilidad, no forzar categoría.
+
+**Estado de este bloque:** HECHO verificación ocho listas y métricas; DEFINIDO segmentación; POR HACER barrido extensivo adicional de Páginas Amarillas y enriquecimiento del directorio; BLOQUEADO por política del proveedor para importación de contactos públicos a campañas; 0 envíos y 0 cambios en contactos Brevo/CRM/App/PROD. Coste adicional 0€.
