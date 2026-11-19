@@ -1,0 +1,20 @@
+name: B2B-PROSPECT-001 Public Directory Discovery LAB (no send)
+on:
+  push:
+    branches:
+      - cerebro/b2b-prospect001-continuity-lab-20261119
+    paths:
+      - .github/workflows/b2b-prospect001-directory-discovery-lab.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-directory-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Parse read-only public professional directories
+        run: python3 cerebro-os/engines/B2B-PROSPECT-001/scripts/collect_public_directories.py
