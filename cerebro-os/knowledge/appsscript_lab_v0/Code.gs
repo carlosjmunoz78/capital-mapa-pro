@@ -12,6 +12,7 @@ function onOpen() {
     .addItem('Validar especialistas LAB', 'cerebroLabValidateAll')
     .addItem('Ejecutar piloto LAB', 'cerebroLabPilot')
     .addItem('Procesar siguiente lote LAB', 'cerebroLabRunBatch')
+    .addItem('Encolar cambios de conocimiento LAB', 'cerebroLabQueueIncremental')
     .addToUi();
 }
 
