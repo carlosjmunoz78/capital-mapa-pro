@@ -213,3 +213,59 @@ En las cinco páginas municipales se conserva `Comprobación independiente=PENDI
 5. No afirmar ni prometer bandeja Principal/Notificaciones de Gmail: el proveedor destinatario decide la pestaña; autenticación y reputación pueden mejorar entregabilidad, no forzar categoría.
 
 **Estado de este bloque:** HECHO verificación ocho listas y métricas; DEFINIDO segmentación; POR HACER barrido extensivo adicional de Páginas Amarillas y enriquecimiento del directorio; BLOQUEADO por política del proveedor para importación de contactos públicos a campañas; 0 envíos y 0 cambios en contactos Brevo/CRM/App/PROD. Coste adicional 0€.
+
+
+## 2026-11-20 · Barrido transversal Páginas Amarillas + webs + colegios · Lote 1
+
+**Pedido del propietario:** ampliar el máximo directorio de agencias de toda Andalucía, con nombre, email preferentemente, teléfono y domicilio por empresa; conservar 8 listas provinciales de Brevo; decidir la cadena de correos más adelante. No es un proyecto de newsletters periódicas.
+
+### Fuentes contrastadas
+Se abrieron las ocho búsquedas provinciales de [Páginas Amarillas](https://www.paginasamarillas.es/a/inmobiliarias/), además de [UNEXIA asociados](https://unexiaandalucia.com/asociados/), [colegiados API en Jaén](https://www.foroempresarial.com/anuncios/buscadorcli3.asp?cliente=79887&valida=1), web corporativa de cada candidato y portales contrastivos. Los contadores de resultados de Páginas Amarillas son **resultados de categoría**, no agencias únicas:
+- Córdoba: 658; Jaén: 300; Sevilla: 1.909; Málaga: 5.060; Granada: 1.038; Cádiz: 1.464; Almería: 857; Huelva: 463.
+- Total categórico sin dedup: 11.749 resultados; algunos son gestores de fincas, promotoras, comercios de otra clase, servicios en la zona sin establecimiento y duplicados; nunca declarar estos resultados como empresas únicas ni sumar directamente a las 4.589 fichas.
+- En UNEXIA, la mayor parte de los asociados contrastados ya tenían registro en Notion. **No duplicar**.
+
+### 13 nuevas fichas guardadas en Notion, con localidad, procedencia y dirección en el contenido
+1. [TAMAR Islantilla](https://app.notion.com/p/41e81b1a756d81da8013e76d2a5ec067), **Isla Cristina**, Huelva; web/cartera https://tamarislantilla.com/ y [BORME 2026](https://boe.es/diario_borme/txt.php?id=BORME-A-2026-58-21). **Corrección:** aunque la web usa CP 21449, el domicilio social vigente consta en Isla Cristina (21430) y Habitaclia confirma la dirección; se corrigió la ficha de Lepe a Isla Cristina y se ajustaron ambos contadores municipales.
+2. [AC Inmorocío](https://app.notion.com/p/41e81b1a756d817392dbe2fc6e3a7728), Almonte (núcleo El Rocío), Huelva; web https://www.inmorocio.es/contacto.
+3. [Apigestión Aljarafe](https://app.notion.com/p/41e81b1a756d8128881bfdef37369061), Gines, Sevilla; Páginas Amarillas y https://www.infobiliaria.es/inmobiliarias/sevilla/apigestion-aljarafe/.
+4. [Gesem Inmobiliaria](https://app.notion.com/p/41e81b1a756d8124aff3c0bc358952d6), Almuñécar, Granada; web https://inmogesem.es/ y web de turismo local https://www.visitalmunecar.es/blog/empresas/gesem/.
+5. [Quintamar Inmobiliaria](https://app.notion.com/p/41e81b1a756d8168a16bd5cd4b5e5c93), Torrox-Costa, Torrox, Málaga; web/aviso legal https://quintamar.de/contact.
+6. [Tarifa Casas](https://app.notion.com/p/41e81b1a756d81f390fac27883ef4b9f), Tarifa, Cádiz; PA y Cylex (email sin confirmar en esta tanda).
+7. [Tarifa Inmobiliaria](https://app.notion.com/p/41e81b1a756d81d6b222d211ba4ec45d), Tarifa, Cádiz; PA y Yaencontre, Calle Nuestra Señora de la Luz 14 (email sin confirmar).
+8. [Inmobiliaria Báltico](https://app.notion.com/p/41e81b1a756d81ccb66be0b6423c03a5), Sevilla; PA/Cylex, Calle Mar Egeo 7 (email sin confirmar).
+9. [ALM Proyectos e Inversiones](https://app.notion.com/p/41e81b1a756d81af9ee2e46b5484c364), Motril, Granada; PA y otro directorio con **direcciones distintas**, no imponer dirección única hasta contrastar.
+10. [Aliservices Inmobiliaria Online](https://app.notion.com/p/41e81b1a756d810d9134c7a7e4bfff79), Aguadulce / Roquetas de Mar, Almería; PA y Cylex (email pendiente).
+11. [Inmobiliaria Persson](https://app.notion.com/p/41e81b1a756d81f9b778d8783a13291e), Écija, Sevilla; web con oferta reciente https://www.inmobiliariapersson.com/ y correo visible en perfil profesional de Fotocasa.
+12. [ALEA JPB S.L.](https://app.notion.com/p/41e81b1a756d816abf1ec4bd1f7832b1), Torredonjimeno, Jaén; PA https://www.paginasamarillas.es/f/torredonjimeno/alea-jpb-s-l_229496153_000000001.html, localización a reconciliar.
+13. [Inmobiliaria AG (Baena)](https://app.notion.com/p/41e81b1a756d81c5aab5e5068edfb58a), Baena, Córdoba; PA calle Arquitecto Mateo Gayá 42. No fusionar automáticamente con Inmobiliaria AG Asesores de Córdoba capital: posible homonimia.
+
+### 2 fichas existentes enriquecidas, sin duplicar
+- [Linkasa Inmobiliaria](https://app.notion.com/p/41d81b1a756d81d88db0eb1025b70056), Linares: email corporativo del directorio de colegiados API Jaén `gerente@linkasa.es`, web `inmobiliarialinkasa.es`; oficina en Quevedo 2 (Páginas Amarillas).
+- [Forte y Ruano S.C. / Ruano Inmobiliaria](https://app.notion.com/p/41d81b1a756d812881bff4a50b53f23e), Almería: correo y web confirmados en https://pisosenalmeria.es/contacto/ , dirección Avenida del Mediterráneo 311 y teléfono existente. No nueva sociedad si es continuación de la misma firma.
+
+El directorio original no tiene columna propia `Dirección`; los domicilios y posibles conflictos se documentaron dentro de cada página. Se actualizaron los números de nueve localidades originales más Baena/Torredonjimeno/Écija y la corrección Lepe ↔ Isla Cristina, sin reconfigurar el esquema.
+
+### Recuento Notion post-escritura
+**4.589 fichas** / **4.587 claves únicas** / **2.802 con email** / **4.373 con teléfono**.
+| Provincia | Fichas | Con email |
+| --- | ---: | ---: |
+| Córdoba | 508 | 276 |
+| Jaén | 253 | 109 |
+| Sevilla | 638 | 412 |
+| Málaga | 1.712 | 1.066 |
+| Granada | 439 | 296 |
+| Cádiz | 528 | 334 |
+| Almería | 353 | 217 |
+| Huelva | 158 | 92 |
+| **Total** | **4.589** | **2.802** |
+
+**Municipios:** 325 con al menos una ficha, 459 sin ficha en fuentes consultadas, de 784 municipios de la ruta. Las 13 incorporaciones estaban en municipios que ya tenían fichas, por lo que no cambia cobertura territorial. Continuar trabajando por agencia y calidad del correo y teléfono, sin utilizar el municipio como pretexto para inflar conteos.
+
+### Brevo
+Ocho listas provinciales existentes: Córdoba #25, Jaén #26, Sevilla #27, Málaga #28, Granada #29, Cádiz #30, Almería #31, Huelva #32. **No se crearon ni duplicaron**. La lectura del conector constata **0 contactos en estas ocho listas**; el conector expone `add_contact_to_list` para contactos ya existentes, no importación de nuevos contactos. Además, la inclusión de correos extraídos de fuentes públicas para campañas no acredita el requisito legal ni el permiso de uso del proveedor. **No importar indiscriminadamente, no lanzar envíos, no cambiar estado `NO_VERIFICADA`**. No tocar NEWS-001.
+
+### Próxima acción
+Barrido sistemático por fuentes públicas/registros profesionales de las 8 provincias, cotejo por nombre+dominio+teléfono y enriquecimiento de registros ya existentes (priorizar las fichas sin correo). No afirmar haber encontrado **todas** las inmobiliarias hasta alcanzar una comparación exhaustiva de fuentes y dedup; completar dirección en notas de ficha o mediante cambio de esquema solo después de inventario/snapshot. Crear campaña después, según nueva orden del propietario.
+
+**Resultado:** ingesta física incremental demostrada en Notion, fuentes comprobadas, sin cambios CRM/App/PROD, sin campaña y con coste adicional contratado 0 €.
