@@ -8,19 +8,18 @@
   "capabilities": [
     {
       "name": "TECHSCOUT.READ",
-      "scopes": [
-        "spreadsheets.readonly"
-      ],
-      "target": "catalogue_master",
-      "status": "E2E_PREVIEW_PASS"
+      "resource": "MASTER",
+      "status": "UPSTREAM_WIF_LAB_PASS_GATEWAY_BINDING_PENDING"
     },
     {
       "name": "TECHSCOUT.PROPOSE",
-      "scopes": [
-        "spreadsheets"
-      ],
-      "target": "isolated_inbox",
-      "status": "E2E_PREVIEW_PASS"
+      "resource": "ISOLATED_INBOX",
+      "status": "UPSTREAM_WIF_LAB_PASS_GATEWAY_BINDING_PENDING"
+    },
+    {
+      "name": "TECHSCOUT.PROBE",
+      "resource": "14_KEYLESS_SOURCES",
+      "status": "WORKER_DEPLOYED_OFF_NO_GATEWAY_E2E"
     }
   ],
   "control_requirements": [
@@ -30,7 +29,8 @@
     "audit_append",
     "idempotency",
     "rate_limit",
-    "rollback"
+    "rollback",
+    "OLD_NEW"
   ],
   "production_autonomy": false,
   "cost_ceiling_eur": 0,
