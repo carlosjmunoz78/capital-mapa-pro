@@ -1,0 +1,33 @@
+{
+  "name": "cerebro-techscout-gateway-parallel-lab",
+  "main": "./gateway-queue.mjs",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  "vars": {
+    "TECHSCOUT_GATEWAY_ENABLED": "false"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "LAB_KV",
+      "id": "99c74b3059ec46baa1441bd0d170bf3f"
+    }
+  ],
+  "services": [
+    {
+      "binding": "TECHSCOUT",
+      "service": "cerebro-techscout-public-sources-lab",
+      "entrypoint": "CerebroTechScoutLab"
+    }
+  ],
+  "queues": {
+    "consumers": [
+      {
+        "queue": "cerebro-techscout-gateway-one-shot-lab-eu",
+        "max_batch_size": 1,
+        "max_retries": 1,
+        "max_concurrency": 1
+      }
+    ]
+  }
+}
