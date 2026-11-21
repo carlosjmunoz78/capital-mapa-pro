@@ -75,7 +75,7 @@ export async function probe(input,callerToken,env,fetcher=fetch,now=Date.now()) 
   catch {return {status:"DENIED",reason:"AUDIT_WRITE_FAILED"}}
   const source=SOURCES[input.provider];let result;
   try {
-    const r=await fetcher(source.url,{method:"GET",redirect:"error",headers:{"accept":"application/json, application/xml, text/xml, text/plain, image/png;q=0.8","user-agent":"CEREBRO-TECHSCOUT-LAB/0.1"},signal:AbortSignal.timeout(7000)});
+    const r=await fetcher(source.url,{method:"GET",redirect:"manual",headers:{"accept":"application/json, application/xml, text/xml, text/plain, image/png;q=0.8","user-agent":"CEREBRO-TECHSCOUT-LAB/0.1"},signal:AbortSignal.timeout(7000)});
     const contentType=(r.headers.get("content-type")||"").slice(0,100);
     const sample=await readLimited(r);
     const valid=r.ok&&!sample.overLimit&&shapeMatches(source.kind,contentType,sample.text);

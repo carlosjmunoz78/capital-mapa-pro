@@ -17,3 +17,19 @@ test('authenticated probe audited STARTED and PASS',async()=>{const store=new Ma
 test('same request_id denied twice',async()=>{const kv={get:async k=>'already',put:async()=>{throw new Error('should not mutate')}};const env={TECHSCOUT_ENABLED:'true',TECHSCOUT_PUBLIC_PROBE_ENABLED:'true',TECHSCOUT_CALLER_TOKEN:secret,LAB_KV:kv};const r=await probe(command(),secret,env);assert.equal(r.reason,'DUPLICATE');});
 test('upstream HTML 200 is NOT success',async()=>{const store=new Map(),kv={get:async k=>store.get(k)||null,put:async(k,v)=>store.set(k,v)};const env={TECHSCOUT_ENABLED:'true',TECHSCOUT_PUBLIC_PROBE_ENABLED:'true',TECHSCOUT_CALLER_TOKEN:secret,LAB_KV:kv};const r=await probe(command(),secret,env,async()=>new Response('<html>429</html>',{status:200,headers:{'content-type':'text/html'}}));assert.equal(r.status,'DEGRADED');});
 test('audit fails closed before external network',async()=>{let called=false;const kv={get:async()=>null,put:async()=>{throw new Error('KV DOWN')}};const env={TECHSCOUT_ENABLED:'true',TECHSCOUT_PUBLIC_PROBE_ENABLED:'true',TECHSCOUT_CALLER_TOKEN:secret,LAB_KV:kv};const r=await probe(command(),secret,env,()=>{called=true;});assert.equal(r.reason,'AUDIT_WRITE_FAILED');assert.equal(called,false);});
+
+
+test('redirects never followed: manual and 302 is DEGRADED',async()=>{
+ const map=new Map();
+ const kv={get:async k=>map.get(k)||null,put:async(k,v)=>{map.set(k,v);}};
+ const env={TECHSCOUT_ENABLED:'true',TECHSCOUT_PUBLIC_PROBE_ENABLED:'true',TECHSCOUT_CALLER_TOKEN:secret,LAB_KV:kv};
+ let mode=null;
+ const fake=async(url,opt)=>{
+   mode=opt.redirect;
+   return new Response(null,{status:302,headers:{'location':'https://unknown.example/path','content-type':'text/plain'}});
+ };
+ const r=await probe(command(),secret,env,fake);
+ assert.equal(mode,'manual');
+ assert.equal(r.status,'DEGRADED');
+ assert.equal(r.http,302);
+});
