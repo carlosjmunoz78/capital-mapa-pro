@@ -1,0 +1,17 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {FACT_TECHSCOUT_QUEUE,validateFactTechscout,factTechscoutProbe} from '../cerebro-os/engines/TECH-SCOUT/fact001-bridge.mjs';
+const original=()=>({company_id:'fenix-capital',engine_id:'TECH-SCOUT',environment:'LAB',version:'0.1.0',capability:'TECHSCOUT.PROBE',provider:'WORLD_BANK',request_id:'techscout_fact001_test_20261121_v1'});
+const mk=()=>{const kv=new Map();const events=[];const env={TECHSCOUT_FACT001_ENABLED:'true',TECHSCOUT_CALLER_TOKEN:'x'.repeat(96),LAB_KV:{get:async k=>kv.get(k)||null,put:async(k,v)=>{events.push([k,v]);kv.set(k,v);}},TECHSCOUT:{probePublic:async(c,t)=>({status:'PASS',http:200,shape_ok:true})}};return {env,kv,events};};
+test('queue is exact and dedicated',()=>assert.equal(FACT_TECHSCOUT_QUEUE,'cerebro-techscout-fact001-e2e-lab-eu'));
+test('valid command accepted',()=>assert.equal(validateFactTechscout(original()),null));
+test('tenant isolation',()=>assert.equal(validateFactTechscout({...original(),company_id:'other'}),'SCOPE_DENIED'));
+test('production rejection',()=>assert.equal(validateFactTechscout({...original(),environment:'PROD'}),'SCOPE_DENIED'));
+test('unknown provider fails closed',()=>assert.equal(validateFactTechscout({...original(),provider:'BAD'}),'PROVIDER_DENIED'));
+test('extra fields forbidden to prevent SSRF',()=>assert.equal(validateFactTechscout({...original(),url:'https://bad.example'}),'UNEXPECTED_FIELD'));
+test('disabled by default',async()=>{const {env,events}=mk();env.TECHSCOUT_FACT001_ENABLED='false';const r=await factTechscoutProbe(env,original());assert.equal(r.status,'DISABLED');assert.equal(events.length,0);});
+test('missing RPC credential denied',async()=>{const {env,events}=mk();delete env.TECHSCOUT_CALLER_TOKEN;assert.equal((await factTechscoutProbe(env,original())).reason,'RPC_NOT_READY');assert.equal(events.length,0);});
+test('get success two auditable records',async()=>{const {env,events}=mk();const r=await factTechscoutProbe(env,original());assert.equal(r.status,'PASS');assert.equal(r.http,200);assert.equal(events.length,2);assert.equal(JSON.parse(events[1][1]).status,'PASS');});
+test('duplicate does not invoke downstream',async()=>{const {env}=mk();let count=0;env.TECHSCOUT.probePublic=async()=>{count++;return {status:'PASS',http:200,shape_ok:true}};assert.equal((await factTechscoutProbe(env,original())).status,'PASS');assert.equal((await factTechscoutProbe(env,original())).status,'DUPLICATE');assert.equal(count,1);});
+test('upstream degraded remains degraded',async()=>{const {env}=mk();env.TECHSCOUT.probePublic=async()=>({status:'DEGRADED',reason:'TIMEOUT'});assert.equal((await factTechscoutProbe(env,original())).status,'DEGRADED');});
+test('audit fails closed',async()=>{const {env}=mk();let called=false;env.LAB_KV.put=async()=>{throw Error('KV_DOWN')};env.TECHSCOUT.probePublic=async()=>{called=true};assert.equal((await factTechscoutProbe(env,original())).status,'BLOCKED');assert.equal(called,false);});
