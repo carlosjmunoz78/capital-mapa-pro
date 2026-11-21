@@ -1,0 +1,38 @@
+{
+  "engine_id": "TECH-SCOUT",
+  "version": "0.1.0",
+  "environment": "LAB",
+  "enabled": false,
+  "company_id": "fenix-capital",
+  "deployment": "PARALLEL_ONLY",
+  "capabilities": [
+    {
+      "name": "TECHSCOUT.READ",
+      "scopes": [
+        "spreadsheets.readonly"
+      ],
+      "target": "catalogue_master",
+      "status": "E2E_PREVIEW_PASS"
+    },
+    {
+      "name": "TECHSCOUT.PROPOSE",
+      "scopes": [
+        "spreadsheets"
+      ],
+      "target": "isolated_inbox",
+      "status": "E2E_PREVIEW_PASS"
+    }
+  ],
+  "control_requirements": [
+    "authenticated_machine_identity",
+    "tenant_grant",
+    "policy_check",
+    "audit_append",
+    "idempotency",
+    "rate_limit",
+    "rollback"
+  ],
+  "production_autonomy": false,
+  "cost_ceiling_eur": 0,
+  "gate": "BLOCKED_UNTIL_GATEWAY_E2E"
+}
