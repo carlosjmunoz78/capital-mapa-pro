@@ -22,6 +22,8 @@ class PreprodPersistentStartupSmokeTests(unittest.TestCase):
         self.assertIn("--no-traffic",text)
         self.assertIn("--to-revisions",text)
         self.assertIn("IMAGE_CANONICAL",text)
+        self.assertIn("application/vnd.oci.image.index.v1+json",text)
+        self.assertIn("single linux/amd64 child of pinned OCI index",text)
         self.assertIn("PREVIOUS_REVISION",text)
         self.assertIn("cancel-in-progress: false",text)
         self.assertIn("GITHUB_RUN_ATTEMPT",text)
