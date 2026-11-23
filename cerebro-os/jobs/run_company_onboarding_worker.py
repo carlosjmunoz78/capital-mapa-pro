@@ -46,12 +46,12 @@ def process_one(
     if retryable:
         retry_result=queue.retry_or_dead_letter(
             request_id=item.request_id,result=result,now_epoch=now_epoch,
-            max_attempts=max_attempts,base_backoff_seconds=base_backoff_seconds,
+            claim_attempts=item.attempts,max_attempts=max_attempts,base_backoff_seconds=base_backoff_seconds,
             max_backoff_seconds=max_backoff_seconds,
         )
         mapped=retry_result["status"]
     else:
-        queue.complete(request_id=item.request_id,status=mapped,result=result,now_epoch=now_epoch)
+        queue.complete(request_id=item.request_id,status=mapped,result=result,now_epoch=now_epoch,claim_attempts=item.attempts)
     return {
       "status":mapped,
       "decision":"RETRY_POLICY_APPLIED" if retry_result is not None else "PROCESSED",

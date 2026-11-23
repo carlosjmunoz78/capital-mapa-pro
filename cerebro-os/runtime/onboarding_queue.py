@@ -148,70 +148,98 @@ class OnboardingQueue:
         finally:
             conn.close()
 
-    def complete(self,*,request_id:str,status:str,result:dict,now_epoch:int)->None:
+    def complete(self,*,request_id:str,status:str,result:dict,now_epoch:int,claim_attempts:int|None=None)->None:
         status=str(status).upper()
         if status not in TERMINAL_OR_WAITING:
             raise ValueError("unsupported completion status")
         if now_epoch<0 or not isinstance(result,dict):
             raise ValueError("valid result and timestamp required")
+        if claim_attempts is not None and (type(claim_attempts) is not int or claim_attempts<1):
+            raise ValueError("valid claim_attempts required")
         _reject_raw_secrets(result)
-        row=self.get(request_id)
-        if row is None:
-            raise KeyError(request_id)
-        if str(result.get("company_id",row.company_id))!=row.company_id:
-            raise ValueError("cross-company queue result denied")
         encoded=json.dumps(result,sort_keys=True,separators=(",",":"))
         dead_reason=str(result.get("reason") or "") if status=="DEAD_LETTER" else None
         with self._managed_connection() as conn:
-            conn.execute(
-              """UPDATE onboarding_requests
-                 SET status=?,last_result_json=?,updated_at_epoch=?,lease_until_epoch=0,
-                     dead_letter_reason=?,next_attempt_epoch=?
-                 WHERE request_id=?""",
-              (status,encoded,now_epoch,dead_reason,now_epoch,request_id),
-            )
+            # CP77: authoritative state and attempt must be read inside the
+            # same write transaction that records the final result.
+            conn.execute("BEGIN IMMEDIATE")
+            row=conn.execute(
+                "SELECT company_id,status,attempts FROM onboarding_requests WHERE request_id=?",
+                (request_id,),
+            ).fetchone()
+            if row is None:
+                raise KeyError(request_id)
+            if str(result.get("company_id",row["company_id"]))!=row["company_id"]:
+                raise ValueError("cross-company queue result denied")
+            if row["status"]!="IN_PROGRESS":
+                raise PermissionError("onboarding completion requires active claim")
+            if claim_attempts is not None and row["attempts"]!=claim_attempts:
+                raise PermissionError("stale onboarding claim completion denied")
+            n=conn.execute(
+                """UPDATE onboarding_requests
+                   SET status=?,last_result_json=?,updated_at_epoch=?,lease_until_epoch=0,
+                       dead_letter_reason=?,next_attempt_epoch=?
+                   WHERE request_id=? AND status='IN_PROGRESS' AND attempts=?""",
+                (status,encoded,now_epoch,dead_reason,now_epoch,request_id,row["attempts"]),
+            ).rowcount
+            if n!=1:
+                raise PermissionError("onboarding completion lost claim")
 
     def retry_or_dead_letter(
         self,*,request_id:str,result:dict,now_epoch:int,max_attempts:int=3,
         base_backoff_seconds:int=60,max_backoff_seconds:int=3600,
+        claim_attempts:int|None=None,
     )->dict:
         if now_epoch<0 or max_attempts<1 or base_backoff_seconds<1 or max_backoff_seconds<base_backoff_seconds:
             raise ValueError("invalid retry policy")
         if not isinstance(result,dict):
             raise ValueError("result must be object")
+        if claim_attempts is not None and (type(claim_attempts) is not int or claim_attempts<1):
+            raise ValueError("valid claim_attempts required")
         _reject_raw_secrets(result)
-        row=self.get(request_id)
-        if row is None:
-            raise KeyError(request_id)
-        if str(result.get("company_id",row.company_id))!=row.company_id:
-            raise ValueError("cross-company retry result denied")
         encoded=json.dumps(result,sort_keys=True,separators=(",",":"))
-        if row.attempts>=max_attempts:
-            reason=str(result.get("reason") or "MAX_ATTEMPTS_EXCEEDED")
-            with self._managed_connection() as conn:
-                conn.execute(
-                  """UPDATE onboarding_requests
-                     SET status='DEAD_LETTER',last_result_json=?,updated_at_epoch=?,lease_until_epoch=0,
-                         next_attempt_epoch=?,dead_letter_reason=?
-                     WHERE request_id=?""",
-                  (encoded,now_epoch,now_epoch,reason,request_id),
-                )
-            return {"status":"DEAD_LETTER","request_id":request_id,"attempts":row.attempts,"reason":reason}
-        exponent=max(0,row.attempts-1)
-        delay=min(max_backoff_seconds,base_backoff_seconds*(2**exponent))
-        next_attempt=now_epoch+delay
         with self._managed_connection() as conn:
-            conn.execute(
-              """UPDATE onboarding_requests
-                 SET status='QUEUED',last_result_json=?,updated_at_epoch=?,lease_until_epoch=0,
-                     next_attempt_epoch=?,dead_letter_reason=NULL
-                 WHERE request_id=?""",
-              (encoded,now_epoch,next_attempt,request_id),
-            )
-        return {
-          "status":"RETRY_SCHEDULED","request_id":request_id,"attempts":row.attempts,
-          "delay_seconds":delay,"next_attempt_epoch":next_attempt,
-        }
+            conn.execute("BEGIN IMMEDIATE")
+            row=conn.execute(
+                "SELECT company_id,status,attempts FROM onboarding_requests WHERE request_id=?",
+                (request_id,),
+            ).fetchone()
+            if row is None:
+                raise KeyError(request_id)
+            if str(result.get("company_id",row["company_id"]))!=row["company_id"]:
+                raise ValueError("cross-company retry result denied")
+            if row["status"]!="IN_PROGRESS":
+                raise PermissionError("onboarding retry requires active claim")
+            if claim_attempts is not None and row["attempts"]!=claim_attempts:
+                raise PermissionError("stale onboarding retry denied")
+            if row["attempts"]>=max_attempts:
+                reason=str(result.get("reason") or "MAX_ATTEMPTS_EXCEEDED")
+                n=conn.execute(
+                    """UPDATE onboarding_requests
+                       SET status='DEAD_LETTER',last_result_json=?,updated_at_epoch=?,lease_until_epoch=0,
+                           next_attempt_epoch=?,dead_letter_reason=?
+                       WHERE request_id=? AND status='IN_PROGRESS' AND attempts=?""",
+                    (encoded,now_epoch,now_epoch,reason,request_id,row["attempts"]),
+                ).rowcount
+                if n!=1:
+                    raise PermissionError("onboarding dead letter lost claim")
+                return {"status":"DEAD_LETTER","request_id":request_id,"attempts":row["attempts"],"reason":reason}
+            exponent=max(0,row["attempts"]-1)
+            delay=min(max_backoff_seconds,base_backoff_seconds*(2**exponent))
+            next_attempt=now_epoch+delay
+            n=conn.execute(
+                """UPDATE onboarding_requests
+                   SET status='QUEUED',last_result_json=?,updated_at_epoch=?,lease_until_epoch=0,
+                       next_attempt_epoch=?,dead_letter_reason=NULL
+                   WHERE request_id=? AND status='IN_PROGRESS' AND attempts=?""",
+                (encoded,now_epoch,next_attempt,request_id,row["attempts"]),
+            ).rowcount
+            if n!=1:
+                raise PermissionError("onboarding retry lost claim")
+            return {
+              "status":"RETRY_SCHEDULED","request_id":request_id,"attempts":row["attempts"],
+              "delay_seconds":delay,"next_attempt_epoch":next_attempt,
+            }
 
     def requeue(self,*,request_id:str,payload:dict,now_epoch:int,priority:int|None=None)->None:
         if now_epoch<0 or not isinstance(payload,dict):
