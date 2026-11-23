@@ -8,9 +8,16 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from gateway.remote_read_proof_cp82 import (
-    assess_live_observation,verify_private_read_pair,SCHEMA,CAPABILITY
-)
+import importlib.util
+
+SPEC=importlib.util.spec_from_file_location(
+    "remote_read_proof_cp82", ROOT/"gateway"/"remote_read_proof_cp82.py")
+CP82=importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(CP82)
+assess_live_observation=CP82.assess_live_observation
+verify_private_read_pair=CP82.verify_private_read_pair
+SCHEMA=CP82.SCHEMA
+CAPABILITY=CP82.CAPABILITY
 
 class RemotePrivateProofCP82Tests(unittest.TestCase):
     def setUp(self):
