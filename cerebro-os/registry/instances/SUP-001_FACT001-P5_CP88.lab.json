@@ -1,0 +1,108 @@
+{
+  "schema_version": "CP88_FACT001_LAB_INSTANCE_REGISTRY_SNAPSHOT_V1",
+  "record_type": "PHYSICAL_LAB_ADMIN_REGISTRATION",
+  "verified_date": "2026-11-23",
+  "d1_database": "cerebro-fact001-recovery-lab-eu",
+  "d1_table": "fact001_lab_engine_instances_v1",
+  "instance_key": "fenix-capital:SUP-001:LAB:FACT001-P5",
+  "company_id": "fenix-capital",
+  "engine_id": "SUP-001",
+  "environment": "LAB",
+  "catalog_version": "0.1.0",
+  "runtime_version": "1.0.0",
+  "instance_scope": "FACT001_P5_OBSERVATION_ONLY",
+  "lifecycle_state": "LAB_SCOPED_VERIFIED",
+  "runtime_mode": "SHARED_WORKER",
+  "worker_name": "cerebro-fact001-recovery-runner-lab",
+  "worker_version_ref": "b1355dff-aaf5-4b5d-ac2f-cbfcf3a86700",
+  "canonical_registry_file_sha": "57bb119fdda458ff66b9f76ef70743123f1a6083",
+  "source_snapshot_id": "GOV-001:FACT-001:P5:LAB:20261123",
+  "source_sha256": "53dd8838848cfa0910e94b16cf7794037e25405df07219a6cc279eb2c58fd713",
+  "observed_at_ms": 1795429000000,
+  "production_authorized": 0,
+  "new_execution_grants": 0,
+  "media_dispatch_enabled": 0,
+  "cost_additional_ceiling_eur": 0,
+  "enrollment_status": "HOLD_FACTORY_IAM_SCOPE",
+  "registration_method": "ADMIN_READONLY_EVIDENCE_SEED",
+  "manifest": {
+    "schema_version": "FACT001_LOGICAL_INSTANCE_V1",
+    "registration_method": "ADMIN_READONLY_EVIDENCE_SEED",
+    "canonical_registry": "carlosjmunoz78/fenix-capital-inmo-map:cerebro/registry/engine-registry.v1.json",
+    "canonical_registry_file_sha": "57bb119fdda458ff66b9f76ef70743123f1a6083",
+    "canonical_engine_id": "SUP-001",
+    "company_id": "fenix-capital",
+    "environment": "LAB",
+    "catalog_version": "0.1.0",
+    "runtime_version": "1.0.0",
+    "instance_scope": "FACT001_P5_OBSERVATION_ONLY",
+    "lifecycle_state": "LAB_SCOPED_VERIFIED",
+    "shared_runtime": {
+      "enabled": true,
+      "worker": "cerebro-fact001-recovery-runner-lab",
+      "observed_worker_version": "b1355dff-aaf5-4b5d-ac2f-cbfcf3a86700",
+      "additional_worker_created": false,
+      "cron_added": false
+    },
+    "data_contract": {
+      "input": "zeus_fact_p5_health_v1",
+      "status_projection": "zeus_fact_p5_registry_projection_v1",
+      "exceptions": "zeus_fact_p5_exceptions_v1",
+      "read_only_on_fact_jobs": true
+    },
+    "policy": {
+      "production_authorized": false,
+      "external_execution_grants": [],
+      "new_execution_grants": false,
+      "publish_authorized": false,
+      "paid_execution_enabled": false,
+      "human_exceptions": [
+        "LEGAL_REQUIRED",
+        "SIGNATURE_REQUIRED",
+        "LOW_CONFIDENCE",
+        "HIGH_RISK",
+        "POLICY_CONFLICT",
+        "SECURITY_INCIDENT",
+        "MONEY_LIMIT",
+        "CUSTOMER_HUMAN_REQUEST"
+      ]
+    },
+    "evidence_refs": [
+      "ZEUS-P5-20261123-fenix-capital-LAB",
+      "GOV-001:FACT-001:P5:LAB:20261123",
+      "github://carlosjmunoz78/capital-mapa-pro/pull/288"
+    ],
+    "evaluation": {
+      "scope_only": true,
+      "promotion_gate_passed": false,
+      "full_SUP001_certified": false,
+      "provider_trading_access": false
+    },
+    "cost": {
+      "additional_eur_ceiling": 0,
+      "subscription_added": false,
+      "billing_exact_verified": false
+    },
+    "backup": {
+      "d1_time_travel_bookmark_verified": true
+    },
+    "rollback": {
+      "scope_registry_revocation_requires_audited_change": true,
+      "worker_must_remain_unchanged": true
+    },
+    "rebuild": {
+      "scaffold_source": "cerebro-os/factory/factory.py",
+      "completed": false
+    },
+    "media_gateway": {
+      "enrollment_status": "HOLD_FACTORY_IAM_SCOPE",
+      "scope_conflict": "fenix vs fenix-capital",
+      "dispatch_enabled": false
+    },
+    "note": "Registro persistente de instancia lógica existente, NO ejecución automática de FACT-001 ni alta del motor global SUP-001."
+  },
+  "evidence_linkage": "cloudflare_d1_signed_by_management_api_not_factory_automatic_issuer",
+  "current_worker_version_at_read": "concurrent_updates_possible_do_not_assume_v15_active",
+  "canonical_engine_count_unchanged": 179,
+  "notion_registry_mirror_not_source_of_truth": true
+}
