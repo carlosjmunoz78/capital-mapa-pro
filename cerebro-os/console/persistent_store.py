@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
 
 # Normalized keys catch camelCase, underscore, kebab-case and header aliases.
@@ -51,8 +52,18 @@ class ConsoleStore:
         conn.row_factory=sqlite3.Row
         return conn
 
+    @contextmanager
+    def _managed_connection(self):
+        """Close SQLite handles, including exceptions, preserving transaction scope."""
+        conn=self._connect()
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
+
     def _init_schema(self)->None:
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute("""
             CREATE TABLE IF NOT EXISTS console_audit(
@@ -103,7 +114,7 @@ class ConsoleStore:
         company_id=str(audit["company_id"])
         user_id=str(audit["user_id"])
         version=str(audit["version"])
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             conn.execute("BEGIN IMMEDIATE")
             try:
                 existing=conn.execute(
@@ -135,7 +146,7 @@ class ConsoleStore:
     def audit_by_company(self,company_id:str)->tuple[dict,...]:
         if not company_id.strip():
             raise ValueError("company_id required")
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             rows=conn.execute(
               "SELECT request_id,company_id,engine_id,action,result,evidence_ref,timestamp_epoch FROM console_audit WHERE company_id=? ORDER BY timestamp_epoch,request_id",
               (company_id,),
@@ -149,7 +160,7 @@ class ConsoleStore:
     def history_by_company(self,company_id:str)->tuple[dict,...]:
         if not company_id.strip():
             raise ValueError("company_id required")
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             rows=conn.execute(
               "SELECT request_id,company_id,engine_id,status,evidence_ref,environment,version FROM console_history WHERE company_id=? ORDER BY timestamp_epoch,request_id",
               (company_id,),
@@ -161,7 +172,7 @@ class ConsoleStore:
         } for r in rows)
 
     def counts(self)->dict:
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             audit=int(conn.execute("SELECT COUNT(*) FROM console_audit").fetchone()[0])
             history=int(conn.execute("SELECT COUNT(*) FROM console_history").fetchone()[0])
         return {"audit":audit,"history":history}

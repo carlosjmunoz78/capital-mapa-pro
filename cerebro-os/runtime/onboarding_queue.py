@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -43,6 +44,20 @@ class OnboardingQueue:
         conn.row_factory=sqlite3.Row
         return conn
 
+    @contextmanager
+    def _managed_connection(self):
+        """Close SQLite connections after commit or rollback.
+
+        sqlite3.Connection.__exit__ does not itself close a handle. claim()
+        retains its explicit BEGIN IMMEDIATE / COMMIT / close discipline.
+        """
+        conn=self._connect()
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
+
     @staticmethod
     def _ensure_column(conn,name:str,ddl:str)->None:
         cols={str(row["name"]) for row in conn.execute("PRAGMA table_info(onboarding_requests)").fetchall()}
@@ -51,7 +66,7 @@ class OnboardingQueue:
 
     def _init_schema(self)->None:
         Path(self.path).parent.mkdir(parents=True,exist_ok=True)
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute("""
             CREATE TABLE IF NOT EXISTS onboarding_requests(
@@ -88,7 +103,7 @@ class OnboardingQueue:
             raise ValueError("cross-company queue payload denied")
         body={**payload,"company_id":company_id,"version":version}
         encoded=json.dumps(body,sort_keys=True,separators=(",",":"))
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             try:
                 conn.execute(
                   """INSERT INTO onboarding_requests(
@@ -147,7 +162,7 @@ class OnboardingQueue:
             raise ValueError("cross-company queue result denied")
         encoded=json.dumps(result,sort_keys=True,separators=(",",":"))
         dead_reason=str(result.get("reason") or "") if status=="DEAD_LETTER" else None
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             conn.execute(
               """UPDATE onboarding_requests
                  SET status=?,last_result_json=?,updated_at_epoch=?,lease_until_epoch=0,
@@ -173,7 +188,7 @@ class OnboardingQueue:
         encoded=json.dumps(result,sort_keys=True,separators=(",",":"))
         if row.attempts>=max_attempts:
             reason=str(result.get("reason") or "MAX_ATTEMPTS_EXCEEDED")
-            with self._connect() as conn:
+            with self._managed_connection() as conn:
                 conn.execute(
                   """UPDATE onboarding_requests
                      SET status='DEAD_LETTER',last_result_json=?,updated_at_epoch=?,lease_until_epoch=0,
@@ -185,7 +200,7 @@ class OnboardingQueue:
         exponent=max(0,row.attempts-1)
         delay=min(max_backoff_seconds,base_backoff_seconds*(2**exponent))
         next_attempt=now_epoch+delay
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             conn.execute(
               """UPDATE onboarding_requests
                  SET status='QUEUED',last_result_json=?,updated_at_epoch=?,lease_until_epoch=0,
@@ -214,7 +229,7 @@ class OnboardingQueue:
             raise ValueError("priority must be between 0 and 1000")
         body={**payload,"company_id":row.company_id,"version":row.version}
         encoded=json.dumps(body,sort_keys=True,separators=(",",":"))
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             conn.execute(
               """UPDATE onboarding_requests
                  SET payload_json=?,status='QUEUED',updated_at_epoch=?,lease_until_epoch=0,
@@ -226,7 +241,7 @@ class OnboardingQueue:
     def stats(self,*,now_epoch:int)->dict:
         if now_epoch<0:
             raise ValueError("invalid stats timestamp")
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             rows=conn.execute("SELECT status,COUNT(*) AS n FROM onboarding_requests GROUP BY status").fetchall()
             stale=conn.execute(
               "SELECT COUNT(*) AS n FROM onboarding_requests WHERE status='IN_PROGRESS' AND lease_until_epoch<=?",
@@ -253,7 +268,7 @@ class OnboardingQueue:
     def next_due_epoch(self,*,now_epoch:int)->int|None:
         if now_epoch<0:
             raise ValueError("invalid due timestamp")
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             queued=conn.execute(
               "SELECT MIN(next_attempt_epoch) AS due FROM onboarding_requests WHERE status='QUEUED'"
             ).fetchone()
@@ -272,7 +287,7 @@ class OnboardingQueue:
     def by_company(self,company_id:str)->tuple[QueueItem,...]:
         if not company_id.strip():
             raise ValueError("company_id required")
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             rows=conn.execute(
               "SELECT request_id FROM onboarding_requests WHERE company_id=? ORDER BY updated_at_epoch DESC,created_at_epoch DESC,request_id",
               (company_id,),
@@ -285,7 +300,7 @@ class OnboardingQueue:
         return tuple(items)
 
     def get(self,request_id:str)->QueueItem|None:
-        with self._connect() as conn:
+        with self._managed_connection() as conn:
             row=conn.execute("SELECT * FROM onboarding_requests WHERE request_id=?",(request_id,)).fetchone()
         if row is None:
             return None
