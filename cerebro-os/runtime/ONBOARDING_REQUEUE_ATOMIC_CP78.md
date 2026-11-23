@@ -1,0 +1,6 @@
+# CP78 · Atomic requeue fencing in ONB-SVC LAB
+
+Base: CP77 commit `2d0b353908c8a773981eed4674bc792a6cd04b16`.
+Existing `requeue` performed `get()` outside a write transaction and later updated only by request ID. An already requeued/reclaimed job could be clobbered by a second controller. New implementation starts `BEGIN IMMEDIATE`, reads current state and tenant inside that transaction, validates WAITING/BLOCKED/DEAD_LETTER, preserves company_id/version/environment and rejects cross-tenant context refs, then updates with a status predicate. Raw secrets still rejected. No schema change or production mutation. Existing API call shape remains intact; the CP77 worker passes claim_attempts. Tests cover two connections, duplicate requeue, reclaim and scope tampering. Live integration and IAM gates remain pending. Rollback revert this commit or reset dedicated CP78 branch to CP77; PR is DRAFT and targets CP77, not main.
+
+CRITICAL SCOPE: legacy CP77 complete/retry callers with omitted claim_attempts remain compatible but do not enjoy per-attempt fencing; require caller migration before allowing multiworker. No claim of autonomy/remote deploy from CI. JARVIS gateway OFF, Brevo 123–126 suspended, UMS publishing OFF.
