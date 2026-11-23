@@ -35,6 +35,10 @@ class OnboardingQueueEngine:
         context={}
         context_id=str(command.get("context_id") or "").strip()
         if context_id:
+            # A company: reference must resolve to the selected company; the
+            # business context cannot silently point at a second tenant.
+            if context_id.startswith("company:") and context_id != "company:" + company_id:
+                raise ValueError("cross-company onboarding context reference denied")
             context["console_context_ref"]=context_id
         if self.context_loader is not None:
             loaded=self.context_loader(company_id,context_id,dict(command))
@@ -47,6 +51,7 @@ class OnboardingQueueEngine:
         payload={
           "company_id":company_id,
           "version":version,
+          "environment":environment,
           "context":context,
           "source":{
             "type":"CEREBRO_CONSOLE",
@@ -64,8 +69,15 @@ class OnboardingQueueEngine:
             if "duplicate request_id" not in str(exc):
                 raise
             existing=self.queue.get(request_id)
-            if existing is None or existing.company_id!=company_id:
-                raise
+            if existing is None or existing.company_id!=company_id or existing.version!=version:
+                raise ValueError("onboarding duplicate scope mismatch") from exc
+            # Legacy LAB records predate the environment field, and can be
+            # replayed only in LAB with the same identity and context.
+            previous=dict(existing.payload)
+            if "environment" not in previous and environment=="LAB":
+                previous["environment"]="LAB"
+            if previous!=payload:
+                raise ValueError("onboarding duplicate command evidence conflict") from exc
             decision="ALREADY_QUEUED"
 
         return {
