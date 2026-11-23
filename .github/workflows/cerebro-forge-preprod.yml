@@ -13,6 +13,10 @@ permissions:
   contents: read
   id-token: write
 
+concurrency:
+  group: cerebro-forge-preprod-europe-southwest1-cerebro-advisory-preprod
+  cancel-in-progress: false
+
 env:
   PROJECT_ID: cerebro-forge
   PROJECT_NUMBER: '15609183753'
@@ -27,6 +31,7 @@ jobs:
   deploy-preprod:
     runs-on: ubuntu-latest
     environment: PREPROD
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -65,11 +70,26 @@ jobs:
       - name: Configure Docker auth
         run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
 
+      - name: Preserve exact PREPROD rollback revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format=json > /tmp/before-forge.json
+          python - <<'PY'
+          import json,os
+          traffic=(json.load(open('/tmp/before-forge.json')).get('status') or {}).get('traffic') or []
+          serving=[t for t in traffic if t.get('percent',0)>0]
+          if len(serving)!=1 or serving[0].get('percent')!=100 or not serving[0].get('revisionName'):
+              raise SystemExit('HOLD: original PREPROD traffic must be one verified 100% revision')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('PREVIOUS_REVISION='+serving[0]['revisionName']+'\n')
+          PY
+
       - name: Build image
         shell: bash
         run: |
           set -euo pipefail
-          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/cerebro-advisory-preprod:${GITHUB_SHA}"
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/cerebro-advisory-preprod:${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
           docker build -f cerebro-os/preprod/Dockerfile -t "$IMAGE" .
 
@@ -123,8 +143,17 @@ jobs:
           trap - EXIT
           cleanup
 
-      - name: Push image
-        run: docker push "$IMAGE"
+      - name: Push immutable image and pin exact registry digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker push "$IMAGE"
+          EXPECTED_DIGEST="$(gcloud artifacts docker images describe "$IMAGE" --format='value(image_summary.digest)')"
+          [[ "$EXPECTED_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
+          IMAGE_REPO="${IMAGE%:*}"
+          IMAGE_CANONICAL="${IMAGE_REPO}@${EXPECTED_DIGEST}"
+          echo "IMAGE_CANONICAL=$IMAGE_CANONICAL" >> "$GITHUB_ENV"
+          echo "IMAGE_DIGEST=$EXPECTED_DIGEST" >> "$GITHUB_ENV"
 
       - name: Deploy private Cloud Run PREPROD candidate
         shell: bash
@@ -132,7 +161,8 @@ jobs:
           set -euo pipefail
           set +e
           gcloud run deploy "$SERVICE_NAME" \
-            --image="$IMAGE" \
+            --image="$IMAGE_CANONICAL" \
+            --no-traffic \
             --region="$REGION" \
             --platform=managed \
             --service-account="$RUNTIME_SERVICE_ACCOUNT" \
@@ -176,20 +206,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          REVISION="$(gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format='value(status.latestReadyRevisionName)')"
+          REVISION="$(gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format='value(status.latestCreatedRevisionName)')"
           test -n "$REVISION"
 
           IMAGE_DEPLOYED="$(gcloud run revisions describe "$REVISION" --region="$REGION" --format='value(spec.containers[0].image)')"
-          EXPECTED_DIGEST="$(gcloud artifacts docker images describe "$IMAGE" --format='value(image_summary.digest)')"
-          test -n "$EXPECTED_DIGEST"
-          IMAGE_REPO="${IMAGE%:*}"
-          EXPECTED_CANONICAL="${IMAGE_REPO}@${EXPECTED_DIGEST}"
-          if [ "$IMAGE_DEPLOYED" != "$IMAGE" ] && [ "$IMAGE_DEPLOYED" != "$EXPECTED_CANONICAL" ]; then
-            echo "Unexpected deployed image: $IMAGE_DEPLOYED"
-            echo "Expected tag: $IMAGE"
-            echo "Expected digest: $EXPECTED_CANONICAL"
+          # Image is pinned at push; never re-resolve mutable tags during acceptance.
+          test -n "$IMAGE_CANONICAL"
+          if [ "$IMAGE_DEPLOYED" != "$IMAGE_CANONICAL" ]; then
+            echo "HOLD: candidate digest differs from the immutable build"
+            echo "Deployed: $IMAGE_DEPLOYED"
+            echo "Expected: $IMAGE_CANONICAL"
             exit 1
           fi
+          gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format=json > /tmp/forge-candidate-traffic.json
+          python - <<'PY'
+          import json,os
+          state=json.load(open('/tmp/forge-candidate-traffic.json'))
+          traffic=[t for t in (state.get('status') or {}).get('traffic',[]) if t.get('percent',0)>0]
+          if len(traffic)!=1 or traffic[0].get('percent')!=100 or traffic[0].get('revisionName')!=os.environ['PREVIOUS_REVISION']:
+              raise SystemExit('HOLD: candidate traffic before passing gates or concurrent mutation')
+          PY
 
           gcloud run revisions describe "$REVISION" --region="$REGION" --format=json > /tmp/forge-revision.json
           python - <<'PY'
@@ -219,8 +255,7 @@ jobs:
           PY
 
           echo "REVISION=$REVISION" >> "$GITHUB_ENV"
-          echo "IMAGE_DIGEST=$EXPECTED_DIGEST" >> "$GITHUB_ENV"
-          echo "Persistent PREPROD revision: $REVISION"
+          echo "Persistent PREPROD revision prepared at 0% traffic: $REVISION"
 
       - name: Verify persistent remote onboarding rehearsal evidence
         shell: bash
@@ -365,6 +400,39 @@ jobs:
             echo "computer_use_performed=false"
             echo "github_sha=$GITHUB_SHA"
           } > forge-evidence/preprod-deployment.txt
+
+      - name: Promote only fully accepted PREPROD revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format=json > /tmp/forge-gate.json
+          python - <<'PY'
+          import json,os
+          state=json.load(open('/tmp/forge-gate.json'))
+          traffic=[t for t in (state.get('status') or {}).get('traffic',[]) if t.get('percent',0)>0]
+          if len(traffic)!=1 or traffic[0].get('percent')!=100 or traffic[0].get('revisionName')!=os.environ['PREVIOUS_REVISION']:
+              raise SystemExit('HOLD: serving revision changed before promotion')
+          PY
+          if ! gcloud run services update-traffic "$SERVICE_NAME" --region="$REGION" \
+               --to-revisions "$REVISION=100" --quiet; then
+            gcloud run services update-traffic "$SERVICE_NAME" --region="$REGION" \
+              --to-revisions "$PREVIOUS_REVISION=100" --quiet || true
+            exit 1
+          fi
+          gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format=json > /tmp/forge-promoted.json
+          if ! python - <<'PY'
+          import json,os
+          state=json.load(open('/tmp/forge-promoted.json'))
+          traffic=[t for t in (state.get('status') or {}).get('traffic',[]) if t.get('percent',0)>0]
+          if len(traffic)!=1 or traffic[0].get('percent')!=100 or traffic[0].get('revisionName')!=os.environ['REVISION']:
+              raise SystemExit('PROMOTION_TRAFFIC_MISMATCH')
+          PY
+          then
+            gcloud run services update-traffic "$SERVICE_NAME" --region="$REGION" \
+              --to-revisions "$PREVIOUS_REVISION=100" --quiet || true
+            exit 1
+          fi
+          echo "Verified PREPROD revision serving 100%: $REVISION"
 
       - name: Upload evidence
         uses: actions/upload-artifact@v4
