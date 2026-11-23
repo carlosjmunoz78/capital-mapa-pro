@@ -244,27 +244,51 @@ class OnboardingQueue:
     def requeue(self,*,request_id:str,payload:dict,now_epoch:int,priority:int|None=None)->None:
         if now_epoch<0 or not isinstance(payload,dict):
             raise ValueError("valid payload and timestamp required")
-        row=self.get(request_id)
-        if row is None:
-            raise KeyError(request_id)
-        if row.status not in {"WAITING","BLOCKED","DEAD_LETTER"}:
-            raise ValueError("only WAITING/BLOCKED/DEAD_LETTER requests may be requeued")
         _reject_raw_secrets(payload)
-        if str(payload.get("company_id",row.company_id))!=row.company_id:
-            raise ValueError("cross-company requeue denied")
-        chosen_priority=row.priority if priority is None else int(priority)
-        if not 0<=chosen_priority<=1000:
-            raise ValueError("priority must be between 0 and 1000")
-        body={**payload,"company_id":row.company_id,"version":row.version}
-        encoded=json.dumps(body,sort_keys=True,separators=(",",":"))
         with self._managed_connection() as conn:
-            conn.execute(
+            # CP78: lock, inspect and transition as ONE operation. A second
+            # redrive must not overwrite a job another worker already queued.
+            conn.execute("BEGIN IMMEDIATE")
+            row=conn.execute(
+                "SELECT company_id,version,payload_json,status,priority FROM onboarding_requests WHERE request_id=?",
+                (request_id,),
+            ).fetchone()
+            if row is None:
+                raise KeyError(request_id)
+            if row["status"] not in {"WAITING","BLOCKED","DEAD_LETTER"}:
+                raise ValueError("only WAITING/BLOCKED/DEAD_LETTER requests may be requeued")
+            company_id=str(row["company_id"])
+            version=str(row["version"])
+            if str(payload.get("company_id",company_id))!=company_id:
+                raise ValueError("cross-company requeue denied")
+            if str(payload.get("version",version))!=version:
+                raise ValueError("cross-version requeue denied")
+            prior=json.loads(row["payload_json"])
+            prior_environment=str(prior.get("environment","LAB")).upper()
+            if "environment" in payload and str(payload["environment"]).upper()!=prior_environment:
+                raise ValueError("cross-environment requeue denied")
+            context=payload.get("context")
+            if context is not None:
+                if not isinstance(context,dict):
+                    raise ValueError("onboarding context must be object")
+                ref=context.get("console_context_ref")
+                if ref is not None and (not isinstance(ref,str) or
+                        (ref.startswith("company:") and ref!="company:"+company_id)):
+                    raise ValueError("cross-company onboarding requeue context denied")
+            chosen_priority=int(row["priority"]) if priority is None else int(priority)
+            if not 0<=chosen_priority<=1000:
+                raise ValueError("priority must be between 0 and 1000")
+            body={**payload,"company_id":company_id,"version":version,"environment":prior_environment}
+            encoded=json.dumps(body,sort_keys=True,separators=(",",":"))
+            n=conn.execute(
               """UPDATE onboarding_requests
                  SET payload_json=?,status='QUEUED',updated_at_epoch=?,lease_until_epoch=0,
                      next_attempt_epoch=?,dead_letter_reason=NULL,priority=?
-                 WHERE request_id=?""",
-              (encoded,now_epoch,now_epoch,chosen_priority,request_id),
-            )
+                 WHERE request_id=? AND status=?""",
+              (encoded,now_epoch,now_epoch,chosen_priority,request_id,row["status"]),
+            ).rowcount
+            if n!=1:
+                raise PermissionError("onboarding requeue lost state")
 
     def stats(self,*,now_epoch:int)->dict:
         if now_epoch<0:
