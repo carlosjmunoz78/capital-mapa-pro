@@ -16,13 +16,15 @@ HUMAN_EXCEPTION_CODES = [
     "CUSTOMER_HUMAN_REQUEST",
 ]
 
-ENGINE_ID_RE = re.compile(r"^[A-Z0-9-]+$")
+ENGINE_ID_RE = re.compile(r"^[A-Z][A-Z0-9-]{2,63}$")
 
 
 def validate_engine_id(engine_id: str) -> str:
+    if not isinstance(engine_id, str):
+        raise ValueError("engine_id must be a string")
     engine_id = engine_id.strip().upper()
-    if not ENGINE_ID_RE.match(engine_id):
-        raise ValueError("engine_id must use A-Z, 0-9 and hyphen only")
+    if not ENGINE_ID_RE.fullmatch(engine_id):
+        raise ValueError("engine_id must be 3-64 characters, begin with A-Z and contain only A-Z, 0-9 or hyphen")
     return engine_id
 
 
