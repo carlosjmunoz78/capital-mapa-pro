@@ -29,6 +29,12 @@ env:
 
 jobs:
   deploy-preprod:
+    # Repository-level readiness is set ONLY after an existing same-project,
+    # authenticated private canary invoker is proven in a real execution.
+    # Unset => SKIPPED before runner allocation, saving builds/registry uploads
+    # and Cloud Run revisions that cannot pass the remote-log evidence gate.
+    # This is not a waiver: downstream D1/identity/observability gates remain.
+    if: ${{ vars.CEREBRO_FORGE_INTERNAL_CANARY_READY == 'true' }}
     runs-on: ubuntu-latest
     environment: PREPROD
     timeout-minutes: 30
