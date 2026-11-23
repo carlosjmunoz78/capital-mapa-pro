@@ -51,7 +51,7 @@ class OnboardingClaimFencingCP77(unittest.TestCase):
         self.assertEqual(self.q.get("cp77").status,"IN_PROGRESS")
     def test_unclaimed_completion_rejected_without_write(self):
         with self.assertRaisesRegex(PermissionError,"active claim"):
-            self.q.complete(request_id="cp77",status="COMPLETED",result={"company_id":"fenix"},now_epoch=2)
+            self.q.complete(request_id="cp77",status="COMPLETED",result={"company_id":"fenix"},now_epoch=2,claim_attempts=1)
         self.assertEqual(self.q.get("cp77").status,"QUEUED")
     def test_completed_claim_cannot_be_reopened(self):
         claimed=self.claim()
@@ -83,14 +83,22 @@ class OnboardingClaimFencingCP77(unittest.TestCase):
             other.complete(request_id="cp77",status="COMPLETED",result={"company_id":"fenix"},
                            now_epoch=8,claim_attempts=old.attempts)
         self.assertEqual(self.q.get("cp77").status,"IN_PROGRESS")
-    def test_retry_and_completion_preserve_legacy_call_shape(self):
+    def test_missing_token_rejected_and_real_claim_can_complete(self):
         claimed=self.claim()
-        self.q.retry_or_dead_letter(request_id="cp77",result={"company_id":"fenix"},now_epoch=3)
+        with self.assertRaisesRegex(PermissionError,"claim_attempts required"):
+            self.q.retry_or_dead_letter(request_id="cp77",result={"company_id":"fenix"},now_epoch=3)
+        self.assertEqual(self.q.get("cp77").status,"IN_PROGRESS")
+        self.q.retry_or_dead_letter(request_id="cp77",result={"company_id":"fenix"},
+                                    now_epoch=3,claim_attempts=claimed.attempts)
         again=self.q.claim(now_epoch=65,lease_seconds=20)
         self.assertEqual(again.attempts,claimed.attempts+1)
+        with self.assertRaisesRegex(PermissionError,"claim_attempts required"):
+            self.q.complete(request_id="cp77",status="WAITING",
+                            result={"company_id":"fenix"},now_epoch=66)
         self.q.complete(request_id="cp77",status="WAITING",result={"company_id":"fenix"},
-                        now_epoch=66)
+                        now_epoch=66,claim_attempts=again.attempts)
         self.assertEqual(self.q.get("cp77").status,"WAITING")
+
     def test_worker_passes_real_claim_attempt(self):
         with patch("jobs.run_company_onboarding_worker.run_request",
                    return_value={"company_id":"fenix","status":"WAITING","retryable":False}):

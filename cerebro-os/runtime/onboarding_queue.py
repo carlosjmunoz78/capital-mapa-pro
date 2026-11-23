@@ -154,8 +154,9 @@ class OnboardingQueue:
             raise ValueError("unsupported completion status")
         if now_epoch<0 or not isinstance(result,dict):
             raise ValueError("valid result and timestamp required")
-        if claim_attempts is not None and (type(claim_attempts) is not int or claim_attempts<1):
-            raise ValueError("valid claim_attempts required")
+        # CP80: no legacy caller may finalize or retry another worker's claim.
+        if type(claim_attempts) is not int or claim_attempts<1:
+            raise PermissionError("onboarding claim_attempts required")
         _reject_raw_secrets(result)
         encoded=json.dumps(result,sort_keys=True,separators=(",",":"))
         dead_reason=str(result.get("reason") or "") if status=="DEAD_LETTER" else None
@@ -194,8 +195,9 @@ class OnboardingQueue:
             raise ValueError("invalid retry policy")
         if not isinstance(result,dict):
             raise ValueError("result must be object")
-        if claim_attempts is not None and (type(claim_attempts) is not int or claim_attempts<1):
-            raise ValueError("valid claim_attempts required")
+        # CP80: no legacy caller may finalize or retry another worker's claim.
+        if type(claim_attempts) is not int or claim_attempts<1:
+            raise PermissionError("onboarding claim_attempts required")
         _reject_raw_secrets(result)
         encoded=json.dumps(result,sort_keys=True,separators=(",",":"))
         with self._managed_connection() as conn:
