@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -39,8 +40,8 @@ class ProposalRecord:
             raise ValueError("invalid proposal priority")
         if self.status not in VALID_STATUSES:
             raise ValueError("invalid proposal status")
-        if self.cost_limit_eur < 0:
-            raise ValueError("cost_limit_eur cannot be negative")
+        if isinstance(self.cost_limit_eur, bool) or not math.isfinite(float(self.cost_limit_eur)) or self.cost_limit_eur < 0:
+            raise ValueError("cost_limit_eur must be finite and nonnegative")
         if self.external_mutation_allowed:
             raise ValueError("proposal queue V0 does not allow external mutation")
 
@@ -74,32 +75,56 @@ class ProposalQueue:
 
     def upsert(self, record: ProposalRecord) -> str:
         fp = record.fingerprint()
-        payload = json.dumps(record.__dict__, sort_keys=True)
-        self.conn.execute(
-            """
-            INSERT INTO proposal_queue(fingerprint,company_id,proposal_id,priority,status,payload_json)
-            VALUES(?,?,?,?,?,?)
-            ON CONFLICT(fingerprint) DO UPDATE SET
-              proposal_id=excluded.proposal_id,
-              priority=excluded.priority,
-              payload_json=excluded.payload_json
-            """,
-            (fp, record.company_id, record.proposal_id, record.priority, record.status, payload),
-        )
-        self.conn.commit()
-        return fp
+        self.conn.execute("BEGIN IMMEDIATE")
+        try:
+            prior = self.conn.execute(
+                "SELECT status,payload_json FROM proposal_queue WHERE fingerprint=?", (fp,)
+            ).fetchone()
+            if prior is not None:
+                persisted_status, persisted_json = prior
+                if persisted_status not in VALID_STATUSES:
+                    raise ValueError("invalid stored proposal status")
+                previous = ProposalRecord(**json.loads(persisted_json))
+                previous.validate()
+                if record.cost_limit_eur > previous.cost_limit_eur:
+                    raise PermissionError("proposal cost ceiling escalation denied")
+                # Terminal entries are immutable to ingestion. Status transitions
+                # must go through the explicit set_status workflow, not replay.
+                if persisted_status in {"CLOSED", "BLOCKED", "HUMAN_REQUIRED"}:
+                    self.conn.commit()
+                    return fp
+                payload = json.dumps({**record.__dict__, "status": persisted_status}, sort_keys=True)
+            else:
+                persisted_status = record.status
+                payload = json.dumps(record.__dict__, sort_keys=True)
+            self.conn.execute(
+                """
+                INSERT INTO proposal_queue(fingerprint,company_id,proposal_id,priority,status,payload_json)
+                VALUES(?,?,?,?,?,?)
+                ON CONFLICT(fingerprint) DO UPDATE SET
+                  proposal_id=excluded.proposal_id,
+                  priority=excluded.priority,
+                  payload_json=excluded.payload_json
+                """,
+                (fp, record.company_id, record.proposal_id, record.priority, persisted_status, payload),
+            )
+            self.conn.commit()
+            return fp
+        except Exception:
+            self.conn.rollback()
+            raise
 
     def list_open(self, *, company_id: str | None = None) -> tuple[ProposalRecord, ...]:
         if company_id:
             rows = self.conn.execute(
-                "SELECT payload_json FROM proposal_queue WHERE company_id=? AND status IN ('OPEN','WAITING_TEST')",
+                "SELECT status,payload_json FROM proposal_queue WHERE company_id=? AND status IN ('OPEN','WAITING_TEST')",
                 (company_id,),
             ).fetchall()
         else:
             rows = self.conn.execute(
-                "SELECT payload_json FROM proposal_queue WHERE status IN ('OPEN','WAITING_TEST')"
+                "SELECT status,payload_json FROM proposal_queue WHERE status IN ('OPEN','WAITING_TEST')"
             ).fetchall()
-        items = [ProposalRecord(**json.loads(row[0])) for row in rows]
+        items = [ProposalRecord(**{**json.loads(row[1]), "status": row[0]}) for row in rows]
         items.sort(key=lambda x: (_PRIORITY_ORDER[x.priority], x.company_id, x.proposal_id))
         return tuple(items)
 
