@@ -137,18 +137,35 @@ class ProposalQueue:
     def set_status(self, fingerprint: str, status: str) -> None:
         if status not in VALID_STATUSES:
             raise ValueError("invalid proposal status")
-        row = self.conn.execute(
-            "SELECT payload_json FROM proposal_queue WHERE fingerprint=?", (fingerprint,)
-        ).fetchone()
-        if row is None:
-            raise ValueError("proposal not found")
-        data = json.loads(row[0])
-        data["status"] = status
-        self.conn.execute(
-            "UPDATE proposal_queue SET status=?, payload_json=? WHERE fingerprint=?",
-            (status, json.dumps(data, sort_keys=True), fingerprint),
-        )
-        self.conn.commit()
+        # Protect the explicit transition too; upsert's replay protection alone
+        # cannot stop a stale caller from reopening a terminal decision.
+        self.conn.execute("BEGIN IMMEDIATE")
+        try:
+            row = self.conn.execute(
+                "SELECT status,payload_json FROM proposal_queue WHERE fingerprint=?", (fingerprint,)
+            ).fetchone()
+            if row is None:
+                raise ValueError("proposal not found")
+            prior, payload = row
+            if prior not in VALID_STATUSES:
+                raise ValueError("invalid stored proposal status")
+            if prior in {"CLOSED", "BLOCKED", "HUMAN_REQUIRED"} and status != prior:
+                raise PermissionError("terminal proposal decision cannot be reopened")
+            if prior == "WAITING_TEST" and status == "OPEN":
+                raise PermissionError("proposal cannot roll back testing to OPEN")
+            data = json.loads(payload)
+            if data.get("status") != prior:
+                # Legacy status drift: restore the authoritative SQLite state.
+                data["status"] = prior
+            data["status"] = status
+            self.conn.execute(
+                "UPDATE proposal_queue SET status=?, payload_json=? WHERE fingerprint=?",
+                (status, json.dumps(data, sort_keys=True), fingerprint),
+            )
+            self.conn.commit()
+        except Exception:
+            self.conn.rollback()
+            raise
 
     def count(self) -> int:
         return int(self.conn.execute("SELECT COUNT(*) FROM proposal_queue").fetchone()[0])
