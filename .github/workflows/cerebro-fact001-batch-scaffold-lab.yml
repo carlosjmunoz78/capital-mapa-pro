@@ -6,6 +6,8 @@ on:
       - cerebro-engine-factory-v0
     paths:
       - '.github/workflows/cerebro-fact001-batch-scaffold-lab.yml'
+      - 'cerebro-os/factory/**'
+      - 'cerebro-os/registry/canonical_177.json'
   workflow_dispatch:
 permissions:
   contents: read
