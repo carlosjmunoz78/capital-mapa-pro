@@ -1,0 +1,93 @@
+{
+  "record_type": "cp82_verified_live_independent_observations",
+  "observed_date": "2026-11-23",
+  "environment": "LAB",
+  "cost_contract": "zero_incremental_no_billing_audit",
+  "evidence_provenance": [
+    {
+      "source": "Cloudflare Access API",
+      "method": "GET",
+      "resource": "/accounts/{account_id}/access/logs/access_requests",
+      "app": "cerebro-jarvis-lab-eu",
+      "event_at": "2026-11-23T01:13:33Z",
+      "allowed": true,
+      "owner_exact_match": true
+    },
+    {
+      "source": "Cloudflare D1 API",
+      "method": "POST read-only SQL",
+      "database": "cerebro-fact001-recovery-lab-eu",
+      "company_id": "fenix-capital",
+      "engine_id": "FACT-001",
+      "operation": "providers.five.inventory.read",
+      "completed_jobs": 12,
+      "reconcile_jobs": 1,
+      "audit_records": 38
+    },
+    {
+      "source": "Cloudflare Workers settings API",
+      "method": "GET",
+      "workers": [
+        "cerebro-jarvis-lab-eu",
+        "cerebro-jarvis-cut32-lab-eu",
+        "cerebro-fact001-gateway-lab-eu-20261109"
+      ],
+      "gateway_flags_off": true,
+      "direct_jarvis_fact_binding_verified": false
+    }
+  ],
+  "external_repo_scope": [
+    {
+      "repo": "carlosjmunoz78/fenix-capital-inmo-map",
+      "ref": "main",
+      "commit": "902022f5d4dcc4aab29e6d35411a63c38fe438e7",
+      "inspected_paths": [
+        "cerebro/multicompany/final-onboarding-chain-v1.mjs",
+        "cerebro/multicompany/bootstrap.mjs",
+        "cerebro/gateway/action-gateway-v1.mjs",
+        "cerebro/console/gateway.mjs"
+      ],
+      "classification": "PARTIAL_CODE_INSPECTION_NOT_COMPLETE_CONSUMER_AUDIT",
+      "notes": "main includes plan_only PREPROD onboarding chain; no direct OnboardingQueue calls in inspected files"
+    },
+    {
+      "repo": "carlosjmunoz78/fenix-capital-cerebro-social",
+      "ref": "main",
+      "commit": "f947acf089da4075890f949d003bb4a971050d4f",
+      "inspected_paths": [
+        "scripts/"
+      ],
+      "classification": "DIRECTORY_ONLY_NOT_CONSUMER_CLEARED"
+    },
+    {
+      "repo": "carlosjmunoz78/capital-mapa-pro",
+      "ref": "cerebro/onboarding-claim-consumer-audit-cp81-lab-20261123",
+      "commit": "8b053d256a787c4ee167a98d307fa8ba4191c5b4",
+      "classification": "CP81_PYTHON_STATIC_CI_GREEN_EXTERNAL_CLIENTS_UNKNOWN"
+    }
+  ],
+  "gate": {
+    "state": "BLOCKED",
+    "jarvis_fact_e2e_verified": false,
+    "source_owner_access_verified": true,
+    "fact_d1_inventory_verified": true,
+    "enterprise_iam_verified": false,
+    "signed_correlated_receipt_verified": false,
+    "persisted_fact_receipt_bound_to_jarvis_request_verified": false,
+    "direct_jarvis_fact_service_binding_verified": false,
+    "remote_cp82_code_deployed": false,
+    "promotion_allowed": false
+  },
+  "protection": {
+    "jarvis_gateway": "OFF",
+    "fact_gateway": "OFF",
+    "brevo_ids_suspended": [
+      123,
+      124,
+      125,
+      126
+    ],
+    "ums_publication": "OFF",
+    "main_untouched": true
+  }
+}
