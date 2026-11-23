@@ -267,18 +267,41 @@ class OnboardingQueue:
             prior_environment=str(prior.get("environment","LAB")).upper()
             if "environment" in payload and str(payload["environment"]).upper()!=prior_environment:
                 raise ValueError("cross-environment requeue denied")
-            context=payload.get("context")
-            if context is not None:
-                if not isinstance(context,dict):
+            # CP79: redrive may update task metadata, but it may not
+            # reinterpret the authenticated submitting identity or context.
+            prior_source=prior.get("source")
+            if prior_source is not None and not isinstance(prior_source,dict):
+                raise ValueError("invalid original onboarding source")
+            if "source" in payload and (
+                prior_source is None or payload["source"]!=prior_source
+            ):
+                raise ValueError("onboarding requeue source immutable")
+            previous_context=prior.get("context")
+            if previous_context is not None and not isinstance(previous_context,dict):
+                raise ValueError("invalid original onboarding context")
+            if "context" in payload:
+                incoming_context=payload["context"]
+                if not isinstance(incoming_context,dict):
                     raise ValueError("onboarding context must be object")
-                ref=context.get("console_context_ref")
-                if ref is not None and (not isinstance(ref,str) or
-                        (ref.startswith("company:") and ref!="company:"+company_id)):
-                    raise ValueError("cross-company onboarding requeue context denied")
+            else:
+                incoming_context={}
+            context={**(previous_context or {}),**incoming_context}
+            previous_ref=(previous_context or {}).get("console_context_ref")
+            ref=context.get("console_context_ref")
+            if ref is not None and (not isinstance(ref,str) or
+                    not ref.strip() or
+                    (ref.startswith("company:") and ref!="company:"+company_id)):
+                raise ValueError("cross-company onboarding requeue context denied")
+            if previous_ref is not None and ref!=previous_ref:
+                raise ValueError("onboarding requeue context reference immutable")
             chosen_priority=int(row["priority"]) if priority is None else int(priority)
             if not 0<=chosen_priority<=1000:
                 raise ValueError("priority must be between 0 and 1000")
             body={**payload,"company_id":company_id,"version":version,"environment":prior_environment}
+            if previous_context is not None or "context" in payload:
+                body["context"]=context
+            if prior_source is not None:
+                body["source"]=prior_source
             encoded=json.dumps(body,sort_keys=True,separators=(",",":"))
             n=conn.execute(
               """UPDATE onboarding_requests
