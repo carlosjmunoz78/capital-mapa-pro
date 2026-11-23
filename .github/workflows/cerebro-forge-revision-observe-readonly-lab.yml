@@ -1,0 +1,51 @@
+name: CEREBRO FORGE · Diagnose Zero Traffic Revision Read Only
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths: ['.github/workflows/cerebro-forge-revision-observe-readonly-lab.yml']
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  inspect-existing-candidate:
+    runs-on: ubuntu-latest
+    environment: PREPROD
+    timeout-minutes: 5
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/15609183753/locations/global/workloadIdentityPools/github-cerebro-forge/providers/github-provider
+          service_account: cerebro-forge-deployer@cerebro-forge.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: cerebro-forge
+      - name: Read candidate and serving revision evidence (never mutate)
+        shell: bash
+        run: |
+          set -euo pipefail
+          REGION=europe-southwest1
+          SERVICE=cerebro-advisory-preprod
+          REVISION=cerebro-advisory-preprod-00266-xnc
+          gcloud run services describe "$SERVICE" --region="$REGION" --format=json >/tmp/forge-service.json
+          gcloud run revisions describe "$REVISION" --region="$REGION" --format=json >/tmp/forge-revision.json
+          gcloud logging read "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"$SERVICE\" AND resource.labels.revision_name=\"$REVISION\"" \
+            --limit=140 --order=asc --format=json >/tmp/forge-logs.json
+          python - <<'PY'
+          import json
+          s=json.load(open('/tmp/forge-service.json'))
+          r=json.load(open('/tmp/forge-revision.json'))
+          logs=json.load(open('/tmp/forge-logs.json'))
+          traffic=[dict(revision=x.get('revisionName'),percent=x.get('percent'),tag=x.get('tag'))
+            for x in s.get('status',{}).get('traffic',[]) if x.get('percent',0)>0]
+          conditions=[dict(type=x.get('type'),status=x.get('status'),reason=x.get('reason'))
+            for x in r.get('status',{}).get('conditions',[])]
+          entries=[]
+          for l in logs:
+            p=l.get('jsonPayload',{})
+            t=l.get('textPayload','') or l.get('protoPayload',{}).get('status',{}).get('message','')
+            entries.append(dict(logName=(l.get('logName','').rsplit('/',1)[-1]),json_marker=p.get('marker'),json_status=p.get('status'),
+              text_marker=any(x in t for x in ['PERSISTENT_REMOTE_ONBOARDING_REHEARSAL_PASS','PERSISTENT_OBSERVABILITY_PROBE','READY']),
+              text_prefix=t[:130],severity=l.get('severity')))
+          print(json.dumps(dict(service=SERVICE,candidate=REVISION,serving=traffic,
+            conditions=conditions,log_total=len(logs),logs=entries[-35:]),sort_keys=True))
+          PY
