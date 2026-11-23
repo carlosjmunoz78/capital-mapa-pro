@@ -46,6 +46,18 @@ class OnboardingQueueEngine:
                 raise ValueError("onboarding context_loader must return object")
             if str(loaded.get("company_id",company_id))!=company_id:
                 raise ValueError("cross-company onboarding context denied")
+            # The loader is not allowed to retarget a request to a different
+            # company/context after the user-supplied ref has been validated.
+            if "console_context_ref" in loaded:
+                loader_ref=loaded["console_context_ref"]
+                if not isinstance(loader_ref,str) or not loader_ref.strip():
+                    raise ValueError("invalid loaded onboarding context reference")
+                loader_ref=loader_ref.strip()
+                if loader_ref.startswith("company:") and loader_ref!="company:"+company_id:
+                    raise ValueError("cross-company loaded onboarding context denied")
+                if context_id and loader_ref!=context_id:
+                    raise ValueError("onboarding context loader reference mismatch")
+                loaded["console_context_ref"]=loader_ref
             loaded={k:v for k,v in loaded.items() if k!="company_id"}
             context={**context,**loaded}
         payload={
