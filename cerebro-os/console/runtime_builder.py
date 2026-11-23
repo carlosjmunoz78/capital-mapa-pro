@@ -73,8 +73,11 @@ def build_console_runtime(
         }
 
     def audit_sink(row:dict)->None:
-        audits.append(dict(row))
-        store.record(dict(row),now_epoch=int(now_epoch_provider()))
+        # A durable write must succeed before an in-memory receipt is exposed.
+        # This avoids phantom audit entries if SQLite rejects the record.
+        record = dict(row)
+        store.record(record, now_epoch=int(now_epoch_provider()))
+        audits.append(record)
 
     pipeline=ConsolePipeline(gateway,audit_sink,dispatcher.execute)
 

@@ -1,15 +1,34 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from pathlib import Path
 
-FORBIDDEN_SECRET_KEYS={"password","token","api_key","secret","secret_value","raw_secret","credential_value"}
+# Normalized keys catch camelCase, underscore, kebab-case and header aliases.
+# References (secret_ref, credential_ref_id) are intentionally NOT forbidden.
+FORBIDDEN_SECRET_KEYS = {
+    "password", "passwd", "token", "accesstoken", "refreshtoken",
+    "apitoken", "apikey", "clientsecret", "privatekey", "sessioncookie",
+    "authtoken", "idtoken", "oauthtoken", "serviceaccountkey", "accesskey", "jwt",
+    "setcookie", "bearertoken", "secret", "secretvalue", "rawsecret",
+    "credentialvalue", "authorizationheader",
+}
+
+
+def _secret_key(key: object) -> bool:
+    canon = re.sub(r"[^a-z0-9]", "", str(key).lower())
+    return canon in FORBIDDEN_SECRET_KEYS
+
 
 def _reject_raw_secrets(value)->None:
     if isinstance(value,dict):
         for key,child in value.items():
-            if str(key).lower() in FORBIDDEN_SECRET_KEYS:
+            if _secret_key(key) or (
+                str(key).lower() == "authorization"
+                and isinstance(child, str)
+                and child.lower().lstrip().startswith(("bearer ", "basic ", "token "))
+            ):
                 raise ValueError(f"raw secret field forbidden: {key}")
             _reject_raw_secrets(child)
     elif isinstance(value,(list,tuple)):
