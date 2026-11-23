@@ -47,11 +47,12 @@ class OnboardingWorkerServiceTests(unittest.TestCase):
             request_id="r1",company_id="fenix",version="1.0.0",
             payload={"company_id":"fenix","version":"1.0.0","context":{}},now_epoch=100,
         )
-        self.queue.claim(now_epoch=110,lease_seconds=30)
+        claimed=self.queue.claim(now_epoch=110,lease_seconds=30)
         self.queue.retry_or_dead_letter(
             request_id="r1",
             result={"company_id":"fenix","status":"BLOCKED","reason":"EXECUTOR_EXCEPTION"},
             now_epoch=110,max_attempts=3,base_backoff_seconds=40,max_backoff_seconds=600,
+            claim_attempts=claimed.attempts,
         )
         clock={"now":120}
         sleeps=[]
@@ -78,11 +79,12 @@ class OnboardingWorkerServiceTests(unittest.TestCase):
             request_id="r1",company_id="fenix",version="1.0.0",
             payload={"company_id":"fenix","version":"1.0.0","context":{}},now_epoch=100,
         )
-        self.queue.claim(now_epoch=110,lease_seconds=30)
+        claimed=self.queue.claim(now_epoch=110,lease_seconds=30)
         self.queue.retry_or_dead_letter(
             request_id="r1",
             result={"company_id":"fenix","status":"BLOCKED","reason":"EXECUTOR_EXCEPTION"},
             now_epoch=111,max_attempts=1,base_backoff_seconds=60,max_backoff_seconds=600,
+            claim_attempts=claimed.attempts,
         )
         out=run_service_cycles(
             queue=self.queue,now_epoch_provider=lambda:200,sleep=lambda _:None,
