@@ -10,7 +10,7 @@ class ZeusSharedSupervisorCP86(unittest.TestCase):
         if not shutil.which("node"):
             self.skipTest("Node runtime not installed")
         test_file=ROOT/"supervisor"/"zeus_shared_lab_worker.test.mjs"
-        p=subprocess.run(["node","--test",str(test_file)],capture_output=True,text=True,timeout=50)
+        p=subprocess.run(["node","--test","--test-reporter=tap",str(test_file)],capture_output=True,text=True,timeout=50)
         self.assertEqual(p.returncode,0,p.stdout+"\n"+p.stderr)
         self.assertIn("# fail 0",p.stdout)
         self.assertIn("# tests 12",p.stdout)
