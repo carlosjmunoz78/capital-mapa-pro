@@ -1,0 +1,86 @@
+name: FACT-001 · Batch de 177 motores lógicos · LAB
+on:
+  push:
+    branches:
+      - cerebro/fact001-batch-177-fastlane-20261123
+      - cerebro-engine-factory-v0
+    paths:
+      - '.github/workflows/cerebro-fact001-batch-scaffold-lab.yml'
+      - 'cerebro-os/factory/**'
+      - 'cerebro-os/registry/canonical_177.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scaffold-all:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      CEREBRO_COMPANY_ID: ''
+      CEREBRO_FACT_ENROLL_EVENT_KEY: ''
+      CEREBRO_CLOUDFLARE_API_TOKEN: ''
+      CEREBRO_CLOUDFLARE_ACCOUNT_ID: ''
+      CEREBRO_FACT_ENROLL_QUEUE_ID: ''
+      CEREBRO_EXTERNAL_WRITES: disabled
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate all canonical scaffolds in one isolated batch
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/fact001-batch-177"
+          mkdir -p "$ROOT"
+          export CEREBRO_BATCH_ROOT="$ROOT"
+          python - <<'PY'
+          import json, os, sys
+          from pathlib import Path
+          sys.path.insert(0,'cerebro-os')
+          from factory.mass_scaffold import generate_all
+          root=Path(os.environ['CEREBRO_BATCH_ROOT'])
+          canonical=json.loads(Path('cerebro-os/registry/canonical_177.json').read_text(encoding='utf-8'))
+          engine_ids=canonical['engine_ids']
+          assert canonical['engine_count']==177==len(engine_ids)==len(set(engine_ids)), 'canonical list invalid'
+          paths=generate_all(root,engine_ids)
+          assert len(paths)==177
+          found=set()
+          for directory in paths:
+              manifest=json.loads((directory/'manifest.json').read_text(encoding='utf-8'))
+              found.add(manifest['engine_id'])
+              assert manifest['status']=='DEFINED_NOT_BUILT'
+              assert manifest['environment']=='LAB'
+              assert manifest['backup']['verified'] is False
+              assert manifest['rollback']['verified'] is False
+              assert manifest['rebuild']['verified'] is False
+              assert manifest['media_gateway']['publish_authorized'] is False
+              assert (directory/'events'/'UMS001_FACTORY_ENROLLMENT_STATUS.json').exists()
+              assert json.loads((directory/'events'/'UMS001_FACTORY_ENROLLMENT_STATUS.json').read_text())['media_dispatch_enabled'] is False
+              for subdir in ('config','contracts','policies','events','jobs','api','tests','evaluation','observability','ops','docs','training'):
+                  assert (directory/subdir).is_dir()
+          assert found==set(engine_ids)
+          report={
+              'factory':'FACT-001','environment':'LAB','company_id':'UNASSIGNED',
+              'canonical_total':177,'scaffolds_created':len(paths),
+              'external_writes':0,'media_dispatch_enabled':False,
+              'promotion_authorized':False,'operational_claim':False,
+              'status':'SCAFFOLD_ONLY',
+              'registry_source':'cerebro-os/registry/canonical_177.json'
+          }
+          (root/'batch_receipt.json').write_text(json.dumps(report,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(report,sort_keys=True))
+          PY
+          test "$(find "$ROOT/engines" -mindepth 1 -maxdepth 1 -type d | wc -l)" -eq 177
+          tar -czf "$RUNNER_TEMP/fact001-batch-177.tgz" -C "$ROOT" .
+      - name: Save one batch receipt and scaffold archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: fact001-scaffold-177-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/fact001-batch-177.tgz
+            ${{ runner.temp }}/fact001-batch-177/batch_receipt.json
+          retention-days: 7
+          if-no-files-found: error
