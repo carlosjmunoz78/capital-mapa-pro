@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-23",
+  "source": "Cloudflare API read-only",
+  "company_id": "fenix-capital",
+  "engine_id": "FACT-001",
+  "environment": "LAB",
+  "version": "1.0.0",
+  "worker_names_preserved": [
+    "cerebro-fact001-recovery-runner-lab",
+    "cerebro-fact001-headless-operator-lab-20261111"
+  ],
+  "existing_worker_cron": "*/5 * * * *",
+  "P5_automation_id": "FACT001_P5_DAILY_READ_V1",
+  "P5_daily_enabled": true,
+  "P5_max_daily_jobs": 1,
+  "completed_jobs": 12,
+  "known_reconcile": "FACT001-P5-20261112",
+  "baseline_time_travel_bookmark": "00000eb6-00000002-0000512c-e7f978424d5e343c416e26760532046b",
+  "new_supervisor_worker_name": "cerebro-zeus-shared-supervisor-lab",
+  "supervisor_deployed": false,
+  "new_table_created": false,
+  "prod_touched": false
+}
