@@ -49,3 +49,16 @@ jobs:
           print(json.dumps(dict(service='cerebro-advisory-preprod',candidate='cerebro-advisory-preprod-00266-xnc',serving=traffic,
             conditions=conditions,log_total=len(logs),logs=entries[-35:]),sort_keys=True))
           PY
+
+      - name: Discover existing same-project internal probe executors (read-only)
+        shell: bash
+        run: |
+          set -u
+          echo 'CLOUD_TASKS_EXISTING_QUEUES'
+          gcloud tasks queues list --project=cerebro-forge --location=europe-southwest1 --format='value(name,state)' 2>&1 | head -12 || true
+          echo 'CLOUD_SCHEDULER_EXISTING_JOBS'
+          gcloud scheduler jobs list --project=cerebro-forge --location=europe-southwest1 --format='value(name,state)' 2>&1 | head -12 || true
+          echo 'CLOUD_RUN_EXISTING_JOBS'
+          gcloud run jobs list --project=cerebro-forge --region=europe-southwest1 --format='value(metadata.name)' 2>&1 | head -12 || true
+          echo 'CLOUD_RUN_EXISTING_SERVICES'
+          gcloud run services list --project=cerebro-forge --region=europe-southwest1 --format='value(metadata.name)' 2>&1 | head -12 || true
