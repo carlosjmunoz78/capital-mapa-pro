@@ -60,7 +60,7 @@ class OnboardingRedriveProvenanceCP79(unittest.TestCase):
             self.q.requeue(request_id="verified-r1",
                 payload={"context":{"console_context_ref":None}},now_epoch=4)
     def test_cross_tenant_context_remains_denied(self):
-        with self.assertRaisesRegex(ValueError,"context reference immutable"):
+        with self.assertRaisesRegex(ValueError,"cross-company onboarding"):
             self.q.requeue(request_id="verified-r1",
                 payload={"context":{"console_context_ref":"company:aion"}},now_epoch=4)
     def test_stored_scope_survives_process_restart(self):

@@ -287,13 +287,13 @@ class OnboardingQueue:
                 incoming_context={}
             context={**(previous_context or {}),**incoming_context}
             previous_ref=(previous_context or {}).get("console_context_ref")
-            if previous_ref is not None and context.get("console_context_ref")!=previous_ref:
-                raise ValueError("onboarding requeue context reference immutable")
             ref=context.get("console_context_ref")
             if ref is not None and (not isinstance(ref,str) or
                     not ref.strip() or
                     (ref.startswith("company:") and ref!="company:"+company_id)):
                 raise ValueError("cross-company onboarding requeue context denied")
+            if previous_ref is not None and ref!=previous_ref:
+                raise ValueError("onboarding requeue context reference immutable")
             chosen_priority=int(row["priority"]) if priority is None else int(priority)
             if not 0<=chosen_priority<=1000:
                 raise ValueError("priority must be between 0 and 1000")
