@@ -1,0 +1,60 @@
+name: CEREBRO FORGE digest mapping (read-only LAB)
+on:
+  push:
+    branches:
+      - cerebro-engine-factory-v0
+    paths:
+      - '.github/workflows/cerebro-forge-digest-readonly-lab.yml'
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  inspect-manifest:
+    runs-on: ubuntu-latest
+    environment: PREPROD
+    timeout-minutes: 5
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/15609183753/locations/global/workloadIdentityPools/github-cerebro-forge/providers/github-provider
+          service_account: cerebro-forge-deployer@cerebro-forge.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: cerebro-forge
+      - name: Read exact Cloud Run digest and OCI manifest children; no mutations
+        shell: bash
+        env:
+          INDEX_DIGEST: sha256:631d41181116192c010ba1244ad4f72d991e3c4c4577a12a142816f24c0f1fe6
+          RUNTIME_DIGEST: sha256:b57096460e6662f75a1382f1b8ff753f8a0e133075c273a51cbf66df5457b9d6
+        run: |
+          set -euo pipefail
+          test "$(gcloud config get-value project)" = "cerebro-forge"
+          IMAGE_REPO="europe-southwest1-docker.pkg.dev/cerebro-forge/cerebro-forge/cerebro-advisory-preprod"
+          gcloud run revisions describe cerebro-advisory-preprod-00265-h45 --region=europe-southwest1 --format=json >/tmp/rev.json
+          gcloud run services describe cerebro-advisory-preprod --region=europe-southwest1 --format=json >/tmp/svc.json
+          AUTH="$(gcloud auth print-access-token)"
+          URL="https://europe-southwest1-docker.pkg.dev/v2/cerebro-forge/cerebro-forge/cerebro-advisory-preprod/manifests/$INDEX_DIGEST"
+          curl --silent --show-error --fail --max-time 20 --max-redirs 0 \
+            -H "Authorization: Bearer $AUTH" \
+            -H 'Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json' \
+            "$URL" >/tmp/manifest.json
+          unset AUTH
+          python - <<'PY'
+          import json, os
+          r=json.load(open('/tmp/rev.json'))
+          s=json.load(open('/tmp/svc.json'))
+          m=json.load(open('/tmp/manifest.json'))
+          children=[{'digest':x.get('digest'),'platform':x.get('platform')} for x in m.get('manifests',[])]
+          serving=[{'revision':t.get('revisionName'),'percent':t.get('percent')} for t in s.get('status',{}).get('traffic',[]) if t.get('percent',0)>0]
+          actual=r['spec']['containers'][0]['image']
+          result={
+            'revision':'cerebro-advisory-preprod-00265-h45',
+            'requested_index_digest':os.environ['INDEX_DIGEST'],
+            'deployed_image':actual,
+            'manifest_media_type':m.get('mediaType'),
+            'child_digests':children,
+            'deployed_digest_is_child':any(x.get('digest')==os.environ['RUNTIME_DIGEST'] for x in m.get('manifests',[])),
+            'serving_traffic':serving,
+          }
+          print(json.dumps(result,sort_keys=True))
+          PY
