@@ -15,3 +15,6 @@ Existing Workers `cerebro-jarvis-lab-eu` and `cerebro-jarvis-cut32-lab-eu` have 
 
 ## Rollback
 Revert this CP81 commit or reset only its LAB branch to the exact CP80 commit. Keep PR DRAFT, do not merge `main`, do not deploy into App/CRM or switch on any Gateway. No additional resource or paid service.
+
+## Independent-process integration gate
+`tests/test_onboarding_two_processes_cp81.py` starts separate Python OS processes against one isolated SQLite file. One scenario validates a lease expiration, second claimant and failed stale-writer completion, followed by valid completion by the new claimant. A second scenario starts two independent claimers concurrently and requires exactly one successful claim. No external API, PC server, paid resource, PROD or long-running runtime is involved. A GREEN CI run confirms only subprocess behavior inside a GitHub CI runner, not a distributed Cloudflare worker or persistent remote deployment.
