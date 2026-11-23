@@ -114,8 +114,10 @@ class ConsoleLiveRuntimeTests(unittest.TestCase):
         self.assertEqual(queued.body["items"][0]["status"],"QUEUED")
         self.assertNotIn("payload",queued.body["items"][0])
 
+        claimed=self.runtime.queue.claim(now_epoch=120,lease_seconds=300)
+        self.assertEqual(claimed.request_id,"req-status")
         self.runtime.queue.complete(
-            request_id="req-status",status="WAITING",now_epoch=120,
+            request_id="req-status",status="WAITING",now_epoch=120,claim_attempts=claimed.attempts,
             result={
               "company_id":"fenix","status":"WAITING","stop_reason":"ENGINE_NOT_GREEN",
               "state":{"current_phase":"MINIMUM_ACCESSES"},
@@ -147,8 +149,10 @@ class ConsoleLiveRuntimeTests(unittest.TestCase):
             request_id="req-gap",company_id="fenix",version="1.0.0",now_epoch=100,
             payload={"company_id":"fenix","version":"1.0.0"},
         )
+        claimed=runtime.queue.claim(now_epoch=101,lease_seconds=300)
+        self.assertEqual(claimed.request_id,"req-gap")
         runtime.queue.complete(
-            request_id="req-gap",status="WAITING",now_epoch=101,
+            request_id="req-gap",status="WAITING",now_epoch=101,claim_attempts=claimed.attempts,
             result={
               "company_id":"fenix","version":"1.0.0","status":"WAITING",
               "state":{"company_id":"fenix","environment":"LAB","current_phase":"SCAN_DIGITAL_FOOTPRINT"},
