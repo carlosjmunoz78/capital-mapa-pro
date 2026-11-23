@@ -34,7 +34,7 @@ jobs:
           gcloud run services describe cerebro-advisory-preprod --region=europe-southwest1 --format=json >/tmp/svc.json
           AUTH="$(gcloud auth print-access-token)"
           URL="https://europe-southwest1-docker.pkg.dev/v2/cerebro-forge/cerebro-forge/cerebro-advisory-preprod/manifests/$INDEX_DIGEST"
-          curl --silent --show-error --fail --max-time 20 --location-trusted=false \
+          curl --silent --show-error --fail --max-time 20 --max-redirs 0 \
             -H "Authorization: Bearer $AUTH" \
             -H 'Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json' \
             "$URL" >/tmp/manifest.json
