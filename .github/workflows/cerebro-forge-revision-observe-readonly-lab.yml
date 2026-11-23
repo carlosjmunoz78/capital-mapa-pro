@@ -46,6 +46,6 @@ jobs:
             entries.append(dict(logName=(l.get('logName','').rsplit('/',1)[-1]),json_marker=p.get('marker'),json_status=p.get('status'),
               text_marker=any(x in t for x in ['PERSISTENT_REMOTE_ONBOARDING_REHEARSAL_PASS','PERSISTENT_OBSERVABILITY_PROBE','READY']),
               text_prefix=t[:130],severity=l.get('severity')))
-          print(json.dumps(dict(service=SERVICE,candidate=REVISION,serving=traffic,
+          print(json.dumps(dict(service='cerebro-advisory-preprod',candidate='cerebro-advisory-preprod-00266-xnc',serving=traffic,
             conditions=conditions,log_total=len(logs),logs=entries[-35:]),sort_keys=True))
           PY
