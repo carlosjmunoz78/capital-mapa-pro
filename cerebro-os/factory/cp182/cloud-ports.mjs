@@ -51,7 +51,9 @@ export class JarvisLedger182 extends DurableObject{
  async #port(){const e=this.e;enable(e);return createPrivateJarvisPort({...await keyset(e),...createJarvisStorage(this.storage),ingressPublic:await publicKey(e.INGRESS_PUBLIC),jarvisPrivate:await privateKey(e.JARVIS_PRIVATE),receiptKey:await signKey(e.JARVIS_MAC),iam:e.IAM,fact:e.FACT,tribunal:e.TRIBUNAL});}
  async run(q,s){return (await this.#port()).run(q,s)} async inspect(q,s){return (await this.#port()).inspect(q,s)}
 }
-export const instanceId='cp182-private-pair-001';
+// Instance 001 was rejected at the transport boundary; all four namespaces were independently empty.
+export const instanceId='cp182-private-pair-002';
+export function decodeWorkflowPayload(p){if(typeof p==='string'){if(p.length>4096)fail('WORKFLOW_PAYLOAD_DENIED');try{p=JSON.parse(p);}catch{fail('WORKFLOW_PAYLOAD_DENIED');}}if(!p||typeof p!=='object'||Array.isArray(p))fail('WORKFLOW_PAYLOAD_DENIED');return p;}
 export async function executePair(e,p){
  enable(e);const ingress=await publicKey(e.INGRESS_PUBLIC);
  if(!p||Object.keys(p).sort().join('|')!=='inspect|inspect_signature|run|run_signature'||!fresh(p.run?.emitted_at_epoch)||!exact(p.run,rpcBody('run',p.run?.nonce,p.run?.emitted_at_epoch))||!await verifyBody(ingress,p.run,p.run_signature))fail('WORKFLOW_INGRESS_DENIED');
@@ -65,5 +67,5 @@ export async function executePair(e,p){
  return {status:'CP182_CLOUD_PAIR_VERIFIED',request_id:id,company_id:'fenix',environment:'LAB',reservation:'COMPLETED',grant_revoked:true,duplicate_denied:true,jarvis_receipt_sha256:await digest(jr.body),fact_receipt_sha256:await digest(fr.body),grant_sha256:ab.grant_sha256,result_sha256:tb.result_sha256,tribunal_signature_verified:true,promotion_allowed:false};
 }
 export class PairWorkflow182 extends WorkflowEntrypoint{
- async run(event,step){if(event.instanceId!==instanceId)fail('WORKFLOW_INSTANCE_DENIED');return step.do('one signed private pair',{retries:{limit:0,delay:'1 second'},timeout:'45 seconds'},()=>executePair(this.env,event.payload));}
+ async run(event,step){if(event.instanceId!==instanceId)fail('WORKFLOW_INSTANCE_DENIED');return step.do('one signed private pair',{retries:{limit:0,delay:'1 second'},timeout:'45 seconds'},()=>executePair(this.env,decodeWorkflowPayload(event.payload)));}
 }
