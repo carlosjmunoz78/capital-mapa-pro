@@ -82,10 +82,10 @@ export async function executePair(e,p){
  return {status:'CP182_CLOUD_PAIR_VERIFIED',request_id:id,company_id:'fenix',environment:'LAB',reservation:'COMPLETED',grant_revoked:true,duplicate_denied:true,jarvis_receipt_sha256:await digest(jr.body),fact_receipt_sha256:await digest(fr.body),grant_sha256:ab.grant_sha256,result_sha256:tb.result_sha256,tribunal_signature_verified:true,promotion_allowed:false};
 }
 export class PairWorkflow182 extends WorkflowEntrypoint{
- async run(event,step){if(event.instanceId!==instanceId)fail('WORKFLOW_INSTANCE_DENIED');return step.do('one signed private pair',{retries:{limit:0,delay:'1 second'},timeout:'45 seconds'},()=>executePair(this.env,decodeWorkflowPayload(event.payload)));}
+ async run(event,step){if(event.instanceId!==auditInstanceId)fail('WORKFLOW_INSTANCE_DENIED');return step.do('read-only persisted pair audit',{retries:{limit:0,delay:'1 second'},timeout:'45 seconds'},()=>executeAudit(this.env,decodeWorkflowPayload(event.payload)));}
 }
 
-export const auditInstanceId='cp182-private-pair-audit-001';
+export const auditInstanceId='cp182-private-pair-audit-002';
 export const acceptedEvidence=Object.freeze({jarvis_receipt_sha256:'6fcd3a290aad9b2a7c94204e091b445a7c2addcd62bcf63c7adc37ca1eda300d',fact_receipt_sha256:'c4171819c28c9c363681a25c82bd32b2685b56a7de31a93f60e799326f5be081',grant_sha256:'96168d77531ea3f2c5fdd71c2b619cecd1735d2739a473907752af4bbdf68a32',result_sha256:'5d482c8f9dfe8dbe24b59a095242d802df82e29b871a5a30b88def91a2c0533f'});
 export async function verifyAuditSnapshots(e,q,proofs,expected=acceptedEvidence){
  if(!Array.isArray(proofs)||proofs.length!==4)fail('AUDIT_ROLES_DENIED');
