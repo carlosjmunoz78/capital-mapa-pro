@@ -82,10 +82,10 @@ export async function executePair(e,p){
  return {status:'CP182_CLOUD_PAIR_VERIFIED',request_id:id,company_id:'fenix',environment:'LAB',reservation:'COMPLETED',grant_revoked:true,duplicate_denied:true,jarvis_receipt_sha256:await digest(jr.body),fact_receipt_sha256:await digest(fr.body),grant_sha256:ab.grant_sha256,result_sha256:tb.result_sha256,tribunal_signature_verified:true,promotion_allowed:false};
 }
 export class PairWorkflow182 extends WorkflowEntrypoint{
- async run(event,step){if(event.instanceId!==auditInstanceId)fail('WORKFLOW_INSTANCE_DENIED');return step.do('read-only persisted pair audit',{retries:{limit:0,delay:'1 second'},timeout:'45 seconds'},()=>executeAudit(this.env,decodeWorkflowPayload(event.payload)));}
+ async run(event,step){if(event.instanceId!==auditInstanceId)fail('WORKFLOW_INSTANCE_DENIED');return step.do('read-only persisted pair audit',{retries:{limit:0,delay:'1 second'},timeout:'45 seconds'},()=>executeReadback(this.env,decodeWorkflowPayload(event.payload)));}
 }
 
-export const auditInstanceId='cp182-private-pair-audit-002';
+export const auditInstanceId='cp182-private-pair-audit-003';
 export const acceptedEvidence=Object.freeze({jarvis_receipt_sha256:'6fcd3a290aad9b2a7c94204e091b445a7c2addcd62bcf63c7adc37ca1eda300d',fact_receipt_sha256:'c4171819c28c9c363681a25c82bd32b2685b56a7de31a93f60e799326f5be081',grant_sha256:'96168d77531ea3f2c5fdd71c2b619cecd1735d2739a473907752af4bbdf68a32',result_sha256:'5d482c8f9dfe8dbe24b59a095242d802df82e29b871a5a30b88def91a2c0533f'});
 export async function verifyAuditSnapshots(e,q,proofs,expected=acceptedEvidence){
  if(!Array.isArray(proofs)||proofs.length!==4)fail('AUDIT_ROLES_DENIED');
@@ -108,4 +108,14 @@ export async function executeAudit(e,p,expected=acceptedEvidence){
 }
 export class PairAuditWorkflow182 extends WorkflowEntrypoint{
  async run(event,step){if(event.instanceId!==auditInstanceId)fail('AUDIT_INSTANCE_DENIED');return step.do('read-only persisted pair audit',{retries:{limit:0,delay:'1 second'},timeout:'45 seconds'},()=>executeAudit(this.env,decodeWorkflowPayload(event.payload)));}
+}
+
+export async function executeReadback(e,p,expected=acceptedEvidence){
+ if(!p||Object.keys(p).sort().join('|')!=='inspect|inspect_signature')fail('AUDIT_PAYLOAD_DENIED');
+ await inspectAuth(e,p.inspect,p.inspect_signature);const q=p.inspect,s=p.inspect_signature;
+ const j=ledger(e,'cp182-jarvis');
+ const [state,authority,tribunal]=await Promise.all([j.inspect(q,s),e.IAM.observe(q,s),e.TRIBUNAL.inspect(q,s)]);
+ const ab=authority?.body,tb=tribunal?.proof?.body,jr=state?.receipt,fr=tribunal?.fact;
+ if(state?.reservation?.state!=='COMPLETED'||state.reservation.request_id!==id||!jr||!fr||!ab||!tb||!mac(jr.mac)||!mac(fr.mac)||!fresh(ab.checked_at_epoch)||!exact(ab,{...scope,request_id:id,role:'IAM',nonce:q.nonce,active:false,revoked:true,grant_sha256:ab.grant_sha256,checked_at_epoch:ab.checked_at_epoch})||ab.grant_sha256!==expected.grant_sha256||!await verifyBody(await publicKey(e.AUTHORITY_PUBLIC),ab,authority.signature)||!exact(tb,{...scope,request_id:id,role:'TRIBUNAL',status:'VERIFIED_AUTHORIZED_PAIR',iam_grant_verified:true,promotion_allowed:false,jarvis_mac:jr.mac,fact_mac:fr.mac,result_sha256:fr.body.result_sha256,checked_at_epoch:tb.checked_at_epoch})||!Number.isSafeInteger(tb.checked_at_epoch)||tb.checked_at_epoch>now()||!await verifyBody(await publicKey(e.TRIBUNAL_PUBLIC),tb,tribunal.proof.signature)||await digest(jr.body)!==expected.jarvis_receipt_sha256||await digest(fr.body)!==expected.fact_receipt_sha256||tb.result_sha256!==expected.result_sha256)fail('PERSISTENT_READBACK_DENIED');
+ return {status:'CP182_INDEPENDENT_READBACK_VERIFIED',request_id:id,environment:'LAB',reservation:state.reservation.state,grant_revoked:true,receipt_pair_preserved:true,jarvis_receipt_sha256:expected.jarvis_receipt_sha256,fact_receipt_sha256:expected.fact_receipt_sha256,grant_sha256:expected.grant_sha256,result_sha256:expected.result_sha256,authority_signature_verified:true,tribunal_signature_verified:true,promotion_allowed:false};
 }
