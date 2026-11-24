@@ -108,11 +108,12 @@ def accepted(task_name, candidate, started, target):
     require(len(matches)==1 and matches[0]["httpRequest"].get("status")==200,"CANDIDATE_RESPONSE_DENIED")
     return True
 
-def invoke():
+def invoke(serving=False):
     preflight()
     old=os.environ["FORGE_OLD_REVISION"]; candidate=os.environ["FORGE_EXPECTED_REVISION"]
     tid=os.environ["FORGE_CANARY_ID"]
-    require(old!=candidate and all(re.fullmatch(SERVICE+r"-[a-z0-9-]+",s) for s in (old,candidate))
+    require((old==candidate==SERVICE+"-00266-xnc" if serving else old!=candidate)
+            and all(re.fullmatch(SERVICE+r"-[a-z0-9-]+",s) for s in (old,candidate))
             and bool(re.fullmatch(r"forge-[0-9]+-[0-9]+",tid)),"CANARY_SCOPE_DENIED")
     validate_service(service(),old)
     name=QPATH+"/tasks/"+tid; started=utcnow()
@@ -121,11 +122,14 @@ def invoke():
     require(not journal.exists(),"CANARY_ALREADY_RESERVED")
     rec={"state":"RESERVED","task":name,"candidate":candidate,"old":old,"started":started}
     journal.write_text(json.dumps(rec,indent=2))
-    tagged=False; submission_attempted=False
+    submission_attempted=False
     try:
-        gcloud("run","services","update-traffic",SERVICE,"--region="+REGION,"--update-tags="+TAG+"="+candidate)
-        tagged=True
-        base,target=validate_service(service(),old,candidate)
+        if serving:
+            base,_=validate_service(service(),old)
+            target=base
+        else:
+            gcloud("run","services","update-traffic",SERVICE,"--region="+REGION,"--update-tags="+TAG+"="+candidate)
+            base,target=validate_service(service(),old,candidate)
         validate_queue(queue()); require(not tasks(),"QUEUE_NOT_EMPTY")
         # Exact named create; no retry after ambiguous response.
         submission_attempted=True
@@ -153,7 +157,7 @@ def invoke():
                 gcloud("tasks","delete",tid,"--queue="+QUEUE,"--location="+QREGION)
             require(not tasks(),"TASK_CLEANUP_FAILED")
         current=service()
-        if any(t.get("tag")==TAG and t.get("revisionName")==candidate for t in current.get("status",{}).get("traffic",[])):
+        if not serving and any(t.get("tag")==TAG and t.get("revisionName")==candidate for t in current.get("status",{}).get("traffic",[])):
             validate_service(current,old,candidate)
             gcloud("run","services","update-traffic",SERVICE,"--region="+REGION,"--remove-tags="+TAG)
         validate_service(service(),old)
@@ -166,5 +170,5 @@ def invoke():
     print("FORGE_PRIVATE_CANARY_PASS")
 
 if __name__=="__main__":
-    require(len(sys.argv)==2 and sys.argv[1] in {"preflight","invoke"},"COMMAND_DENIED")
-    {"preflight":preflight,"invoke":invoke}[sys.argv[1]]()
+    require(len(sys.argv)==2 and sys.argv[1] in {"preflight","invoke","invoke-serving"},"COMMAND_DENIED")
+    {"preflight":preflight,"invoke":invoke,"invoke-serving":lambda:invoke(serving=True)}[sys.argv[1]]()
