@@ -10,8 +10,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from gateway.iam_grant_reader_cp158 import make_trusted_grant_reader
-from gateway.remote_read_proof_cp82 import verify_authorized_private_read
+# Load exact sibling modules independently of the existing gateway.py module.
+import importlib.util
+
+
+def load_module(name, filename):
+    spec = importlib.util.spec_from_file_location(name, ROOT / 'gateway' / filename)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+make_trusted_grant_reader = load_module('iam_grant_reader_cp158', 'iam_grant_reader_cp158.py').make_trusted_grant_reader
+verify_authorized_private_read = load_module('remote_read_proof_cp82_cp158', 'remote_read_proof_cp82.py').verify_authorized_private_read
 
 
 class GrantReaderCP158(unittest.TestCase):
