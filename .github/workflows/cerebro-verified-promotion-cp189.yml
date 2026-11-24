@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'cerebro-os/governance/verified_promotion_gate.py'
+      - 'cerebro-os/governance/signed_promotion_receipts.py'
       - 'cerebro-os/governance/promotion_gate.py'
       - 'cerebro-os/governance/cp189_tests/**'
       - '.github/workflows/cerebro-verified-promotion-cp189.yml'
@@ -17,6 +18,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Install pinned signature verifier
+        run: python3 -m pip install --disable-pip-version-check cryptography==46.0.4
       - name: Verify fail-closed promotion logic
         env:
           PYTHONPATH: cerebro-os
