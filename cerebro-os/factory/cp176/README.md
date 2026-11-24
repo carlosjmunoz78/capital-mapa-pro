@@ -1,0 +1,3 @@
+# CP176 local integration of unchanged CP131 verifier
+
+Run with PYTHONPATH=cerebro-os/gateway: python -B cerebro-os/factory/cp176/test_cp176.py. Windows Python 3.14.9, 10/10 pass. Three independent physical SQLite files, synthetic random independent HMAC keys. Tests cover live grant, revocation before FACT read, invalid MAC before IAM, shared key, foreign company, stale grant, altered durable FACT record, wrong issuer, missing grant. Existing verifier unchanged. No genuine remote dual receipt, cloud grant, deployment or production promotion. CP169 remains bounded remote canary; CP131 remote gate HOLD.
