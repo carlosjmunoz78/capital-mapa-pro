@@ -4,7 +4,7 @@ import {AuthorityLedger182 as OldIAM,FactLedger182 as OldFACT,TribunalLedger182 
 import {createBoundedStore,cp180RequestId} from '../factory/cp169/bounded-store.mjs';
 import {createIndependentAuthority,signBody,verifyBody,scope,issuer,principal} from '../factory/cp169/independent-iam.mjs';
 import {decode,publicKey,privateKey} from '../factory/cp169/key-import.mjs';
-import {importReceiptKey} from '../factory/cp176/receipt-ports.mjs';
+import {importReceiptKey,cp131Scope} from '../factory/cp176/receipt-ports.mjs';
 import {verifyMachineOrder} from './core-dispatch.mjs';
 import {coreId,rpcBody,createReceiptStore,createPrivateFactPort,createPrivateTribunalPort,createPrivateJarvisPort,createJarvisStorage} from './core-ports.mjs';
 export {PairAuditWorkflow182,closed};
@@ -48,7 +48,11 @@ export class Tribunal182 extends WorkerEntrypoint{
 }
 export class JarvisLedger182 extends OldJarvis{
  async port(id){enable(this.e);coreId(id);const e=this.e;return createPrivateJarvisPort({...await keys(e),...createJarvisStorage(this.storage,id),canaryId:id,ingressPublic:await publicKey(e.CORE_INGRESS_PUBLIC),jarvisPrivate:await privateKey(e.JARVIS_PRIVATE),receiptKey:await sk(e.JARVIS_MAC),iam:e.IAM,fact:e.FACT,tribunal:e.TRIBUNAL});}
- async run(q,s){return historic(q)?super.run(q,s):(await this.port(q?.request_id)).run(q,s)} async inspect(q,s){return historic(q)?super.inspect(q,s):(await this.port(q?.request_id)).inspect(q,s)}
+ async run(q,s){return historic(q)?super.run(q,s):(await this.port(q?.request_id)).run(q,s)} async inspect(q,s){if(historic(q))return super.inspect(q,s);if(this.e.CORE_SUPERVISOR_READ_ENABLED==='true'&&this.e.CORE_SUPERVISOR_PUBLIC&&await verifyBody(await publicKey(this.e.CORE_SUPERVISOR_PUBLIC),q,s)){
+ await inspectAuth(this.e,q,s);const id=coreId(q.request_id);const rows=this.storage.sql.exec('SELECT id,state,created,terminal FROM cp178_run ORDER BY id').toArray(),receipts=this.storage.sql.exec('SELECT id,role,state,payload FROM cp181_receipt ORDER BY id').toArray();const r=rows[0],p=receipts[0];if(rows.length!==1||receipts.length!==1||r.id!==id||r.state!=='COMPLETED'||!Number.isSafeInteger(r.created)||!Number.isSafeInteger(r.terminal)||r.terminal<r.created||p.id!==id||p.role!=='JARVIS'||p.state!=='COMPLETED')fail('JARVIS_PERSISTENCE_DENIED');
+ const receipt=JSON.parse(p.payload),b=receipt?.body;if(!b||!Number.isSafeInteger(b.emitted_at_epoch)||b.emitted_at_epoch<r.created||b.emitted_at_epoch>r.terminal||!exact(b,{...cp131Scope,request_id:id,principal_id:principal,policy_receipt_ref:'policy://cp166/'+id,emitted_at_epoch:b.emitted_at_epoch,origin:'JARVIS',target:'FACT-001',owner_access_verified:true,iam_policy:'ALLOW_READ_ONLY'})||typeof receipt.mac!=='string'||!/^[a-f0-9]{64}$/.test(receipt.mac))fail('JARVIS_RECEIPT_SCOPE_DENIED');
+ const body={...scope,request_id:id,role:'JARVIS',nonce:q.nonce,reservation_state:'COMPLETED',jarvis_mac:receipt.mac,jarvis_sha256:await bodyHash(b),checked_at_epoch:now()};return {body,signature:await signBody(await privateKey(this.e.JARVIS_PRIVATE),body)};
+ }return (await this.port(q?.request_id)).inspect(q,s)}
 }
 export function routeOrder(p,instance){if(typeof p==='string'){if(p.length>2048)fail('CORE_PAYLOAD_DENIED');p=JSON.parse(p);}const id=coreId(p?.request_id);const route={company_id:'fenix',engine_id:'FACT-001',environment:'LAB',version:'1.0.0',capability:'FACT.INVENTORY.READ',request_id:id};if(!exact(p,route)||instance!==id.toLowerCase())fail('CORE_ROUTE_DENIED');return route;}
 export async function executeOrder(e,p,instance){enable(e);const route=routeOrder(p,instance),id=route.request_id,priv=await privateKey(e.CORE_INGRESS_PRIVATE),pub=await publicKey(e.CORE_INGRESS_PUBLIC);
