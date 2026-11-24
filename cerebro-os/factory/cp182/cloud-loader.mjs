@@ -1,0 +1,1 @@
+export async function resolve(s,c,n){if(s==='cloudflare:workers')return{url:'data:text/javascript,export class DurableObject{constructor(ctx,env){this.ctx=ctx;this.env=env}};export class WorkerEntrypoint{constructor(ctx,env){this.ctx=ctx;this.env=env}};export class WorkflowEntrypoint{constructor(ctx,env){this.ctx=ctx;this.env=env}}',shortCircuit:true};return n(s,c);}
