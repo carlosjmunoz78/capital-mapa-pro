@@ -98,3 +98,5 @@ jobs:
           name: cp188-receipt-${{ matrix.session }}
           path: ${{ runner.temp }}/cp188-receipt.json
           retention-days: 7
+
+# CP188: positive recovery check after exact service-scoped role restoration.
