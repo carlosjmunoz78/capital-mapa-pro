@@ -1,0 +1,3 @@
+# CP188 — Scoped provider-managed Credential Broker
+
+Additive candidate; does not replace existing metadata-only Broker. Exact FORGE PREPROD read, no token export, no static service account key. Runtime configuration and provider enforcement; no untrusted user-facing RPC. Requires existing GitHub WIF on canonical factory branch and exact service account. No deploy, traffic changes, API changes or PROD. Two independent jobs must prove actual provider access with renewed federation; unit tests are not production evidence. General IAM delegation, other providers, revocation and disaster recovery remain separate gates. Rollback: revert only these additive files.
