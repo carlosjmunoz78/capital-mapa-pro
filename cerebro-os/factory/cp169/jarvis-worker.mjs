@@ -1,0 +1,8 @@
+import {createJarvis} from './private-clients.mjs';
+import {signBody,verifyBody} from './independent-iam.mjs';
+import {publicKey,privateKey} from './key-import.mjs';
+import {requestId} from './bounded-store.mjs';
+const statusBody=()=>({purpose:'CP169_RECEIPT_READBACK',request_id:requestId,company_id:'fenix',environment:'LAB'});
+const reply=(v,s=200)=>Response.json(v,{status:s,headers:{'cache-control':'no-store','x-robots-tag':'noindex'}});
+export default {async fetch(req,env){const p=new URL(req.url).pathname;if(req.method!=='GET'||!['/cp169/run','/cp169/status'].includes(p)||env.CP169_ENABLED!=='true'||!env.IAM||!env.FACT)return reply({status:'NOT_FOUND'},404);
+try{const [j,f]=await Promise.all([privateKey(env.JARVIS_PRIVATE),publicKey(env.FACT_PUBLIC)]);const status=async()=>{const q=statusBody();const r=await env.FACT.inspect(q,await signBody(j,q));if(r.state==='PERSISTED'&&!await verifyBody(f,r.receipt,r.signature))throw Error('RECEIPT_SIGNATURE_DENIED');return r;};const before=await status();if(p==='/cp169/status'||before.state!=='NOT_RUN')return reply({status:'CP169_READBACK',...before});const r=await createJarvis({iam:env.IAM,fact:env.FACT,jarvisPrivate:j,factPublic:f}).run();const after=await status();if(after.state!=='PERSISTED'||after.receipt.result_sha256!==r.receipt.result_sha256||r.result.count!==1||r.result.entries[0]?.engine_id!=='SUP-001')throw Error('READBACK_DENIED');return reply({status:'CP169_INDEPENDENT_AUTHORITY_CHAIN_PASS',result:r.result,receipt:r.receipt,grant_revoked:r.grant_revoked,receipt_persisted:true,production_authorized:false});}catch(e){return reply({status:'CP169_HOLD',error:String(e.message).replace(/[^a-zA-Z0-9_ .:-]/g,'_').slice(0,120)},500);}}};
