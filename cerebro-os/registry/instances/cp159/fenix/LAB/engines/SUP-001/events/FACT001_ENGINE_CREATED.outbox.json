@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "event_type": "FACT001_ENGINE_CREATED",
+  "event_id": "FACT-ENROLL-42B68716DBB414CF165DF166B1B0C6D0",
+  "company_id": "fenix",
+  "engine_id": "SUP-001",
+  "environment": "LAB",
+  "version": "0.1.0",
+  "allowed_channels": [
+    "GENERIC"
+  ],
+  "media_capabilities": [
+    "IMAGE.SYNTHETIC"
+  ],
+  "issued_at_utc": "2026-11-24T11:30:32.030Z"
+}
