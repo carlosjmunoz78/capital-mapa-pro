@@ -1,0 +1,20 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {DatabaseSync} from 'node:sqlite';import {mkdtempSync,rmSync} from 'node:fs';import {tmpdir} from 'node:os';import path from 'node:path';
+import {AuthorityLedger,IamAuthorityLab} from './authority-worker.mjs';import {requestId} from './bounded-store.mjs';import {command,signBody,verifyCurrentGrant} from './independent-iam.mjs';
+test('bounded private authority RPC, physical SQLite, separate keys, quota and terminal revocation',async t=>{
+ const dir=mkdtempSync(path.join(tmpdir(),'cp168-'));const db=new DatabaseSync(path.join(dir,'authority.sqlite'));t.after(()=>{db.close();rmSync(dir,{recursive:true,force:true})});
+ const storage={sql:{exec(q,...args){const s=db.prepare(q);if(q.startsWith('SELECT'))return{toArray:()=>s.all(...args)};s.run(...args);return{toArray:()=>[]}}},transactionSync(fn){db.exec('BEGIN IMMEDIATE');try{const r=fn();db.exec('COMMIT');return r}catch(e){db.exec('ROLLBACK');throw e}}};
+ const keys=await Promise.all(Array.from({length:3},()=>crypto.subtle.generateKey({name:'Ed25519'},true,['sign','verify'])));const [j,f,a]=keys;const exp=async(k,fmt)=>Buffer.from(await crypto.subtle.exportKey(fmt,k)).toString('base64');
+ const env={CP168_ENABLED:'true',JARVIS_PUBLIC:await exp(j.publicKey,'raw'),FACT_PUBLIC:await exp(f.publicKey,'raw'),AUTHORITY_PRIVATE:await exp(a.privateKey,'pkcs8')};
+ let ledger=new AuthorityLedger({storage},env);const ns={jurisdiction(v){assert.equal(v,'eu');return this},idFromName(n){assert.equal(n,'fenix-cp168-bounded-authority');return n},get(){return ledger}};
+ const rpc=new IamAuthorityLab({}, {...env,AUTHORITY_LEDGER:ns});assert.equal(typeof rpc.ledger,'undefined');
+ const send=async(action,key=action==='current'?f:j,rid=requestId,nonce=crypto.randomUUID())=>{const c=command(action,rid,nonce);return rpc[action](c,await signBody(key.privateKey,c))};
+ await assert.rejects(send('issue',f),/ACTOR_SIGNATURE_DENIED/);await assert.rejects(send('issue',j,'CP168-FOREIGN-001'),/SCOPE_DENIED/);
+ const issued=await send('issue');assert.equal(issued.policy_receipt_ref,'policy://cp166/'+requestId);
+ await assert.rejects(send('issue'),/GRANT_ALREADY_EXISTS/);
+ const c=command('current',requestId,crypto.randomUUID()),sig=await signBody(f.privateKey,c);const e=await rpc.current(c,sig);assert.equal((await verifyCurrentGrant({envelope:e,authorityPublicKey:a.publicKey,requestId,readerNonce:c.nonce})).verified,true);
+ await assert.rejects(rpc.current(c,sig),/NONCE_REPLAY/);await assert.rejects(send('current',j),/ACTOR_SIGNATURE_DENIED/);
+ for(let n=0;n<9;n++)await send('current');await assert.rejects(send('current'),/QUOTA_EXHAUSTED/);
+ await send('revoke');ledger=new AuthorityLedger({storage},env);await assert.rejects(send('current'),/QUOTA_EXHAUSTED|GRANT_INACTIVE/);await send('revoke');
+ assert.equal(db.prepare('SELECT count(*) n FROM cp168_nonces').get().n,12);assert.equal(JSON.parse(db.prepare('SELECT body FROM cp168_grant').get().body).revoked,true);
+ const off=new IamAuthorityLab({}, {...env,CP168_ENABLED:'false',AUTHORITY_LEDGER:ns});assert.throws(()=>off.issue(c,sig),/DISABLED/);
+});
