@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.0.0",
+  "review_date": "2026-11-19",
+  "company_id": "fenix",
+  "engine_id": "FACT-001",
+  "environment": "LAB",
+  "result": "LAB_PATCH_VERIFIED_NOT_DEPLOYED",
+  "production_promotion": "HOLD",
+  "evidence": {
+    "verified_current_cloudflare_issuer_identities": [
+      {
+        "engine_id": "FACT-OIDC-LAB-E2E-001",
+        "state": "ACTIVE",
+        "company": "fenix",
+        "environment": "LAB",
+        "encrypted_private_key_present": true,
+        "signed_probe": "REGISTERED_QA_PENDING",
+        "source": "CLOUDFLARE_KV_READONLY"
+      },
+      {
+        "engine_id": "FACT-OIDC-CANARY-20261112",
+        "state": "ACTIVE",
+        "company": "fenix",
+        "environment": "LAB",
+        "encrypted_private_key_present": true,
+        "signed_probe": "REGISTERED_QA_PENDING",
+        "source": "CLOUDFLARE_KV_READONLY"
+      }
+    ],
+    "previously_successful_github_actions_oidc_run_ids": [
+      43255769366,
+      43255172953,
+      43256289803
+    ],
+    "current_github_actions_dependency": "TEMPORARILY_BLOCKED; PREVIOUS_SUCCESS_NOT_CURRENT_NEW_ENROLLMENT",
+    "cloudflare": {
+      "account_id": "e39a57e1ac42650ca5a6d5307cf0ac8e",
+      "existing_enrollment_queue": "cerebro-fact001-ums001-enrollment-lab-eu",
+      "existing_consumer": "cerebro-fact001-ums001-issuer-provisioner-lab-eu",
+      "existing_oidc_bridge": "cerebro-fact001-github-oidc-enroll-lab-eu",
+      "provisioner_flag_enabled": true,
+      "oidc_flag_enabled": true,
+      "bridge_requires_scoped_github_oidc": true,
+      "direct_factory_gateway_http_denied": true,
+      "no_live_worker_modified": true,
+      "no_cloudflare_queue_message_enqueued": true,
+      "both_worker_source_anchors_verified": true,
+      "byte_preserving_patch_outside_one_anchor": true,
+      "worker_candidate_additional_bytes_each": 27,
+      "digit_leading_canonical_id": "3RD-001",
+      "cloud_provisioner_currently_accepts_3RD": false,
+      "local_engine_factory_accepts_3RD": true,
+      "candidate_policy_accepts_3RD": true
+    },
+    "source_git_blobs": {
+      "cerebro-os/factory/factory.py": "89d5c42b0d600ccd6589b55cde00e6e13e01e894",
+      "cerebro-os/factory/universal_media_enrollment.py": "ecbe2cb9f52db028c4ac4bf632c9cea6e8b77b4e",
+      "tests/test_fact001_identity_compat_lab.py": "809a93755411c34c0a3f9678fda7fd70ab0c0f48",
+      "cerebro-os/factory/cf_fact_lab_worker_id_policy_candidate.mjs": "16f6c4e0243e24d28bd650e960371f829111773f",
+      "tests/fact001_cf_worker_id_policy_candidate.test.mjs": "15815a988b9fa7f3b869ffd61c27653fec00bc11"
+    },
+    "executed_local_tests": {
+      "original_source_smoke": {
+        "passed": 15,
+        "failed": 0
+      },
+      "python_identity_atomic_transport": {
+        "passed": 14,
+        "failed": 0
+      },
+      "node_cloudflare_policy_candidate": {
+        "passed": 6,
+        "failed": 0
+      },
+      "total_passed": 35,
+      "total_failed": 0,
+      "candidate_source_git_blob_matches_remote": true,
+      "canonical_177_ids_supported": true,
+      "cross_tenant_denied": true,
+      "duplicate_atomic_rollback_green": true,
+      "staged_after_commit_transport_green": true,
+      "cloud_3RD_hold_with_all_fake_credentials_green": true,
+      "negative_cloud_live_signature_not_attempted": true
+    }
+  },
+  "permissions": {
+    "app_crm_prod_modified": false,
+    "cloudflare_live_workers_modified": false,
+    "github_main_modified": false,
+    "ums_owner_hold_overridden": false,
+    "paid_image_generation_executed": false,
+    "secret_values_disclosed": false
+  },
+  "costs": {
+    "new_subscriptions_eur": 0,
+    "marginal_resource_usage_eur": "NOT_MEASURED"
+  },
+  "blockers": [
+    "NO_NON_GITHUB_ATTESTED_RUNNER_FOR_FACTORY_ENROLLMENT",
+    "CLOUDFLARE_PROVISIONER_AND_OIDC_ID_REGEX_UPDATE_NOT_DEPLOYED",
+    "PREPROD_WORKER_CANARY_AND_ROLLBACK_TEST_PENDING",
+    "BACKUP_AND_COST_MEASUREMENT_PENDING",
+    "INDEPENDENT_ENGINE_TRIBUNAL_NOT_PASSED"
+  ],
+  "next_implementation": "Versioned, isolated Cloudflare Worker candidate; run independent QA and producer IAM canary without privileged escalation; only then promote gradually."
+}

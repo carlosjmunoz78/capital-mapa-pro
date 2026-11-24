@@ -24,3 +24,11 @@ Eliminar esta rama/PR. No existe cambio remoto de runtime que revertir.
 3. Solo después ejecutar canario privado real JARVIS → FACT y correlacionar recibos.
 
 Coste adicional contratado: 0 €. Estado: PARCIAL / FAIL-CLOSED CORRECTO.
+
+## CP130 · Consolidación del generador y control plane FACT en LAB · 2026-11-24
+
+Se portan exactamente los 12 archivos modificados de PR #277 (`639f245e30f19493906bfa68a552001588557f3d`) a la rama DRAFT de PR #290, cuya base previa de HEAD es `28e3e5de8ab732f9fef6484292fc01fcf2c34b18`. Base común `adda3e356094d91a87563c45584891207b2c3cc0`: 22 commits/12 archivos en #277 y 34 commits/70 archivos en #290, intersección de archivos 0. Se conserva #277 y sus evidencias originales hasta CI oficial y aceptación; no es un merge de genealogía ni promoción.
+
+Prueba local combinada sobre blobs exactos: 14 tests de identidad/atomic scaffold, 25 tests CP82/88/89 y 12 tests Node de política de IDs y auditoría de cadena Cloudflare: 51 PASS, 0 FAIL. Generación temporal de 177 IDs, rechazo cross-company, concurrencia, commit atómico, transporte simulado, contrato de lectura privada y fail-closed. SHA256 log Python `526244c7c64b0c51a60a09d8ecca2f3b3787a22c368ce176482a4b422a8688bc`; Node `fca458f2f2ccb8a56fc0037921a27ba6b0d2b27bd1ae6ef828aca291a6fd6e55`. No se ejecuta transporte externo real ni se acredita CI oficial, despliegue, alta IAM o promoción. Notion Company Registry conserva FENIX_CAPITAL, LAB/PREPROD REGISTERED sin aislamiento validado; Alias Registry cubre motores/capacidades/skills, no autoriza equiparar tenants. No ampliar permisos.
+
+Rollback: revertir este commit de port en #290 únicamente, con #277 y HEAD anterior intactos; no eliminar ramas ni tocar Cloudflare, Forge, main, App/CRM o PROD. Coste adicional nuevas suscripciones 0 EUR; coste marginal de CI por auditar. Siguiente gate: CI del HEAD exacto, comparar regresión de la pila completa, prueba física JARVIS -> FACT con autoridad legítima <=15 min y sin alias tácitos, canario Forge privado, tribunal y rollback.
