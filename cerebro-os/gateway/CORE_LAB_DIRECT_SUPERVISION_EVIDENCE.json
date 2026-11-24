@@ -1,0 +1,101 @@
+{
+  "schema": "cerebro.core.direct-supervision-release.v1",
+  "source_commit": "c96ed5af7853558195430a124c5958a79c7c3b53",
+  "environment": "LAB",
+  "company_id": "fenix",
+  "capability": "FACT.INVENTORY.READ",
+  "ci": [
+    45494384739,
+    45494384654,
+    45494384587
+  ],
+  "order": "CORE-ORDER-20261124-004",
+  "supervision": {
+    "status": "DIRECT_JARVIS_SUPERVISION_VERIFIED",
+    "proof": {
+      "body": {
+        "schema": "cerebro.core.supervisor.v1",
+        "company_id": "fenix",
+        "engine_id": "FACT-001",
+        "environment": "LAB",
+        "capability": "FACT.INVENTORY.READ",
+        "read_only": true,
+        "external_mutation_allowed": false,
+        "cost_ceiling_eur": 0,
+        "request_id": "CORE-ORDER-20261124-004",
+        "status": "CORE_SUPERVISOR_VERIFIED",
+        "provider_terminal": true,
+        "iam_revoked": true,
+        "tribunal_signature_verified": true,
+        "fact_persisted": true,
+        "grant_sha256": "618cf68aaeeff0f7f786e865b506da27fd7ddb9b9f455c2064164d6c21e70b96",
+        "result_sha256": "710328157d9109c79b4bc875c13d642be6e85147d1338a10c9a48abb51c2aa62",
+        "fact_sha256": "e3dd06fb3f968c82190fa8063ffa220c3410a89d1466fcac0af220e7bca8cd50",
+        "jarvis_mac_bound": "5444719d1749f71795b5e09559255ba8fd204ce643c939b86b79c5efc0a6159d",
+        "jarvis_hash_independently_verified": true,
+        "jarvis_sha256": "728b04204948b2cce725acc19afa8e9962363be50e667f7822da1d9a9b4ddddb",
+        "retry_allowed": false,
+        "promotion_allowed": false,
+        "checked_at_epoch": 1795556904
+      },
+      "signature": "1e79b9dca2d75950d7d42a6a884a843bf8f503f90da9fd2a2c8682f89ba203c5891c9dd6a1d8bf951dfb219c683c1cf65bf239e335711e0763c24483554cab05"
+    },
+    "public_key": "qttGqexbIxJk0RBSC4ftg9MrUM09TujO06ZmUpzGZrU=",
+    "receipt_hashes": {
+      "jarvis": "728b04204948b2cce725acc19afa8e9962363be50e667f7822da1d9a9b4ddddb",
+      "fact": "e3dd06fb3f968c82190fa8063ffa220c3410a89d1466fcac0af220e7bca8cd50",
+      "grant": "618cf68aaeeff0f7f786e865b506da27fd7ddb9b9f455c2064164d6c21e70b96",
+      "result": "710328157d9109c79b4bc875c13d642be6e85147d1338a10c9a48abb51c2aa62"
+    },
+    "provider_start": "2026-11-24T21:48:17.595Z",
+    "provider_end": "2026-11-24T21:48:25.248Z",
+    "signature_verified": true
+  },
+  "backup": {
+    "document_id": "1VeJj8560I77dtA4jhbzz2BNbe46b0b6S2ytOdmgDJCg",
+    "sha256": "a86c877e60552b82d8e8b21e81952775354f19c1299e76dd38b69825aa783f73",
+    "order_sha256": "ceafe76894ce8a9e905dea97f0eeac2bc19cca8b16ff95ca5e7e05f035824c1e",
+    "previous_archive_document_id": "14rzXcdoFIIbqzucNzsaQhofYbiD2eL-fy-NnJKCS80Q",
+    "previous_archive_sha256": "843053815b4b3c9da631e31a59ea5ad8c6cd1f540351ac4945f075abd4d921a8"
+  },
+  "release_rollback": [
+    {
+      "role": "JARVIS",
+      "previous": "ef5d73b6-7a14-42c2-820a-43eaab59da6d",
+      "active": "0cae1a5e-8a06-4228-bff9-37079858f30b",
+      "restored_deployment": "90bb1b73-d451-4622-acbd-a65fb115cbda"
+    },
+    {
+      "role": "SUPERVISOR",
+      "previous": "9de95108-895f-4880-a3b4-d28edcfb7bca",
+      "active": "00500a92-b2c5-4bd2-a1bd-f0ebd604702d",
+      "restored_deployment": "aa44b854-bdc4-4c95-8c68-7ed85ff38fb9"
+    },
+    {
+      "role": "DISPATCH",
+      "previous": "404fbe51-7457-4dc3-895d-2fda7bc3746f",
+      "active": "34cba2cb-6378-49e1-b473-329fbc8c6494",
+      "restored_deployment": "6543acd1-d098-4444-9ce7-ee84bc211b95"
+    }
+  ],
+  "unchanged_roles": [
+    "IAM",
+    "FACT",
+    "TRIBUNAL"
+  ],
+  "rollback_verified": true,
+  "remaining_ids": [
+    "005",
+    "006",
+    "007",
+    "008"
+  ],
+  "production_authorized": false,
+  "hold": [
+    "exact_preprod_runtime",
+    "general_authenticated_admission",
+    "credential_reissuance_and_full_runtime_rebuild",
+    "settled_cost_evidence",
+    "independent_promotion_authority"
+  ]
+}

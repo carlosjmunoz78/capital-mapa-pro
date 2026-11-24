@@ -31,13 +31,16 @@ def system_readiness(*, canonical_ids, matrix, environment: str = "LAB", company
         row_env = row.get("environment")
         row_company = row.get("company_id")
         row_version = row.get("version")
-        if row_env not in {None, environment}:
+        # Retain legacy LAB reporting; real-environment rows must identify
+        # their environment and every explicitly requested scope dimension.
+        exact_real_scope = environment in {"PREPROD", "PROD"}
+        if (row_env != environment if exact_real_scope else row_env not in {None, environment}):
             out_of_scope_rows.append(engine_id)
             continue
-        if company_id is not None and row_company not in {None, company_id}:
+        if company_id is not None and (row_company != company_id if exact_real_scope else row_company not in {None, company_id}):
             out_of_scope_rows.append(engine_id)
             continue
-        if version is not None and row_version not in {None, version}:
+        if version is not None and (row_version != version if exact_real_scope else row_version not in {None, version}):
             out_of_scope_rows.append(engine_id)
             continue
         if engine_id in by_id:
