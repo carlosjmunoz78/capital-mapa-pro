@@ -1,0 +1,70 @@
+name: CP188 scoped federated credential broker PREPROD
+on:
+  push:
+    branches: [cerebro-engine-factory-v0]
+    paths:
+      - 'cerebro-os/identity/cp188/broker.py'
+      - '.github/workflows/cerebro-cp188-federated-broker.yml'
+permissions:
+  contents: read
+concurrency:
+  group: cerebro-cp188-federated-broker
+  cancel-in-progress: false
+jobs:
+  independently-federated-read:
+    if: github.repository == 'carlosjmunoz78/capital-mapa-pro' && github.ref == 'refs/heads/cerebro-engine-factory-v0'
+    strategy:
+      fail-fast: false
+      matrix:
+        session: [1, 2]
+    runs-on: ubuntu-latest
+    environment: PREPROD
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Directed regression tests
+        working-directory: cerebro-os/identity/cp188
+        run: python3 -m unittest -v test_broker
+      - name: Obtain short-lived federated identity (no static key)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/15609183753/locations/global/workloadIdentityPools/github-cerebro-forge/providers/github-provider
+          service_account: cerebro-forge-deployer@cerebro-forge.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: cerebro-forge
+      - name: Exact read through scoped broker; no deployment or token output
+        working-directory: cerebro-os/identity/cp188
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 broker.py > "$RUNNER_TEMP/cp188-receipt.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path(os.environ["RUNNER_TEMP"])/"cp188-receipt.json"
+          d=json.loads(p.read_text())
+          assert d["status"]=="CP188_FEDERATED_READ_VERIFIED"
+          assert d["external_mutation"] is False and d["credential_value_exposed"] is False
+          assert d["identity_verified"] is True and d["promotion_allowed"] is False
+          assert d["serving_revision"]=="cerebro-advisory-preprod-00266-xnc"
+          d["run_id"]=os.environ["GITHUB_RUN_ID"]
+          d["job"]=os.environ["GITHUB_JOB"]
+          d["session"]=os.environ["CP188_SESSION"]
+          p.write_text(json.dumps(d,sort_keys=True))
+          print("CP188_FEDERATED_READ_VERIFIED: independent session",d["session"])
+          PY
+        env:
+          CP188_SESSION: ${{ matrix.session }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cp188-receipt-${{ matrix.session }}
+          path: ${{ runner.temp }}/cp188-receipt.json
+          retention-days: 7
