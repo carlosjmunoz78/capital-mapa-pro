@@ -1,0 +1,212 @@
+{
+  "status": "LAB_SCOPED_E2E_VERIFIED",
+  "company_id": "fenix",
+  "engine_id": "FACT-001",
+  "environment": "LAB",
+  "capability": "FACT.INVENTORY.READ",
+  "workers": {
+    "IAM": {
+      "name": "cerebro-iam-cp182-lab-eu",
+      "active_version": "cc538388-e1c7-4c72-86ff-18ca5f5eb7dc",
+      "rollback_version": "3223aa36-655b-40ed-bd3b-932d4a17a68d",
+      "deployment": "78e4e6a1-83f5-42f4-a4ce-80a002d589be",
+      "workers_dev": false,
+      "previews": false
+    },
+    "FACT": {
+      "name": "cerebro-fact-cp182-lab-eu",
+      "active_version": "f4c0accc-98a3-4e9e-937f-dde4076c5cef",
+      "rollback_version": "275d5f64-c669-456b-908a-6c025eec738c",
+      "deployment": "bbb4640e-c4c1-4f30-b3a8-bf4d0da6a19c",
+      "workers_dev": false,
+      "previews": false
+    },
+    "TRIBUNAL": {
+      "name": "cerebro-tribunal-cp182-lab-eu",
+      "active_version": "c1301635-e6dd-435b-b30c-6b8a8d567cc4",
+      "rollback_version": "1a30e8ce-37cf-4e91-9354-a9da86458498",
+      "deployment": "f84b419b-be91-4c24-9497-dd98b32d44db",
+      "workers_dev": false,
+      "previews": false
+    },
+    "JARVIS": {
+      "name": "cerebro-jarvis-cp182-lab-eu",
+      "active_version": "ef5d73b6-7a14-42c2-820a-43eaab59da6d",
+      "rollback_version": "b8f366bd-4a27-489d-b1d7-ef0e56e3d658",
+      "deployment": "cfa13bc9-ebac-4cf6-b1c8-deb422d5b78a",
+      "workers_dev": false,
+      "previews": false
+    },
+    "SUPERVISOR": {
+      "name": "cerebro-recovery-supervisor-cp185-lab-eu",
+      "active_version": "9de95108-895f-4880-a3b4-d28edcfb7bca",
+      "rollback_version": "834643f9-4d13-4a6d-b75a-3e3221864a9a",
+      "deployment": "4db21797-eea0-4c76-b38c-aa9a69de9d05",
+      "workers_dev": false,
+      "previews": false
+    },
+    "DISPATCH": {
+      "name": "cerebro-recovery-runner-cp185-lab-eu",
+      "active_version": "404fbe51-7457-4dc3-895d-2fda7bc3746f",
+      "rollback_version": "c57168ec-0a0f-444d-81f8-f420e402e41b",
+      "deployment": "a7712791-b4b0-4435-a823-bdb4c94ac5f4",
+      "workers_dev": false,
+      "previews": false
+    }
+  },
+  "supervisor_public_key": "qttGqexbIxJk0RBSC4ftg9MrUM09TujO06ZmUpzGZrU=",
+  "orders": [
+    {
+      "request_id": "CORE-ORDER-20261124-001",
+      "core_start": "2026-11-24T21:14:23.391Z",
+      "core_end": "2026-11-24T21:14:24.788Z",
+      "supervisor_start": "2026-11-24T21:25:16.124Z",
+      "supervisor_end": "2026-11-24T21:25:16.747Z",
+      "receipt_hashes": {
+        "jarvis": "bf78ce2a5d20c555bbcd77daf2ff6c17608bb1fd946070a3e7bc2c47c24e569a",
+        "fact": "cb75f1c493fa3daaa5dc581f58c41b7a3165ec9628ba1b47c6284e1fc46bfde9",
+        "grant": "58ee9483fd13b10b2a9bc7c44495feabdaa9581320888c47a0882b6a35f198ae",
+        "result": "6d59bfbd716a9bd5fbb01391f280896d53a0876719e809f197d81876b8d8196b"
+      },
+      "supervisor_receipt": {
+        "body": {
+          "schema": "cerebro.core.supervisor.v1",
+          "company_id": "fenix",
+          "engine_id": "FACT-001",
+          "environment": "LAB",
+          "capability": "FACT.INVENTORY.READ",
+          "read_only": true,
+          "external_mutation_allowed": false,
+          "cost_ceiling_eur": 0,
+          "request_id": "CORE-ORDER-20261124-001",
+          "status": "CORE_SUPERVISOR_VERIFIED",
+          "provider_terminal": true,
+          "iam_revoked": true,
+          "tribunal_signature_verified": true,
+          "fact_persisted": true,
+          "grant_sha256": "58ee9483fd13b10b2a9bc7c44495feabdaa9581320888c47a0882b6a35f198ae",
+          "result_sha256": "6d59bfbd716a9bd5fbb01391f280896d53a0876719e809f197d81876b8d8196b",
+          "fact_sha256": "cb75f1c493fa3daaa5dc581f58c41b7a3165ec9628ba1b47c6284e1fc46bfde9",
+          "jarvis_mac_bound": "bcd6999ccfd3669fcca3dc44fb4fd490a33088bcc90267b9746ca0910fe2786e",
+          "jarvis_hash_independently_verified": false,
+          "retry_allowed": false,
+          "promotion_allowed": false,
+          "checked_at_epoch": 1795555516
+        },
+        "signature": "2907c5cd610840a2aa2ffe5a1c00e4bb306a8ea0dff8eb5a3327f5525402e1dcb41c66906c49ac9632fa0030c448ec456d628e3ae3f288987480db902003780c"
+      }
+    },
+    {
+      "request_id": "CORE-ORDER-20261124-002",
+      "core_start": "2026-11-24T21:14:37.523Z",
+      "core_end": "2026-11-24T21:14:39.119Z",
+      "supervisor_start": "2026-11-24T21:25:32.370Z",
+      "supervisor_end": "2026-11-24T21:25:33.015Z",
+      "receipt_hashes": {
+        "jarvis": "d78b08ad80f27e7252d4ecbcdf9e7a0c93e8d46c1e9a331d69bb5788dbf4c475",
+        "fact": "23512db018cc55ee442f2b58a1de3d461186dc1d314540070b24c4f2d3c22be0",
+        "grant": "51bb59174b1db4f2a65c0ccd4296ae46cf6ffa70af4523a021c951a6ef401ae4",
+        "result": "17628855c393515de6941a2003b79963f1440b67c3f32082b8c3e56638452c44"
+      },
+      "supervisor_receipt": {
+        "body": {
+          "schema": "cerebro.core.supervisor.v1",
+          "company_id": "fenix",
+          "engine_id": "FACT-001",
+          "environment": "LAB",
+          "capability": "FACT.INVENTORY.READ",
+          "read_only": true,
+          "external_mutation_allowed": false,
+          "cost_ceiling_eur": 0,
+          "request_id": "CORE-ORDER-20261124-002",
+          "status": "CORE_SUPERVISOR_VERIFIED",
+          "provider_terminal": true,
+          "iam_revoked": true,
+          "tribunal_signature_verified": true,
+          "fact_persisted": true,
+          "grant_sha256": "51bb59174b1db4f2a65c0ccd4296ae46cf6ffa70af4523a021c951a6ef401ae4",
+          "result_sha256": "17628855c393515de6941a2003b79963f1440b67c3f32082b8c3e56638452c44",
+          "fact_sha256": "23512db018cc55ee442f2b58a1de3d461186dc1d314540070b24c4f2d3c22be0",
+          "jarvis_mac_bound": "74a19478ddb5895ff0a843088c3aec0ffe73be7f9ac737d1151433d157ab0d20",
+          "jarvis_hash_independently_verified": false,
+          "retry_allowed": false,
+          "promotion_allowed": false,
+          "checked_at_epoch": 1795555532
+        },
+        "signature": "33f2adfbe2c4696f7a51eea815b40e1ad985bb0e91b22feb07b9561a8e4589daa1ebfd4096fa145df4f527d4646b6976263fca9279692c168d0494e38cf9e80a"
+      }
+    },
+    {
+      "request_id": "CORE-ORDER-20261124-003",
+      "core_start": "2026-11-24T21:29:23.544Z",
+      "core_end": "2026-11-24T21:29:24.739Z",
+      "supervisor_start": "2026-11-24T21:29:26.800Z",
+      "supervisor_end": "2026-11-24T21:29:27.462Z",
+      "receipt_hashes": {
+        "jarvis": "4e1f3bf8dcd372100ca2106fdfdbfcb0efe46cc54c719b292fa53ce88df31f35",
+        "fact": "096b3cc2185dd43f406f7098708a0fa4833556a8843fef9429cf2df1e6ae759e",
+        "grant": "8254013cee6580fd785183a9868055d452cea7ed2e15330dcbec0af0a137e57c",
+        "result": "d1128cf9b9ac756aa61d4369ae1b71679da46008175fc34bc405ac94d5256cbf"
+      },
+      "supervisor_receipt": {
+        "body": {
+          "schema": "cerebro.core.supervisor.v1",
+          "company_id": "fenix",
+          "engine_id": "FACT-001",
+          "environment": "LAB",
+          "capability": "FACT.INVENTORY.READ",
+          "read_only": true,
+          "external_mutation_allowed": false,
+          "cost_ceiling_eur": 0,
+          "request_id": "CORE-ORDER-20261124-003",
+          "status": "CORE_SUPERVISOR_VERIFIED",
+          "provider_terminal": true,
+          "iam_revoked": true,
+          "tribunal_signature_verified": true,
+          "fact_persisted": true,
+          "grant_sha256": "8254013cee6580fd785183a9868055d452cea7ed2e15330dcbec0af0a137e57c",
+          "result_sha256": "d1128cf9b9ac756aa61d4369ae1b71679da46008175fc34bc405ac94d5256cbf",
+          "fact_sha256": "096b3cc2185dd43f406f7098708a0fa4833556a8843fef9429cf2df1e6ae759e",
+          "jarvis_mac_bound": "0a7f064fe4322b3422b5ec744f4c563c0ef14131a4055234e944b6b6d950ab30",
+          "jarvis_hash_independently_verified": false,
+          "retry_allowed": false,
+          "promotion_allowed": false,
+          "checked_at_epoch": 1795555767
+        },
+        "signature": "6140a1cb6d48a5d6f36d414f96e74fb68125e6e6bfa61ea3ae5d3c1257913b803db7a7dd1261a645de0b071529c07af6124e2b185e46760bb63ce4ec4042f708"
+      }
+    }
+  ],
+  "machine_dispatch": {
+    "id": "core-dispatch-20261124-003",
+    "principal": "iam:core-machine-dispatch-lab",
+    "start": "2026-11-24T21:29:20.413Z",
+    "end": "2026-11-24T21:29:28.018Z",
+    "status": "CORE_MACHINE_ORDER_SUPERVISED"
+  },
+  "production_authorized": false,
+  "source_commit": "f778d13fbceda1e42ba6b77612dc5e1baae061e7",
+  "ci_runs": [
+    45491293901,
+    45491293712,
+    45491293772
+  ],
+  "administrative_snapshot_sha256": {
+    "001": "c96ff166fae6ae4290fb7434234ee7aa088549f4fe5efdad9972d3de1588fcb7",
+    "002": "fc7b57ea06c32534450f59feb81fd7be7a210afc3e7f81a893c9d51519aff3b7",
+    "003": "37c0352892f8e9cb1d536133c64309ecc5984bca076cf6e122d7bb3ffa6afe20"
+  },
+  "limits": {
+    "remaining_ids": [
+      "004",
+      "005",
+      "006",
+      "007",
+      "008"
+    ],
+    "user_identity_verified": false,
+    "preprod_promotion_verified": false,
+    "full_rebuild_verified": false,
+    "settled_cost_verified": false
+  }
+}
