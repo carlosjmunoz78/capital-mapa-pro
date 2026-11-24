@@ -1,0 +1,22 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {DatabaseSync} from 'node:sqlite';import {mkdtempSync,rmSync} from 'node:fs';import path from 'node:path';import {tmpdir} from 'node:os';
+import {createRecoveryInspector,createRevocationAttester} from './recovery-observation.mjs';
+import {scope,issuer,principal,signBody} from '../cp169/independent-iam.mjs';
+import {createRunLedger} from '../cp178/one-shot.mjs';import {requestId} from '../cp169/bounded-store.mjs';
+async function fixture(t,mode='ok'){
+ const dir=mkdtempSync(path.join(tmpdir(),'cp179-')),a=new DatabaseSync(path.join(dir,'iam.sqlite')),j=new DatabaseSync(path.join(dir,'run.sqlite')),s=new DatabaseSync(path.join(dir,'supervisor.sqlite'));t.after(()=>{for(const db of [a,j,s])db.close();rmSync(dir,{recursive:true,force:true})});
+ const storage={sql:{exec(q,...args){const p=j.prepare(q);if(q.startsWith('SELECT'))return{toArray:()=>p.all(...args)};p.run(...args);return{toArray:()=>[]}}},transactionSync(fn){j.exec('BEGIN IMMEDIATE');try{const r=fn();j.exec('COMMIT');return r}catch(e){j.exec('ROLLBACK');throw e}}};
+ const ledger=createRunLedger(storage),time=1800000000;ledger.claim('fixture-owner',time-20);if(mode!=='running'&&mode!=='drift')ledger.finish('fixture-owner','HOLD',time-10);
+ a.exec('CREATE TABLE grants(id TEXT PRIMARY KEY,body TEXT NOT NULL)');s.exec('CREATE TABLE state(id TEXT PRIMARY KEY,quiescent INTEGER NOT NULL,pending INTEGER NOT NULL)');
+ const grant={...scope,issuer_id:issuer,principal_id:principal,request_id:requestId,policy_receipt_ref:'policy://cp166/'+requestId,version:'1.0.0',decision:'ALLOW_READ_ONLY',active:mode==='active',revoked:mode!=='active',issued_at_epoch:time-19,expires_at_epoch:time+101};
+ if(mode!=='absent')a.prepare('INSERT INTO grants VALUES (?,?)').run(requestId,JSON.stringify(grant));s.prepare('INSERT INTO state VALUES (?,?,?)').run(requestId,mode==='busy'?0:1,mode==='pending'?1:0);
+ const [ak,sk]=await Promise.all(Array.from({length:2},()=>crypto.subtle.generateKey({name:'Ed25519'},false,['sign','verify'])));let calls=0,prior;
+ const attester=createRevocationAttester({requestId,readGrant(id){calls++;const r=a.prepare('SELECT body FROM grants WHERE id=?').get(id);return r?JSON.parse(r.body):null},signingKey:ak.privateKey,clock:()=>time});
+ const authorityReader={async attest(q){const e=await attester.attest(q);if(mode==='tampered')return {...e,signature:'0'.repeat(128)};if(mode==='replay'){if(prior)return prior;prior=e}if(mode==='drift')ledger.finish('fixture-owner','HOLD',time);return e}};
+ const supervisorReader={async attest(q){const r=s.prepare('SELECT * FROM state WHERE id=?').get(requestId);const body={...q,role:'SUPERVISOR',runner_quiescent:r.quiescent===1,pending_issue:r.pending===1,checked_at_epoch:mode==='stale'?time-11:time};return {body,signature:await signBody(sk.privateKey,body)}}};
+ const inspector=createRecoveryInspector({requestId,ledger,authorityReader,supervisorReader,authorityPublic:ak.publicKey,supervisorPublic:mode==='shared'?ak.publicKey:sk.publicKey,clock:()=>time});
+ return {inspector,ledger,calls:()=>calls,grant:()=>a.prepare('SELECT body FROM grants WHERE id=?').get(requestId)?.body};
+}
+test('physical durable HOLD and revoked grant: read-only observation, no retry',async t=>{const x=await fixture(t);const before=x.grant(),r=await x.inspector.inspect();assert.equal(r.status,'TERMINAL_REVOCATION_OBSERVED');assert.equal(r.retry_allowed,false);assert.equal(r.receipt_pair_certified,false);assert.equal(x.ledger.inspect().state,'HOLD');assert.equal(x.grant(),before);assert.equal(x.calls(),1)});
+test('abandoned RUNNING reservation can be observed but not released',async t=>{const x=await fixture(t,'running');const r=await x.inspector.inspect();assert.equal(r.status,'TERMINAL_REVOCATION_OBSERVED');assert.equal(r.retry_allowed,false);assert.equal(x.ledger.inspect().state,'RUNNING')});
+for(const mode of ['active','absent','busy','pending','stale','tampered','shared','drift'])test('fails closed: '+mode,async t=>{const x=await fixture(t,mode),r=await x.inspector.inspect();assert.equal(r.status,'HOLD_RECOVERY');assert.equal(r.retry_allowed,false);if(['busy','pending','stale','shared'].includes(mode))assert.equal(x.calls(),0)});
+test('replayed signed IAM response fails against new nonce',async t=>{const x=await fixture(t,'replay');assert.equal((await x.inspector.inspect()).status,'TERMINAL_REVOCATION_OBSERVED');assert.equal((await x.inspector.inspect()).status,'HOLD_RECOVERY')});
