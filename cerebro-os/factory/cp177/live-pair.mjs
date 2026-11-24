@@ -1,6 +1,6 @@
 // Parallel bounded CP131 integration. No HTTP endpoints, no deployment.
 import {command,signBody,verifyBody,verifyCurrentGrant,scope,principal,issuer} from '../cp169/independent-iam.mjs';
-import {requestId} from '../cp169/bounded-store.mjs';
+import {requestId,assertCanaryId} from '../cp169/bounded-store.mjs';
 import {createFact} from '../cp169/private-clients.mjs';
 import {cp131Scope,createFactReceiptPort,createJarvisReceiptPort} from '../cp176/receipt-ports.mjs';
 const enc=new TextEncoder(),now=()=>Math.floor(Date.now()/1000);
@@ -9,22 +9,23 @@ const hex=b=>Array.from(new Uint8Array(b),v=>v.toString(16).padStart(2,'0')).joi
 const unhex=s=>Uint8Array.from(s.match(/../g),x=>parseInt(x,16));
 const canonical=x=>enc.encode(JSON.stringify(x,Object.keys(x).sort()));
 const hash=async x=>hex(await crypto.subtle.digest('SHA-256',enc.encode(JSON.stringify(x))));
-const ref='policy://cp166/'+requestId;
-const req=Object.freeze({...cp131Scope,request_id:requestId,principal_id:principal,policy_receipt_ref:ref});
+const boundRequest=id=>Object.freeze({...cp131Scope,request_id:id,principal_id:principal,policy_receipt_ref:'policy://cp166/'+id});
 const exact=(a,b)=>a&&typeof a==='object'&&!Array.isArray(a)&&Object.keys(a).sort().join('|')===Object.keys(b).sort().join('|')&&Object.entries(b).every(([k,v])=>a[k]===v);
 const same=(a,b)=>a?.mac===b?.mac&&exact(a?.body,b?.body??{});
 const macKey=k=>k?.type==='secret'&&k.algorithm?.name==='HMAC'&&k.algorithm?.hash?.name==='SHA-256'&&k.algorithm?.length===256&&!k.extractable&&k.usages.includes('verify');
 async function checkMac(k,r){return !!r?.body&&typeof r.mac==='string'&&/^[0-9a-f]{64}$/.test(r.mac)&&crypto.subtle.verify('HMAC',k,unhex(r.mac),canonical(r.body));}
-export function createFactService({db,iam,jarvisPublic,authorityPublic,factPrivate,receiptKey,store,clock=now}={}){
+export function createFactService({db,iam,jarvisPublic,authorityPublic,factPrivate,receiptKey,store,clock=now,canaryId=requestId}={}){
+ const requestId=assertCanaryId(canaryId),req=boundRequest(requestId);
  if(typeof store?.get!=='function'||typeof store?.insertOnce!=='function')fail('FACT_STORE_REQUIRED');
- const reader=createFact({db,iam,jarvisPublic,authorityPublic,factPrivate,clock});
+ const reader=createFact({db,iam,jarvisPublic,authorityPublic,factPrivate,clock,canaryId:requestId});
  const receipts=createFactReceiptPort({key:receiptKey,principal,store,clock});
  return Object.freeze({async read(r,sig){const out=await reader.read(r,sig);const f=await receipts.record(req,await hash(out.result));return {...out,cp131:f};},
  async current(nonce){const c=command('current',requestId,nonce,clock());return iam.current(c,await signBody(factPrivate,c));},
  async persisted(id){if(id!==requestId)fail('FACT_READBACK_SCOPE');return store.get(id);}
  });
 }
-export function createTribunal({jarvisVerifyKey,factVerifyKey,authorityPublic,factReader,clock=now}={}){
+export function createTribunal({jarvisVerifyKey,factVerifyKey,authorityPublic,factReader,clock=now,canaryId=requestId}={}){
+ const requestId=assertCanaryId(canaryId),req=boundRequest(requestId),ref=req.policy_receipt_ref;
  if(!macKey(jarvisVerifyKey)||!macKey(factVerifyKey)||!authorityPublic||typeof factReader?.current!=='function'||typeof factReader?.persisted!=='function')fail('TRIBUNAL_PORTS_REQUIRED');
  return Object.freeze({async verify(j,f){
  const t=clock(),jtime=j?.body?.emitted_at_epoch,ftime=f?.body?.emitted_at_epoch,h=f?.body?.result_sha256;
@@ -40,7 +41,8 @@ export function createTribunal({jarvisVerifyKey,factVerifyKey,authorityPublic,fa
  return {status:'VERIFIED_AUTHORIZED_PAIR',iam_grant_verified:true,request_id:requestId,promotion_allowed:false};
  }});
 }
-export function createBoundedJarvis({iam,fact,tribunal,jarvisPrivate,factPublic,receiptKey,store,ownerAccess,clock=now}={}){
+export function createBoundedJarvis({iam,fact,tribunal,jarvisPrivate,factPublic,receiptKey,store,ownerAccess,clock=now,canaryId=requestId}={}){
+ const requestId=assertCanaryId(canaryId),req=boundRequest(requestId),ref=req.policy_receipt_ref;
  if(typeof iam?.issue!=='function'||typeof iam?.revoke!=='function'||typeof fact?.read!=='function'||typeof tribunal?.verify!=='function'||typeof ownerAccess!=='function')fail('RUNTIME_PORTS_REQUIRED');
  const receipts=createJarvisReceiptPort({key:receiptKey,principal,store,ownerAccess,clock});
  return Object.freeze({async run(){

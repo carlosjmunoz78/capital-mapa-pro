@@ -1,13 +1,13 @@
 // CP168 private clients. No HTTP operation, publication, or production scope.
 import {command,signBody,verifyBody,verifyCurrentGrant,scope,principal,issuer} from './independent-iam.mjs';
-import {requestId} from './bounded-store.mjs';
+import {requestId,assertCanaryId} from './bounded-store.mjs';
 import {createFactoryCandidateReader} from '../cp162/fact001_inventory_read_cp162.mjs';
 const now=()=>Math.floor(Date.now()/1000);
-const ref='policy://cp166/'+requestId;
 const enc=new TextEncoder();
 const digest=async x=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',enc.encode(JSON.stringify(x)))),b=>b.toString(16).padStart(2,'0')).join('');
 const fail=s=>{throw Error(s)};
-export function createFact({db,iam,jarvisPublic,authorityPublic,factPrivate,clock=now}={}){
+export function createFact({db,iam,jarvisPublic,authorityPublic,factPrivate,clock=now,canaryId=requestId}={}){
+ const requestId=assertCanaryId(canaryId),ref='policy://cp166/'+requestId;
  if(!iam||typeof iam.current!=='function')fail('AUTHORITY_REQUIRED');
  return Object.freeze({async read(r,sig){
   if(r?.request_id!==requestId||r?.policy_receipt_ref!==ref)fail('CANARY_SCOPE_DENIED');
@@ -19,7 +19,8 @@ export function createFact({db,iam,jarvisPublic,authorityPublic,factPrivate,cloc
   return {result,receipt,signature:await signBody(factPrivate,receipt)};
  }});
 }
-export function createJarvis({iam,fact,jarvisPrivate,factPublic,clock=now}={}){
+export function createJarvis({iam,fact,jarvisPrivate,factPublic,clock=now,canaryId=requestId}={}){
+ const requestId=assertCanaryId(canaryId),ref='policy://cp166/'+requestId;
  if(!iam||typeof iam.issue!=='function'||typeof iam.revoke!=='function'||!fact||typeof fact.read!=='function')fail('PRIVATE_PORTS_REQUIRED');
  return Object.freeze({async run(){
   const issue=command('issue',requestId,crypto.randomUUID(),clock());
