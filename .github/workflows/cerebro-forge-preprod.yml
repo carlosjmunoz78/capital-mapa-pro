@@ -2,6 +2,11 @@ name: CEREBRO FORGE PREPROD
 
 on:
   workflow_dispatch:
+    inputs:
+      preflight_only:
+        description: Verify existing private canary permissions without building or deploying
+        type: boolean
+        default: true
   push:
     branches:
       - cerebro-engine-factory-v0
@@ -28,13 +33,28 @@ env:
   DEPLOY_SERVICE_ACCOUNT: cerebro-forge-deployer@cerebro-forge.iam.gserviceaccount.com
 
 jobs:
+  private-canary-preflight:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.preflight_only && github.ref == 'refs/heads/cerebro-engine-factory-v0' }}
+    runs-on: ubuntu-latest
+    environment: PREPROD
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+      - run: python cerebro-os/preprod/private_canary.py preflight
   deploy-preprod:
     # Repository-level readiness is set ONLY after an existing same-project,
     # authenticated private canary invoker is proven in a real execution.
     # Unset => SKIPPED before runner allocation, saving builds/registry uploads
     # and Cloud Run revisions that cannot pass the remote-log evidence gate.
     # This is not a waiver: downstream D1/identity/observability gates remain.
-    if: ${{ vars.CEREBRO_FORGE_INTERNAL_CANARY_READY == 'true' }}
+    if: ${{ vars.CEREBRO_FORGE_INTERNAL_CANARY_READY == 'true' && github.ref == 'refs/heads/cerebro-engine-factory-v0' && (github.event_name != 'workflow_dispatch' || !inputs.preflight_only) }}
     runs-on: ubuntu-latest
     environment: PREPROD
     timeout-minutes: 30
@@ -61,6 +81,9 @@ jobs:
           test "$(gcloud config get-value project)" = "$PROJECT_ID"
           ACTIVE_ACCOUNT="$(gcloud auth list --filter=status:ACTIVE --format='value(account)')"
           test "$ACTIVE_ACCOUNT" = "$DEPLOY_SERVICE_ACCOUNT"
+
+      - name: Verify private invoker and bounded queue before building
+        run: python cerebro-os/preprod/private_canary.py preflight
 
       - name: Ensure Artifact Registry repository exists
         shell: bash
@@ -288,12 +311,19 @@ jobs:
           echo "REVISION=$REVISION" >> "$GITHUB_ENV"
           echo "Persistent PREPROD revision prepared at 0% traffic: $REVISION"
 
+      - name: Invoke exact private candidate once
+        run: python cerebro-os/preprod/private_canary.py invoke
+        env:
+          FORGE_CANARY_ID: forge-${{ github.run_id }}-${{ github.run_attempt }}
+          FORGE_EXPECTED_REVISION: ${{ env.REVISION }}
+          FORGE_OLD_REVISION: ${{ env.PREVIOUS_REVISION }}
+
       - name: Verify persistent remote onboarding rehearsal evidence
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p forge-evidence
-          FILTER="resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${SERVICE_NAME}\" AND resource.labels.revision_name=\"${REVISION}\" AND jsonPayload.marker=\"PERSISTENT_REMOTE_ONBOARDING_REHEARSAL_PASS\""
+          FILTER="resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${SERVICE_NAME}\" AND resource.labels.revision_name=\"${REVISION}\" AND timestamp>=\"${FORGE_CANARY_STARTED}\" AND jsonPayload.marker=\"PERSISTENT_REMOTE_ONBOARDING_REHEARSAL_PASS\""
           for attempt in $(seq 1 12); do
             gcloud logging read "$FILTER" --limit=20 --format=json > /tmp/preprod-remote-rehearsal.json
             if python - <<'PY'
@@ -350,7 +380,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p forge-evidence
-          FILTER="resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${SERVICE_NAME}\" AND resource.labels.revision_name=\"${REVISION}\" AND jsonPayload.marker=\"PERSISTENT_OBSERVABILITY_PROBE\""
+          FILTER="resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${SERVICE_NAME}\" AND resource.labels.revision_name=\"${REVISION}\" AND timestamp>=\"${FORGE_CANARY_STARTED}\" AND jsonPayload.marker=\"PERSISTENT_OBSERVABILITY_PROBE\""
           for attempt in $(seq 1 12); do
             gcloud logging read "$FILTER" --limit=500 --format=json > /tmp/preprod-observability.json
             if python - <<'PY'
