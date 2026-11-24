@@ -73,3 +73,53 @@ export function auditCompanyScope(companyRegistryId, runtimeRecordId) {
     needs_explicit_verified_alias_contract: !matched,
   });
 }
+
+// CP141: classified real LAB source anchors. Source-only candidate, never deploys.
+export const CANONICAL_ENGINE_RULE_CP141 = '/^(?=.{3,64}$)(?=.*[A-Z])[A-Z0-9]+(?:-[A-Z0-9]+)*$/';
+const [FACT,BRIDGE,PROVISIONER,EXECUTOR,ADAPTER,GATEWAY,ROUTER,BROKER] = REQUIRED;
+const ISSUER_BINDING = 'issuer.origin_engine_id!==e.issuer||issuer.origin_engine_id!==r.origin_engine_id';
+const SPEC_CP141 = Object.freeze({
+  [FACT]: {inline:['engineId',"engineId||''"], preserveRuntime:true},
+  [BRIDGE]: {named:'rxEngine',args:['engine',"body.engine_id||''","body.engine_id||''","input.engine_id||''"]},
+  [PROVISIONER]: {named:'id',args:["e.engine_id||''","msg.engine_id||''","input.engine_id||''","input.engine_id||''","payload.engine_id||''","engine_id||''","input.engine_id||''","engine_id||''"]},
+  [EXECUTOR]: {named:'engineRx',args:["r.origin_engine_id||''"]},
+  [ADAPTER]: {named:'id',args:["r.origin_engine_id||''","r.consumer_engine_id||''","r.origin_engine_id","e.issuer||''"],issuerBinding:true},
+  [GATEWAY]: {named:'id',args:["r.origin_engine_id||''","r.consumer_engine_id||''","r.origin_engine_id","e.issuer||''"],issuerBinding:true,inline:["i.origin_engine_id||''","r.origin_engine_id||''"]},
+  [ROUTER]: {inline:["r.origin_engine_id||''","r.consumer_engine_id||''"]},
+  [BROKER]: {named:'ID',args:["principal.engine_id||''"]}
+});
+function exactCount(source, text, n, worker) {
+  if (source.split(text).length-1!==n) throw Error('FACT_CHAIN_ANCHOR_DRIFT:'+worker);
+}
+export function planClassifiedCloudIdChainMigration(sourcesByWorker) {
+  auditFactCloudIdChain(sourcesByWorker);
+  const candidates={}, workers=[];
+  for (const worker of REQUIRED) {
+    const source=sourcesByWorker[worker], spec=SPEC_CP141[worker], changes=[];
+    if (source.includes(CANONICAL_ENGINE_RULE_CP141)) throw Error('FACT_CHAIN_PREEXISTING_CANDIDATE:'+worker);
+    if (spec.issuerBinding) exactCount(source,ISSUER_BINDING,1,worker);
+    if (spec.preserveRuntime) exactCount(source,OLD_ENGINE_RULE+'.test(runtimeId)',1,worker);
+    if (spec.named) {
+      const pattern=new RegExp('\\b'+spec.named+'\\.test\\(([^)\\n]{1,130})\\)','g');
+      const actual=[...source.matchAll(pattern)].map(m=>m[1]).sort();
+      if (JSON.stringify(actual)!==JSON.stringify([...spec.args].sort())) throw Error('FACT_CHAIN_VALIDATOR_USAGE_DRIFT:'+worker);
+      if (new RegExp('\\b'+spec.named+'\\.exec\\(').test(source)) throw Error('FACT_CHAIN_UNCLASSIFIED_USAGE:'+worker);
+      changes.push(['const '+spec.named+'='+OLD_ENGINE_RULE,'const '+spec.named+'='+CANONICAL_ENGINE_RULE_CP141]);
+    }
+    for(const arg of spec.inline??[]) changes.push([OLD_ENGINE_RULE+'.test('+arg+')',CANONICAL_ENGINE_RULE_CP141+'.test('+arg+')']);
+    let candidate=source;
+    for(const [old,next] of changes){exactCount(source,old,1,worker);candidate=candidate.replace(old,()=>next);}
+    exactCount(candidate,OLD_ENGINE_RULE,spec.preserveRuntime?1:0,worker);
+    exactCount(candidate,CANONICAL_ENGINE_RULE_CP141,changes.length,worker);
+    if(spec.issuerBinding)exactCount(candidate,ISSUER_BINDING,1,worker);
+    if(spec.preserveRuntime)exactCount(candidate,OLD_ENGINE_RULE+'.test(runtimeId)',1,worker);
+    let restored=candidate;
+    for(const [old,next] of [...changes].reverse())restored=restored.replace(next,()=>old);
+    if(restored!==source)throw Error('FACT_CHAIN_ROUNDTRIP_FAILED:'+worker);
+    candidates[worker]=candidate;
+    workers.push(Object.freeze({worker,engine_validator_sites_changed:changes.length,runtime_validator_sites_preserved:spec.preserveRuntime?1:0,issuer_origin_binding_preserved:!!spec.issuerBinding,exact_roundtrip:true}));
+  }
+  const changed=workers.reduce((n,w)=>n+w.engine_validator_sites_changed,0);
+  if(changed!==12)throw Error('FACT_CHAIN_SITE_TOTAL_INVALID');
+  return Object.freeze({status:'SOURCE_ONLY_CANDIDATE_NOT_DEPLOYED',workers:Object.freeze(workers),engine_validator_sites_changed:changed,runtime_validator_sites_preserved:1,source_candidates:Object.freeze(candidates),safe_to_promote:false,deploy_authorized:false,requires_real_signed_enrollment:true,requires_backup_and_rollback:true});
+}

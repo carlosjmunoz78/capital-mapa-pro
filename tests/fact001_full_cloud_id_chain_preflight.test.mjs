@@ -63,3 +63,36 @@ test("invalid company identity fails closed",()=>{
   assert.throws(()=>auditCompanyScope("fenix",bad),/FACT_COMPANY_SCOPE_INVALID/);
  }
 });
+
+import {planClassifiedCloudIdChainMigration,CANONICAL_ENGINE_RULE_CP141} from '../cerebro-os/factory/fact001_full_cloud_id_chain_preflight.mjs';
+import {readFileSync} from 'node:fs';
+const [fact,bridge,provisioner,executor,adapter,gateway,router,broker]=Object.keys(OBSERVED_STRICT_WORKERS_V1);
+const binding='issuer.origin_engine_id!==e.issuer||issuer.origin_engine_id!==r.origin_engine_id';
+const inline=arg=>OLD+'.test('+arg+')';
+const named=(name,args)=>'const '+name+'='+OLD+';\n'+args.map(x=>name+'.test('+x+');').join('\n');
+const shared=named('id',["r.origin_engine_id||''","r.consumer_engine_id||''","r.origin_engine_id","e.issuer||''"])+ '\nif('+binding+')throw Error("UNTRUSTED_ISSUER");';
+const fixture=()=>Object.fromEntries(Object.entries({
+ [fact]:[inline('engineId'),inline('runtimeId'),inline("engineId||''")].join(';'),
+ [bridge]:named('rxEngine',['engine',"body.engine_id||''","body.engine_id||''","input.engine_id||''"]),
+ [provisioner]:named('id',["e.engine_id||''","msg.engine_id||''","input.engine_id||''","input.engine_id||''","payload.engine_id||''","engine_id||''","input.engine_id||''","engine_id||''"]),
+ [executor]:named('engineRx',["r.origin_engine_id||''"]),[adapter]:shared,
+ [gateway]:shared+';'+inline("i.origin_engine_id||''")+';'+inline("r.origin_engine_id||''"),
+ [router]:inline("r.origin_engine_id||''")+';'+inline("r.consumer_engine_id||''"),[broker]:named('ID',["principal.engine_id||''"])
+}).map(([k,v])=>[k,'// fixture for existing Worker source shape\n'+v+'\n// preserves other source bytes and contains no secrets\n']));
+test('full classified plan transforms 12 engine validators but keeps runtime validator and issuer binding',()=>{
+ const original=fixture(),p=planClassifiedCloudIdChainMigration(original);
+ assert.equal(p.engine_validator_sites_changed,12);assert.equal(p.runtime_validator_sites_preserved,1);assert.equal(p.workers.length,8);assert.equal(p.deploy_authorized,false);assert.equal(p.safe_to_promote,false);
+ assert.ok(p.source_candidates[fact].includes(OLD+'.test(runtimeId)'));
+ for(const w of [adapter,gateway])assert.ok(p.source_candidates[w].includes(binding));
+ for(const w of p.workers)assert.equal(w.exact_roundtrip,true);
+ assert.equal(Object.values(original).join('').split(OLD).length-1,13);
+});
+test('all 177 canonical IDs pass the candidate while malformed IDs remain rejected',()=>{
+ const rx=new RegExp(CANONICAL_ENGINE_RULE_CP141.slice(1,-1));
+ const ids=JSON.parse(readFileSync(new URL('../cerebro-os/registry/canonical_177.json',import.meta.url),'utf8')).engine_ids;
+ assert.equal(ids.length,177);for(const id of ids)assert.ok(rx.test(id),id);assert.ok(rx.test('3RD-001'));for(const id of ['---','999','A--','-FACT','FACT-','AB','../SECRET','A_B',''])assert.equal(rx.test(id),false,id);
+});
+test('unknown engine validator field fails closed even when regex count unchanged',()=>{const f=fixture();f[fact]=f[fact].replace('test(engineId)','test(runtimeId2)');assert.throws(()=>planClassifiedCloudIdChainMigration(f),/ANCHOR_DRIFT/);});
+test('shared issuer validator requires original engine equality checks',()=>{for(const w of [adapter,gateway]){const f=fixture();f[w]=f[w].replace(binding,'issuer.enabled===1');assert.throws(()=>planClassifiedCloudIdChainMigration(f),/ANCHOR_DRIFT/);}});
+test('new named validator consumer and changed runtime field both fail closed',()=>{const f=fixture();f[broker]+=';ID.test(runtime_id);';assert.throws(()=>planClassifiedCloudIdChainMigration(f),/USAGE_DRIFT/);const g=fixture();g[fact]=g[fact].replace('test(runtimeId)','test(otherId)');assert.throws(()=>planClassifiedCloudIdChainMigration(g),/ANCHOR_DRIFT/);});
+test('reapplying source-only candidate is denied',()=>assert.throws(()=>planClassifiedCloudIdChainMigration(planClassifiedCloudIdChainMigration(fixture()).source_candidates),/VALIDATOR_DRIFT/));
