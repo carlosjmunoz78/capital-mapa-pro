@@ -96,3 +96,11 @@ test('unknown engine validator field fails closed even when regex count unchange
 test('shared issuer validator requires original engine equality checks',()=>{for(const w of [adapter,gateway]){const f=fixture();f[w]=f[w].replace(binding,'issuer.enabled===1');assert.throws(()=>planClassifiedCloudIdChainMigration(f),/ANCHOR_DRIFT/);}});
 test('new named validator consumer and changed runtime field both fail closed',()=>{const f=fixture();f[broker]+=';ID.test(runtime_id);';assert.throws(()=>planClassifiedCloudIdChainMigration(f),/USAGE_DRIFT/);const g=fixture();g[fact]=g[fact].replace('test(runtimeId)','test(otherId)');assert.throws(()=>planClassifiedCloudIdChainMigration(g),/ANCHOR_DRIFT/);});
 test('reapplying source-only candidate is denied',()=>assert.throws(()=>planClassifiedCloudIdChainMigration(planClassifiedCloudIdChainMigration(fixture()).source_candidates),/VALIDATOR_DRIFT/));
+
+import {planUmsGatewayTenantBoundaryCP153} from '../cerebro-os/factory/fact001_full_cloud_id_chain_preflight.mjs';
+test('CP153 exact module planner denies unexpected scope and unverified sources',async()=>{
+  for(const bad of [null,{},[],{'worker.mjs':'x','core.mjs':'x','extra.mjs':'x'}]){
+    await assert.rejects(planUmsGatewayTenantBoundaryCP153(bad),/MODULE_SCOPE/);
+  }
+  await assert.rejects(planUmsGatewayTenantBoundaryCP153({'worker.mjs':'const target=(env,company)=>{const ns=env.MEDIA_LEDGER.jurisdiction(\'eu\');','core.mjs':'x'}),/SOURCE_DRIFT/);
+});

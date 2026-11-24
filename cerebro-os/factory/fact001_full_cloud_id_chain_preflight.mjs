@@ -123,3 +123,29 @@ export function planClassifiedCloudIdChainMigration(sourcesByWorker) {
   if(changed!==12)throw Error('FACT_CHAIN_SITE_TOTAL_INVALID');
   return Object.freeze({status:'SOURCE_ONLY_CANDIDATE_NOT_DEPLOYED',workers:Object.freeze(workers),engine_validator_sites_changed:changed,runtime_validator_sites_preserved:1,source_candidates:Object.freeze(candidates),safe_to_promote:false,deploy_authorized:false,requires_real_signed_enrollment:true,requires_backup_and_rollback:true});
 }
+
+// CP153/154: exact source-only patch of the verified LAB Gateway, no deployment.
+export async function planUmsGatewayTenantBoundaryCP153(modules) {
+  const old = 'const target=(env,company)=>{const ns=env.MEDIA_LEDGER.jurisdiction(\'eu\');';
+  const next = 'const target=(env,company)=>{if(company!==\'fenix\')throw Error(\'UMS001_COMPANY_SCOPE_DENIED\');const ns=env.MEDIA_LEDGER.jurisdiction(\'eu\');';
+  if (!modules || typeof modules !== 'object' || Array.isArray(modules) ||
+      Object.keys(modules).sort().join('|') !== 'core.mjs|worker.mjs' ||
+      Object.values(modules).some(v => typeof v !== 'string' || v.length > 200000)) {
+    throw Error('CP153_GATEWAY_MODULE_SCOPE');
+  }
+  const hash = async s => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))).map(b=>b.toString(16).padStart(2,'0')).join('');
+  const worker = modules['worker.mjs'], core = modules['core.mjs'];
+  if (await hash(worker) !== 'f4e191d39a6059ec8c27cd385a4d976049da93f482b1dba93fbc8350264fbd41' ||
+      await hash(core) !== 'fcbf3a65278abf020653967003324bcdae6b3777e2f556f6297c227622935227' ||
+      worker.split(old).length !== 2 || worker.includes(next)) {
+    throw Error('CP153_GATEWAY_SOURCE_DRIFT');
+  }
+  const candidate = worker.replace(old,()=>next);
+  if (candidate.replace(next,()=>old) !== worker ||
+      await hash(candidate) !== 'd03790272ff45cc220ad55fe57a1d99c8c7388b90a6b83f312ac2f3bf6978dd0') {
+    throw Error('CP153_GATEWAY_CANDIDATE_DRIFT');
+  }
+  return Object.freeze({status:'SOURCE_ONLY_CANDIDATE_NOT_DEPLOYED',company_id:'fenix',environment:'LAB',
+    modules:Object.freeze({'worker.mjs':candidate,'core.mjs':core}),exact_roundtrip:true,
+    deployment_authorized:false,real_iam_proven:false,safe_to_promote:false});
+}
