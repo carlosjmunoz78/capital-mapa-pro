@@ -16,11 +16,11 @@ class Scope:
     version: str
     operation: str
 
-FORGE = Scope("fenix", "FORGE", "forge-deployer", "PREPROD", "1.0.0", "FORGE.SERVICE.READ")
+FORGE = Scope("fenix", "FORGE", "forge-reader", "PREPROD", "1.0.0", "FORGE.SERVICE.READ")
 PROJECT = "cerebro-forge"
 REGION = "europe-southwest1"
 SERVICE = "cerebro-advisory-preprod"
-ACCOUNT = "cerebro-forge-deployer@cerebro-forge.iam.gserviceaccount.com"
+ACCOUNT = "cerebro-forge-broker-reader@cerebro-forge.iam.gserviceaccount.com"
 AUDIENCE = "//iam.googleapis.com/projects/15609183753/locations/global/workloadIdentityPools/github-cerebro-forge/providers/github-provider"
 IMPERSONATION = "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/" + ACCOUNT + ":generateAccessToken"
 EXPECTED_REF = "refs/heads/cerebro-engine-factory-v0"

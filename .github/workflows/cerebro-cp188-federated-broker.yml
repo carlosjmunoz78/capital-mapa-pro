@@ -34,7 +34,7 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: projects/15609183753/locations/global/workloadIdentityPools/github-cerebro-forge/providers/github-provider
-          service_account: cerebro-forge-deployer@cerebro-forge.iam.gserviceaccount.com
+          service_account: cerebro-forge-broker-reader@cerebro-forge.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
       - uses: google-github-actions/setup-gcloud@v2
