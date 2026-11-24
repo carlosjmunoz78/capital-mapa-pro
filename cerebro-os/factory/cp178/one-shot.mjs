@@ -10,7 +10,7 @@ export function createRunLedger(storage,{canaryId=requestId}={}){
  finish(owner,state,now){if(!['COMPLETED','HOLD'].includes(state)||!Number.isSafeInteger(now))fail('FINISH_INVALID');return storage.transactionSync(()=>{const r=get();if(!r||r.owner!==owner||r.state!=='RUNNING'||now<r.created)fail('FENCE_DENIED');sql.exec('UPDATE cp178_run SET state=?,terminal=? WHERE id=? AND owner=? AND state=?',state,now,requestId,owner,'RUNNING');return true})},
  inspect(){const r=get();return r?{request_id:r.id,state:r.state,created:r.created,terminal:r.terminal}:null}});
 }
-export function createOneShot({ledger,runner,clock=()=>Math.floor(Date.now()/1000),canaryId=requestId}={}){
+export function createOneShot({ledger,runner,clock=()=>Math.floor(Date.now()/1000),canaryId=requestId,includeResult=false}={}){
  const requestId=assertCanaryId(canaryId);
  if(typeof ledger?.claim!=='function'||typeof ledger?.finish!=='function'||typeof runner?.run!=='function')fail('PORTS_REQUIRED');
  return Object.freeze({async run(){
@@ -20,7 +20,7 @@ export function createOneShot({ledger,runner,clock=()=>Math.floor(Date.now()/100
  catch(e){await ledger.finish(owner,'HOLD',clock());throw e;}
  // Ambiguous commit or crash leaves RUNNING or COMPLETED; neither can execute again.
  if(await ledger.finish(owner,'COMPLETED',clock())!==true)fail('TERMINAL_PERSISTENCE_UNKNOWN');
- return {status:'CP178_ONE_SHOT_COMPLETED',request_id:requestId,grant_revoked:true,promotion_allowed:false};
+ return {status:'CP178_ONE_SHOT_COMPLETED',request_id:requestId,grant_revoked:true,promotion_allowed:false,...(includeResult?{result:out.result}:{})};
  }});
 }
 // A HOLD or RUNNING row is never proof of revocation. Resolve only via independent

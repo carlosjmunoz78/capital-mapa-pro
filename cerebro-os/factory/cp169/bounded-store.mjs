@@ -2,7 +2,7 @@
 export const requestId='CP168-PRIVATE-READ-001';
 export const maxAcceptedNonces=12;
 export const cp180RequestId='CP180-PRIVATE-PAIR-001';
-export function assertCanaryId(value){if(value!==requestId&&value!==cp180RequestId)throw Error('CANARY_ID_DENIED');return value;}
+export function assertCanaryId(value){if(value!==requestId&&value!==cp180RequestId&&!(typeof value==='string'&&/^CORE-ORDER-20261124-00[1-8]$/.test(value)))throw Error('CANARY_ID_DENIED');return value;}
 export function createBoundedStore(storage,{canaryId=requestId}={}){
  const boundId=assertCanaryId(canaryId);
  if(!storage?.sql||typeof storage.transactionSync!=='function')throw Error('DURABLE_STORAGE_REQUIRED');
