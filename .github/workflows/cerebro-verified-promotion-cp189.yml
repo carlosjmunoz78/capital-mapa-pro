@@ -1,0 +1,23 @@
+name: CEREBRO CP189 verified promotion tests
+on:
+  pull_request:
+    paths:
+      - 'cerebro-os/governance/verified_promotion_gate.py'
+      - 'cerebro-os/governance/promotion_gate.py'
+      - 'cerebro-os/governance/cp189_tests/**'
+      - '.github/workflows/cerebro-verified-promotion-cp189.yml'
+permissions:
+  contents: read
+jobs:
+  directed-promotion-regression:
+    if: github.repository == 'carlosjmunoz78/capital-mapa-pro'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify fail-closed promotion logic
+        env:
+          PYTHONPATH: cerebro-os
+        run: python3 -m unittest discover -v -s cerebro-os/governance/cp189_tests -p 'test_*.py'
