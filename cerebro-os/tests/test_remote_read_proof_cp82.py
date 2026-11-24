@@ -141,5 +141,75 @@ class RemotePrivateProofCP82Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"independent persistent reader"):
             self.verify(persisted_fact_reader=None)
 
+class AuthorizedPrivateReadCP131Tests(unittest.TestCase):
+    mac = RemotePrivateProofCP82Tests.mac
+    def setUp(self):
+        RemotePrivateProofCP82Tests.setUp(self)
+        self.principal = "jarvis-lab-service-fixture"
+        self.issuer = "iam-lab-issuer-fixture"
+        self.ref = "policy://lab-fixture/0001"
+        for item in (self.jarvis, self.fact):
+            item.update(principal_id=self.principal, policy_receipt_ref=self.ref)
+        self.store[self.request] = dict(self.fact)
+        self.grant = {"policy_receipt_ref": self.ref, "issuer_id": self.issuer,
+                      "principal_id": self.principal, "company_id": self.company,
+                      "request_id": self.request, "engine_id": "FACT-001", "environment": "LAB",
+                      "version": "1.0.0", "capability": CAPABILITY, "decision": "ALLOW_READ_ONLY",
+                      "verified": True, "active": True, "revoked": False, "read_only": True,
+                      "external_mutation_allowed": False, "cost_ceiling_eur": 0,
+                      "issued_at_epoch": self.now - 30, "expires_at_epoch": self.now + 300}
+
+    def authorized(self, **kwargs):
+        args = {"jarvis": self.jarvis, "fact": self.fact,
+                "jarvis_signature": self.mac(self.jarvis, self.key_j),
+                "fact_signature": self.mac(self.fact, self.key_f),
+                "jarvis_key": self.key_j, "fact_key": self.key_f,
+                "company_id": self.company, "request_id": self.request, "now_epoch": self.now,
+                "persisted_fact_reader": self.store.get, "trusted_grant_reader": lambda ref: self.grant if ref == self.ref else None,
+                "expected_principal": self.principal, "expected_issuer": self.issuer,
+                "canonical_company_id": self.company}
+        args.update(kwargs)
+        return CP82.verify_authorized_private_read(**args)
+
+    def test_cp131_valid_fixture_never_promotes(self):
+        out = self.authorized()
+        self.assertEqual(out["status"], "VERIFIED_AUTHORIZED_PAIR")
+        self.assertTrue(out["iam_grant_verified"])
+        self.assertFalse(out["promotion_allowed"])
+
+    def test_cp131_missing_reader_or_grant(self):
+        for reader in (None, lambda ref: None):
+            with self.subTest(reader=reader), self.assertRaises(PermissionError):
+                self.authorized(trusted_grant_reader=reader)
+
+    def test_cp131_wrong_tenant_issuer_or_principal(self):
+        for field, value in (("company_id", "aion"), ("issuer_id", "untrusted"), ("principal_id", "other"),
+                             ("request_id", "wrong-request"), ("capability", "FACT.WRITE"), ("environment", "PROD")):
+            with self.subTest(field=field), self.assertRaisesRegex(PermissionError, "GRANT_SCOPE"):
+                self.authorized(trusted_grant_reader=lambda ref: {**self.grant, field: value})
+        with self.assertRaisesRegex(PermissionError, "IDENTITY_SCOPE"):
+            self.authorized(canonical_company_id="fenix")
+
+    def test_cp131_revoked_unverified_or_mutative(self):
+        for field, value in (("revoked", True), ("verified", False), ("active", False), ("read_only", False),
+                             ("external_mutation_allowed", True), ("cost_ceiling_eur", 1)):
+            with self.subTest(field=field), self.assertRaisesRegex(PermissionError, "GRANT_POLICY"):
+                self.authorized(trusted_grant_reader=lambda ref: {**self.grant, field: value})
+
+    def test_cp131_lifetime_and_receipt_age(self):
+        for start, end in ((self.now-901, self.now+1), (self.now-10, self.now),
+                           (self.now+1, self.now+100), (self.now-1, self.now+900)):
+            with self.subTest(start=start, end=end), self.assertRaisesRegex(PermissionError, "GRANT_LIFETIME"):
+                self.authorized(trusted_grant_reader=lambda ref: {**self.grant, "issued_at_epoch": start, "expires_at_epoch": end})
+        with self.assertRaisesRegex(ValueError, "RECEIPT_AGE"):
+            self.authorized(max_age_s=901)
+
+    def test_cp131_fact_must_bind_same_grant(self):
+        self.fact["policy_receipt_ref"] = "policy://other-grant"
+        self.store[self.request] = dict(self.fact)
+        with self.assertRaisesRegex(PermissionError, "RECEIPT_GRANT_BINDING"):
+            self.authorized()
+
+
 if __name__=="__main__":
     unittest.main()

@@ -131,3 +131,56 @@ def verify_private_read_pair(*,jarvis:dict,fact:dict,
             "cost_ceiling_eur":0,"promotion_allowed":False,
             "fact_receipt_sha256":hashlib.sha256(_canonical(fact)).hexdigest(),
             "note":"Receipt pairing only; production promotion requires independent gates"}
+
+
+def verify_authorized_private_read(*, trusted_grant_reader, expected_principal: str,
+                                   expected_issuer: str, canonical_company_id: str,
+                                   **pair):
+    """CP131: verify a receipt pair against an independent, trusted IAM grant.
+
+    The reader and expected identities are server-side ports, not user inputs.
+    It must return a verified, live, revocation-checked grant projection from IAM.
+    This function neither issues a grant nor certifies its deployment.
+    """
+    if not callable(trusted_grant_reader):
+        raise PermissionError("CP131_TRUSTED_IAM_READER_REQUIRED")
+    if any(not isinstance(x, str) or not x.strip() for x in
+           (expected_principal, expected_issuer, canonical_company_id)):
+        raise ValueError("CP131_TRUSTED_CONTEXT_REQUIRED")
+    if expected_principal == expected_issuer or pair.get("company_id") != canonical_company_id:
+        raise PermissionError("CP131_IDENTITY_SCOPE_DENIED")
+    age = pair.get("max_age_s", 300)
+    if type(age) is not int or not 1 <= age <= 300:
+        raise ValueError("CP131_RECEIPT_AGE_DENIED")
+    verified = verify_private_read_pair(**pair)
+    jarvis, fact = pair["jarvis"], pair["fact"]
+    ref = jarvis["policy_receipt_ref"]
+    if not isinstance(ref, str) or not re.fullmatch(r"[A-Za-z0-9_.:/-]{8,200}", ref):
+        raise PermissionError("CP131_GRANT_REFERENCE_DENIED")
+    if any(x.get("principal_id") != expected_principal or x.get("policy_receipt_ref") != ref
+           for x in (jarvis, fact)):
+        raise PermissionError("CP131_RECEIPT_GRANT_BINDING_DENIED")
+    grant = trusted_grant_reader(ref)
+    if not isinstance(grant, dict):
+        raise PermissionError("CP131_GRANT_NOT_FOUND")
+    _assert_no_secrets(grant)
+    required = {"policy_receipt_ref": ref, "issuer_id": expected_issuer,
+                "principal_id": expected_principal, "company_id": canonical_company_id,
+                "request_id": pair["request_id"], "engine_id": TARGET_ENGINE,
+                "environment": "LAB", "version": jarvis["version"], "capability": CAPABILITY,
+                "decision": "ALLOW_READ_ONLY"}
+    if any(grant.get(k) != v for k, v in required.items()):
+        raise PermissionError("CP131_GRANT_SCOPE_DENIED")
+    if (grant.get("verified") is not True or grant.get("active") is not True or
+            grant.get("revoked") is not False or grant.get("read_only") is not True or
+            grant.get("external_mutation_allowed") is not False or
+            type(grant.get("cost_ceiling_eur")) not in (int, float) or grant["cost_ceiling_eur"] != 0):
+        raise PermissionError("CP131_GRANT_POLICY_DENIED")
+    start, end, now = grant.get("issued_at_epoch"), grant.get("expires_at_epoch"), pair["now_epoch"]
+    if (type(start) is not int or type(end) is not int or not 0 <= start <= now < end or
+            not 0 < end - start <= 900 or
+            any(not start <= x["emitted_at_epoch"] < end for x in (jarvis, fact))):
+        raise PermissionError("CP131_GRANT_LIFETIME_DENIED")
+    return {**verified, "status": "VERIFIED_AUTHORIZED_PAIR", "iam_grant_verified": True,
+            "promotion_allowed": False,
+            "note": "Verified pair under supplied trusted IAM port; physical deployment remains a separate gate"}
