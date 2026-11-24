@@ -18,7 +18,7 @@ const vk=async s=>crypto.subtle.importKey('raw',decode(s),{name:'HMAC',hash:'SHA
 const sk=s=>importReceiptKey(decode(s));
 const stub=(e,role,id)=>{enable(e);coreId(id);const ns=e.LEDGER.jurisdiction('eu');return ns.get(ns.idFromName('core-lab-'+role+'-'+id));};
 const historic=(q)=>q?.request_id===cp180RequestId;
-async function inspectAuth(e,q,s){enable(e);coreId(q?.request_id);if(!fresh(q.emitted_at_epoch)||!exact(q,rpcBody(q.request_id,'inspect',q.nonce,q.emitted_at_epoch))||!await verifyBody(await publicKey(e.CORE_INGRESS_PUBLIC),q,s))fail('CORE_INSPECT_DENIED');}
+async function inspectAuth(e,q,s){enable(e);coreId(q?.request_id);if(!fresh(q.emitted_at_epoch)||!exact(q,rpcBody(q.request_id,'inspect',q.nonce,q.emitted_at_epoch)))fail('CORE_INSPECT_DENIED');let ok=await verifyBody(await publicKey(e.CORE_INGRESS_PUBLIC),q,s);if(!ok&&e.CORE_SUPERVISOR_READ_ENABLED==='true'&&e.CORE_SUPERVISOR_PUBLIC){const k=await publicKey(e.CORE_SUPERVISOR_PUBLIC);if([e.CORE_INGRESS_PUBLIC,e.AUTHORITY_PUBLIC,e.FACT_PUBLIC,e.JARVIS_PUBLIC,e.TRIBUNAL_PUBLIC].includes(e.CORE_SUPERVISOR_PUBLIC))fail('SUPERVISOR_KEY_COLLISION');ok=await verifyBody(k,q,s);}if(!ok||!fresh(q.emitted_at_epoch))fail('CORE_INSPECT_DENIED');}
 export class AuthorityLedger182 extends OldIAM{
  async core(action,q,s){enable(this.e);const id=coreId(q?.request_id),e=this.e;const [j,f,a]=await Promise.all([publicKey(e.JARVIS_PUBLIC),publicKey(e.FACT_PUBLIC),privateKey(e.AUTHORITY_PRIVATE)]);return createIndependentAuthority({enabled:true,principalKey:j,readerKey:f,signingKey:a,store:createBoundedStore(this.storage,{canaryId:id})})[action](q,s);}
  issue(q,s){return historic(q)?super.issue(q,s):this.core('issue',q,s)}
