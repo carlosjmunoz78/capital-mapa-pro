@@ -1,0 +1,6 @@
+import {FaultWorkflow185 as Old,FaultLedger185,RunnerRead185,closed} from '../factory/cp185/worker.mjs';
+import {dispatchCore,waitComplete,checkCoreOutput,dispatchSupervision,checkSupervision,machineId} from './core-dispatch.mjs';
+export {FaultLedger185,RunnerRead185,closed as default};
+export class FaultWorkflow185 extends Old{
+ async run(event,step){if(!/^core-dispatch-20261124-00[3-8]$/.test(event.instanceId))return super.run(event,step);const id=machineId('CORE-ORDER-20261124-'+event.instanceId.slice(-3));if(event.payload!==undefined&&event.payload!==null&&event.payload!=='{}'&&!(typeof event.payload==='object'&&!Array.isArray(event.payload)&&Object.keys(event.payload).length===0))throw Error('MACHINE_PAYLOAD_DENIED');const opts={retries:{limit:0,delay:'1 second'},timeout:'30 seconds'};await step.do('machine signed order submission',opts,()=>dispatchCore(this.env,id));const core=await step.do('terminal core readback',opts,async()=>checkCoreOutput(await waitComplete(this.env.CORE_WORKFLOW,id.toLowerCase()),id));const sid=await step.do('independent supervisor submission',opts,()=>dispatchSupervision(this.env,id,core));return step.do('verify terminal supervisor signature',opts,async()=>checkSupervision(this.env,id,core,await waitComplete(this.env.SUPERVISOR_WORKFLOW,sid)));}
+}

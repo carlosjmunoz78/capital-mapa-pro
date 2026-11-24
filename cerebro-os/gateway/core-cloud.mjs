@@ -5,6 +5,7 @@ import {createBoundedStore,cp180RequestId} from '../factory/cp169/bounded-store.
 import {createIndependentAuthority,signBody,verifyBody,scope,issuer,principal} from '../factory/cp169/independent-iam.mjs';
 import {decode,publicKey,privateKey} from '../factory/cp169/key-import.mjs';
 import {importReceiptKey} from '../factory/cp176/receipt-ports.mjs';
+import {verifyMachineOrder} from './core-dispatch.mjs';
 import {coreId,rpcBody,createReceiptStore,createPrivateFactPort,createPrivateTribunalPort,createPrivateJarvisPort,createJarvisStorage} from './core-ports.mjs';
 export {PairAuditWorkflow182,closed};
 const fail=s=>{throw Error(s)},now=()=>Math.floor(Date.now()/1000),enc=new TextEncoder();
@@ -59,5 +60,5 @@ export async function executeOrder(e,p,instance){enable(e);const route=routeOrde
  return {status:'CORE_ORDER_COMPLETED',route,result:out.result,supervision:'TERMINAL_REVOKED_VERIFIED',grant_revoked:true,tribunal_verified:true,receipt_hashes:{jarvis:await bodyHash(jr.body),fact:await bodyHash(fr.body),grant:ab.grant_sha256,result:h},promotion_allowed:false};
 }
 export class PairWorkflow182 extends OldWorkflow{
- async run(event,step){if(!event.instanceId.startsWith('core-order-'))return super.run(event,step);routeOrder(event.payload,event.instanceId);return step.do('gateway to JARVIS IAM FACT Tribunal', {retries:{limit:0,delay:'1 second'},timeout:'45 seconds'},()=>executeOrder(this.env,event.payload,event.instanceId));}
+ async run(event,step){if(!event.instanceId.startsWith('core-order-'))return super.run(event,step);return step.do('authenticated machine Gateway to JARVIS IAM FACT Tribunal',{retries:{limit:0,delay:'1 second'},timeout:'45 seconds'},async()=>{const route=await verifyMachineOrder(this.env,event.payload,event.instanceId);return executeOrder(this.env,route,event.instanceId);});}
 }
