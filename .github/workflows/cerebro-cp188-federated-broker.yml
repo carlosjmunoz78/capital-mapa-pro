@@ -45,24 +45,54 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 broker.py > "$RUNNER_TEMP/cp188-receipt.json"
+          if [ "$CP188_EXPECT_DENIAL" = "true" ]; then
+            python3 - <<'PY' > "$RUNNER_TEMP/cp188-receipt.json"
+          import json, subprocess
+          from broker import FORGE, ForgeFederatedRead, ScopedCredentialBroker
+          observed = []
+          def run(argv, **kw):
+              p = subprocess.run(argv, **kw)
+              if argv[2:5] == ["run", "services", "describe"]:
+                  observed.append(p.returncode != 0 and "PERMISSION_DENIED" in p.stderr
+                                  and "run.services.get" in p.stderr)
+              return p
+          try:
+              ScopedCredentialBroker(providers={FORGE: ForgeFederatedRead(run=run)}).execute(FORGE)
+          except PermissionError as e:
+              if str(e) != "PROVIDER_OPERATION_DENIED" or observed != [True]:
+                  raise SystemExit("Expected exact provider permission denial not observed")
+          else:
+              raise SystemExit("REVOKED READER STILL AUTHORIZED")
+          print(json.dumps({"status":"CP188_PROVIDER_REVOCATION_VERIFIED",
+              "identity_verified":True,"external_mutation":False,
+              "credential_value_exposed":False,"promotion_allowed":False,
+              "provider_permission_denied":"run.services.get"}))
+          PY
+          else
+            python3 broker.py > "$RUNNER_TEMP/cp188-receipt.json"
+          fi
           python3 - <<'PY'
           import json, os
           from pathlib import Path
           p=Path(os.environ["RUNNER_TEMP"])/"cp188-receipt.json"
           d=json.loads(p.read_text())
-          assert d["status"]=="CP188_FEDERATED_READ_VERIFIED"
+          denied=os.environ["CP188_EXPECT_DENIAL"]=="true"
+          assert d["status"]==("CP188_PROVIDER_REVOCATION_VERIFIED" if denied else "CP188_FEDERATED_READ_VERIFIED")
           assert d["external_mutation"] is False and d["credential_value_exposed"] is False
           assert d["identity_verified"] is True and d["promotion_allowed"] is False
-          assert d["serving_revision"]=="cerebro-advisory-preprod-00266-xnc"
+          if denied:
+              assert d["provider_permission_denied"]=="run.services.get"
+          else:
+              assert d["serving_revision"]=="cerebro-advisory-preprod-00266-xnc"
           d["run_id"]=os.environ["GITHUB_RUN_ID"]
           d["job"]=os.environ["GITHUB_JOB"]
           d["session"]=os.environ["CP188_SESSION"]
           p.write_text(json.dumps(d,sort_keys=True))
-          print("CP188_FEDERATED_READ_VERIFIED: independent session",d["session"])
+          print(d["status"]+": independent session",d["session"])
           PY
         env:
           CP188_SESSION: ${{ matrix.session }}
+          CP188_EXPECT_DENIAL: ${{ contains(github.event.head_commit.message, '[cp188-revoked]') }}
       - uses: actions/upload-artifact@v4
         with:
           name: cp188-receipt-${{ matrix.session }}
