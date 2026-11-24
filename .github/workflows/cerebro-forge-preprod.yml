@@ -34,7 +34,7 @@ env:
 
 jobs:
   private-canary-preflight:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.preflight_only && github.ref == 'refs/heads/cerebro-engine-factory-v0' }}
+    if: ${{ github.ref == 'refs/heads/cerebro-engine-factory-v0' && ((github.event_name == 'workflow_dispatch' && inputs.preflight_only) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[forge-preflight-only]'))) }}
     runs-on: ubuntu-latest
     environment: PREPROD
     timeout-minutes: 5
@@ -54,7 +54,7 @@ jobs:
     # Unset => SKIPPED before runner allocation, saving builds/registry uploads
     # and Cloud Run revisions that cannot pass the remote-log evidence gate.
     # This is not a waiver: downstream D1/identity/observability gates remain.
-    if: ${{ vars.CEREBRO_FORGE_INTERNAL_CANARY_READY == 'true' && github.ref == 'refs/heads/cerebro-engine-factory-v0' && (github.event_name != 'workflow_dispatch' || !inputs.preflight_only) }}
+    if: ${{ vars.CEREBRO_FORGE_INTERNAL_CANARY_READY == 'true' && github.ref == 'refs/heads/cerebro-engine-factory-v0' && (github.event_name != 'workflow_dispatch' || !inputs.preflight_only) && !contains(github.event.head_commit.message || '', '[forge-preflight-only]') }}
     runs-on: ubuntu-latest
     environment: PREPROD
     timeout-minutes: 30
