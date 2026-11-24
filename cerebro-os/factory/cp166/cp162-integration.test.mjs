@@ -1,0 +1,22 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {createIndependentAuthority,verifyCurrentGrant,command,signBody,verifyBody,scope,principal,issuer} from './independent-iam.mjs';
+import {openAuthorityStore} from './authority-sqlite.mjs';
+import {createFactoryCandidateReader} from '../cp162/fact001_inventory_read_cp162.mjs';
+test('actual CP162 reader uses independently signed and revocable authority state',async t=>{
+ const dir=mkdtempSync(path.join(tmpdir(),'cp166-e2e-'));const authority=openAuthorityStore(path.join(dir,'authority.sqlite'));const inventory=path.join(dir,'inventory.sqlite');
+ const wr=new DatabaseSync(inventory);wr.exec("CREATE TABLE fact001_factory_candidates_lab_v1(company_id TEXT,engine_id TEXT,environment TEXT,version TEXT,state TEXT,artifact_count INTEGER,authority_verified INTEGER,execution_granted INTEGER,production_authorized INTEGER,media_dispatch_enabled INTEGER,cost_ceiling_eur INTEGER);INSERT INTO fact001_factory_candidates_lab_v1 VALUES('fenix','SUP-001','LAB','0.1.0','CANDIDATE_REGISTERED',9,0,0,0,0,0),('fenix-capital','SUP-001','LAB','0.1.0','CANDIDATE_REGISTERED',10,0,0,0,0,0)");wr.close();
+ const db=new DatabaseSync(inventory,{readOnly:true});t.after(()=>{authority.close();db.close();rmSync(dir,{recursive:true,force:true})});
+ const [j,f,a]=await Promise.all(Array.from({length:3},()=>crypto.subtle.generateKey({name:'Ed25519'},false,['sign','verify'])));
+ const now=1800000000,id='CP166-READ-001',clock=()=>now;
+ const iam=createIndependentAuthority({enabled:true,principalKey:j.publicKey,readerKey:f.publicKey,signingKey:a.privateKey,store:authority,clock});
+ const issue=command('issue',id,crypto.randomUUID(),now);const grant=await iam.issue(issue,await signBody(j.privateKey,issue));
+ let queries=0;const read=createFactoryCandidateReader({db:{prepare(sql){queries++;return{bind(...args){return{all:async()=>({success:true,results:db.prepare(sql).all(...args)})}}}}},authenticateJarvis:async(r,p)=>verifyBody(j.publicKey,r,p),readCurrentGrant:async(ref)=>{if(ref!==grant.policy_receipt_ref)throw Error('REF_DENIED');const q=command('current',id,crypto.randomUUID(),now);const envelope=await iam.current(q,await signBody(f.privateKey,q));return verifyCurrentGrant({envelope,authorityPublicKey:a.publicKey,requestId:id,readerNonce:q.nonce,now});},principalId:principal,issuerId:issuer,clock});
+ const r={...scope,request_id:id,version:'1.0.0',principal_id:principal,policy_receipt_ref:grant.policy_receipt_ref,emitted_at_epoch:now};
+ const sig=await signBody(j.privateKey,r);const out=await read(r,sig);assert.equal(out.status,'CANDIDATE_INVENTORY_READ');assert.deepEqual(out.entries,[{engine_id:'SUP-001',version:'0.1.0',state:'CANDIDATE_REGISTERED',artifact_count:9}]);assert.equal(queries,1);
+ const revoke=command('revoke',id,crypto.randomUUID(),now);await iam.revoke(revoke,await signBody(j.privateKey,revoke));await assert.rejects(read(r,sig),/GRANT_INACTIVE/);assert.equal(queries,1);
+});
