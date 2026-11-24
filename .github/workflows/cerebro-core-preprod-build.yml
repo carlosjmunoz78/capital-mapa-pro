@@ -1,0 +1,30 @@
+name: Isolated PREPROD core build
+on:
+  pull_request:
+    paths:
+      - 'cerebro-os/gateway/preprod-core/**'
+      - 'cerebro-os/gateway/core-*.mjs'
+      - 'cerebro-os/factory/cp*/**'
+      - '.github/workflows/cerebro-core-preprod-build.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - run: |
+          node cerebro-os/gateway/preprod-core/build-preprod.mjs . "$RUNNER_TEMP/core-preprod" cerebro-os/gateway/preprod-core/source-lock.json
+          node --experimental-loader "$RUNNER_TEMP/core-preprod/cloud-loader.mjs" --test "$RUNNER_TEMP/core-preprod/core-cloud.test.mjs" "$RUNNER_TEMP/core-preprod/core-dispatch.test.mjs"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: core-preprod-1.1.0
+          path: ${{ runner.temp }}/core-preprod
+          retention-days: 3
+          if-no-files-found: error
