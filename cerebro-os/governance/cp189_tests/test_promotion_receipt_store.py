@@ -74,3 +74,49 @@ class ReceiptStoreTests(unittest.TestCase):
         ids=dict(self.ids)
         ids["cost"]=ids["tests"]
         self.assertEqual(self.review(receipt_ids=ids)["decision"],"BLOCKED")
+
+    def stored_control(self, **kw):
+        from gateway.control_plane_release import review_stored_control
+        args=dict(candidate=self.candidate,receipt_ids=self.ids,store_path=self.path,
+            trust=self.trust,clock=lambda:150,policy_decision="ALLOW",human_required=False,
+            route_status="ROUTED",supervisor_state="GREEN",tribunal_approved=True,
+            promotion_decision="PREPROD_GREEN",evidence_refs={g:"fixture:"+g for g in
+                ("route","policy","supervisor","tribunal","promotion")})
+        args.update(kw)
+        return review_stored_control(**args)
+
+    def test_composed_control_complete_remains_hold(self):
+        before=self.path.read_bytes()
+        r=self.stored_control()
+        self.assertEqual(r["reason"],"SEPARATE_RELEASE_AUTHORITY_REQUIRED")
+        self.assertEqual(r["review"]["decision"],"PREPROD_REVIEW_CANDIDATE")
+        self.assertIs(r["deployment_authorized"],False)
+        self.assertEqual(self.path.read_bytes(),before)
+
+    def test_composed_control_missing_and_expiry(self):
+        with sqlite3.connect(self.path) as db:
+            db.execute("DELETE FROM promotion_receipts WHERE gate='backup'")
+        r=self.stored_control()
+        self.assertEqual(r["reason"],"VERIFIED_GATES_REQUIRED")
+        self.assertIn("backup",r["review"]["missing"])
+        self.assertEqual(len(self.stored_control(clock=lambda:200)["review"]["missing"]),12)
+
+    def test_composed_control_wrong_environment(self):
+        r=self.stored_control(candidate=replace(self.candidate,environment="PROD"),
+            promotion_decision="PROD_CANDIDATE")
+        self.assertEqual(r["reason"],"VERIFIED_GATES_REQUIRED")
+        self.assertIs(r["deployment_authorized"],False)
+
+    def test_composed_control_policy_and_supervisor(self):
+        for kw in ({"policy_decision":"DENY"},{"supervisor_state":"RED"},
+                   {"tribunal_approved":False},{"evidence_refs":{}}):
+            r=self.stored_control(**kw)
+            self.assertEqual(r["status"],"BLOCKED")
+            self.assertIs(r["deployment_authorized"],False)
+        self.assertEqual(self.stored_control(human_required=True)["status"],"HUMAN_REQUIRED")
+
+    def test_composed_control_no_store_no_creation(self):
+        missing=self.path.parent/"missing.sqlite"
+        r=self.stored_control(store_path=missing)
+        self.assertEqual(r["reason"],"VERIFIED_GATES_REQUIRED")
+        self.assertFalse(missing.exists())
