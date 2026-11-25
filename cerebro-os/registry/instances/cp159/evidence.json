@@ -1,0 +1,48 @@
+{
+  "checkpoint": 159,
+  "state": "LOCAL_FACTORY_GENERATED_CANDIDATE_NOT_REGISTERED_REMOTELY",
+  "company_id": "fenix",
+  "engine_id": "SUP-001",
+  "environment": "LAB",
+  "version": "0.1.0",
+  "canonical_engine_registry_blob": "57bb119fdda458ff66b9f76ef70743123f1a6083",
+  "canonical_engine_count": 179,
+  "existing_legacy_company_id": "fenix-capital",
+  "legacy_unchanged": true,
+  "source_commit": "a1a23259b15b2d691af0ef45146f74d8920a4f9e",
+  "source_blobs": {
+    "factory.py": "89d5c42b0d600ccd6589b55cde00e6e13e01e894",
+    "universal_media_enrollment.py": "ecbe2cb9f52db028c4ac4bf632c9cea6e8b77b4e",
+    "universal_media_hook.py": "ec5d6db39e8a101ddfaed586ae07794411a90a3e"
+  },
+  "artifact_blobs": {
+    "config/ums001_universal_media.json": "1f87c346021a8a6a1c301c43ac460583cb838c37",
+    "docs/README.md": "6b385cd984fed4e1001de27cde84ba6f684bba3b",
+    "events/FACT001_ENGINE_CREATED.outbox.json": "df89b094e121ff13ffbfb6949e5c08fc5417ea75",
+    "events/MEDIA_JOB_REQUESTED.contract.json": "1d0f946aadc81582afff5312e4729c0af38a7943",
+    "events/UMS001_FACTORY_ENROLLMENT_STATUS.json": "3766d6a13e46922adde19864d82f1e16617279c2",
+    "manifest.json": "a73debf76e6bc4846fd87fefd1ed08f676e6dc55",
+    "ops/backup.md": "fd2cf81084a17785219aa9cfc6fc90e597fc43c5",
+    "ops/rebuild.md": "20a1635b1b237b2a447ea94e6d4548f48ecbf008",
+    "ops/rollback.md": "22bd7db2a71c26d3010b9e5c50cb1cb17630e4d3"
+  },
+  "factory_executed_locally": true,
+  "duplicate_overwrite_denied": true,
+  "external_dispatch": false,
+  "remote_registration": false,
+  "iam_grant": false,
+  "proposed_jarvis_identity": {
+    "state": "DEFINED_NOT_REGISTERED",
+    "company_id": "fenix",
+    "environment": "LAB",
+    "capability": "FACT.INVENTORY.READ",
+    "max_grant_seconds": 900,
+    "read_only": true,
+    "external_mutation_allowed": false,
+    "active": false
+  },
+  "promotion_allowed": false,
+  "cost_marginal_verified": false,
+  "new_subscription_eur": 0,
+  "next_gate": "AUTHENTIC_IAM_ISSUER_AND_CANONICAL_FACT_RUNTIME"
+}

@@ -1,0 +1,12 @@
+# Production release boundary — parallel candidate only
+
+Observed OLD contract: gateway/control_plane.py accepts PROD_CANDIDATE and five nonempty text references as ALLOW_EXECUTION (existing test_control_plane_environment_scope.py explicitly expects this). CP189 independently requires twelve verified scoped receipts and still returns only PROD_REVIEW_CANDIDATE. These semantics must not be confused. This additive boundary composes both contracts and always holds until an actual independent release authority exists. It does not change the old module, callers, runtime or existing tests; do not deploy it or claim it protects existing callers until the caller inventory and OLD/NEW integration are accepted.
+
+Critical path:
+1. Reconcile existing release candidates and actual runtime callers; preserve original, snapshot and dependency map. Existing PREPROD 1.1.0 fixture is not a general production service.
+2. Define one real, read-only company-scoped capability using the existing registry and authorized Gateway. No direct model access, no implicit membership or writes. Build a separate production-intended candidate with PREPROD acceptance; no relabeling fixtures.
+3. Bind all twelve CP189 gates to exact candidate bytes, source, company, environment and version. Independent verified producers, expiry and denial on missing evidence. Existing CI producer is only a tests producer for its fixed PREPROD manifest.
+4. Resolve historical restoration and owner admission platform holds via permitted review only. Do not reroute or replay blocked operations. Prove end-to-end owner identity and actual rebuilt runtime recovery, safe rollback, cost policy.
+5. Independent release authority must verify candidate and review, sign scoped release authorization, then gradual canary with rollback and monitoring; no broad App/CRM/Trading changes. Stop on drift or unauthorized access.
+
+Alternatives: A reuse existing private core runtime for a new scoped candidate; B promote individual proven capabilities through the canonical Gateway, not the whole core at once; C use an existing authorized runtime after equivalent contracts, isolation and evidence; D freeze activation, retain original and replica, resolve missing independent evidence and retry the same candidate if unchanged. None waives a gate or overrides a platform hold. This document and parallel code grant no authority and create no live routes.

@@ -1,0 +1,6 @@
+import { DurableObject,WorkflowEntrypoint } from 'cloudflare:workers';
+import {restore,inspect} from './recovery-core.mjs';
+import {backup} from './machine-backup.mjs';
+export default {fetch(){return new Response(null,{status:404,headers:{'cache-control':'no-store'}})}};
+export class RecoveryScratch183 extends DurableObject{constructor(ctx,env){super(ctx,env);this.ctx=ctx;this.env=env;}restore(row){return restore(this.ctx.storage,row,this.env.SNAPSHOT_SHA)}inspect(){return inspect(this.ctx.storage,this.env.SNAPSHOT_SHA)}}
+export class RecoveryWorkflow183 extends WorkflowEntrypoint{async run(event,step){if(!['cp184-backup-001','cp184-backup-002','cp184-revoked-001'].includes(event.instanceId))throw Error('INSTANCE_DENIED');if(this.env.CP184_MACHINE_ENABLED!=='true')throw Error('MACHINE_REVOKED');const payload=typeof event.payload==='string'?JSON.parse(event.payload):event.payload;if(!payload||Object.keys(payload).length!==0)throw Error('PAYLOAD_DENIED');return step.do('read-only signed logical backup',{retries:{limit:0,delay:'1 second'},timeout:'30 seconds'},()=>{const ns=this.env.JARVIS_LEDGER.jurisdiction('eu');return backup(this.env,{jarvis:ns.get(ns.idFromName('cp182-jarvis')),iam:this.env.IAM,tribunal:this.env.TRIBUNAL})});}}

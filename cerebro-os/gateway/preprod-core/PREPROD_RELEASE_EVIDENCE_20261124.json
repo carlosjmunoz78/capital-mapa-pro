@@ -1,0 +1,260 @@
+{
+  "schema": "cerebro.core.preprod.release.v1",
+  "company_id": "fenix",
+  "environment": "PREPROD",
+  "version": "1.1.0",
+  "source_commit": "c3ac6a90a575b28955bf98ed8e7802e509f9d46d",
+  "manifest_sha256": "9987c3fdd1383f75c75e8122ff1ea22c61af922df8ecd5a01631b07736c8463e",
+  "ci": [
+    45496576336,
+    45496576312,
+    45496576231,
+    45496576237
+  ],
+  "artifact": {
+    "id": 14968866128,
+    "zip_sha256": "c08ec7107457d91d0e7f78e6ff3eb85d441869cbc9c12de0d707a84de4054f8b",
+    "library_path": "/ZEUS/CEREBRO_CORE_PREPROD_1.1.0_CI.zip"
+  },
+  "request_id": "CORE-PREPROD-20261124-001",
+  "provider": {
+    "dispatch": {
+      "start": "2026-11-24T22:06:26.630Z",
+      "end": "2026-11-24T22:06:35.372Z",
+      "output": {
+        "status": "CORE_MACHINE_ORDER_SUPERVISED",
+        "request_id": "CORE-PREPROD-20261124-001",
+        "result": {
+          "status": "CANDIDATE_INVENTORY_READ",
+          "request_id": "CORE-PREPROD-20261124-001",
+          "company_id": "fenix",
+          "environment": "PREPROD",
+          "engine_id": "FACT-001",
+          "entries": [
+            {
+              "engine_id": "SUP-001",
+              "version": "0.1.0",
+              "state": "CANDIDATE_REGISTERED",
+              "artifact_count": 9
+            }
+          ],
+          "count": 1,
+          "operational_instances_certified": false,
+          "external_mutation_allowed": false,
+          "promotion_allowed": false,
+          "receipt_persisted": false
+        },
+        "receipt_hashes": {
+          "jarvis": "f62afe9d17441dbcdc21c8ba4981e2bd68528e3379882300d1d1648c814c2a53",
+          "fact": "69c01d1d0b6f8542b2b538e6a13cc7d18b47664cea5177e86e5d084e3fc0b591",
+          "grant": "0270741ea6439017f7fe1dcbd3701f7e84c8984ea7405b1c30fdeaedd9f94ee8",
+          "result": "94714fc18eaf5adc34ed0ebe9d2ca043bc4299de6350d01ff0d59c224e2d126d"
+        },
+        "supervisor": {
+          "body": {
+            "schema": "cerebro.core.supervisor.v1",
+            "company_id": "fenix",
+            "engine_id": "FACT-001",
+            "environment": "PREPROD",
+            "capability": "FACT.INVENTORY.READ",
+            "read_only": true,
+            "external_mutation_allowed": false,
+            "cost_ceiling_eur": 0,
+            "request_id": "CORE-PREPROD-20261124-001",
+            "status": "CORE_SUPERVISOR_VERIFIED",
+            "provider_terminal": true,
+            "iam_revoked": true,
+            "tribunal_signature_verified": true,
+            "fact_persisted": true,
+            "grant_sha256": "0270741ea6439017f7fe1dcbd3701f7e84c8984ea7405b1c30fdeaedd9f94ee8",
+            "result_sha256": "94714fc18eaf5adc34ed0ebe9d2ca043bc4299de6350d01ff0d59c224e2d126d",
+            "fact_sha256": "69c01d1d0b6f8542b2b538e6a13cc7d18b47664cea5177e86e5d084e3fc0b591",
+            "jarvis_mac_bound": "d22413f08fd7915b7d8a1c15a861c2b0887d145ac85e8789f89aee16762bb444",
+            "jarvis_hash_independently_verified": true,
+            "jarvis_sha256": "f62afe9d17441dbcdc21c8ba4981e2bd68528e3379882300d1d1648c814c2a53",
+            "retry_allowed": false,
+            "promotion_allowed": false,
+            "checked_at_epoch": 1795557994
+          },
+          "signature": "ca397c71cbf0e43aea587d970831f97ac5bafc25a367122c7b62715054d61cea0151187a624478ee1fd9413fde4ee43c148ed7a672ee538b77376632e9d9bb06"
+        },
+        "machine_principal": "iam:core-machine-dispatch-preprod",
+        "promotion_allowed": false
+      }
+    },
+    "core": {
+      "start": "2026-11-24T22:06:29.668Z",
+      "end": "2026-11-24T22:06:30.903Z",
+      "output": {
+        "status": "CORE_ORDER_COMPLETED",
+        "route": {
+          "company_id": "fenix",
+          "engine_id": "FACT-001",
+          "environment": "PREPROD",
+          "version": "1.1.0",
+          "capability": "FACT.INVENTORY.READ",
+          "request_id": "CORE-PREPROD-20261124-001"
+        },
+        "result": {
+          "status": "CANDIDATE_INVENTORY_READ",
+          "request_id": "CORE-PREPROD-20261124-001",
+          "company_id": "fenix",
+          "environment": "PREPROD",
+          "engine_id": "FACT-001",
+          "entries": [
+            {
+              "engine_id": "SUP-001",
+              "version": "0.1.0",
+              "state": "CANDIDATE_REGISTERED",
+              "artifact_count": 9
+            }
+          ],
+          "count": 1,
+          "operational_instances_certified": false,
+          "external_mutation_allowed": false,
+          "promotion_allowed": false,
+          "receipt_persisted": false
+        },
+        "supervision": "TERMINAL_REVOKED_VERIFIED",
+        "grant_revoked": true,
+        "tribunal_verified": true,
+        "receipt_hashes": {
+          "jarvis": "f62afe9d17441dbcdc21c8ba4981e2bd68528e3379882300d1d1648c814c2a53",
+          "fact": "69c01d1d0b6f8542b2b538e6a13cc7d18b47664cea5177e86e5d084e3fc0b591",
+          "grant": "0270741ea6439017f7fe1dcbd3701f7e84c8984ea7405b1c30fdeaedd9f94ee8",
+          "result": "94714fc18eaf5adc34ed0ebe9d2ca043bc4299de6350d01ff0d59c224e2d126d"
+        },
+        "promotion_allowed": false
+      }
+    },
+    "supervisor": {
+      "start": "2026-11-24T22:06:33.941Z",
+      "end": "2026-11-24T22:06:34.425Z",
+      "output": {
+        "body": {
+          "schema": "cerebro.core.supervisor.v1",
+          "company_id": "fenix",
+          "engine_id": "FACT-001",
+          "environment": "PREPROD",
+          "capability": "FACT.INVENTORY.READ",
+          "read_only": true,
+          "external_mutation_allowed": false,
+          "cost_ceiling_eur": 0,
+          "request_id": "CORE-PREPROD-20261124-001",
+          "status": "CORE_SUPERVISOR_VERIFIED",
+          "provider_terminal": true,
+          "iam_revoked": true,
+          "tribunal_signature_verified": true,
+          "fact_persisted": true,
+          "grant_sha256": "0270741ea6439017f7fe1dcbd3701f7e84c8984ea7405b1c30fdeaedd9f94ee8",
+          "result_sha256": "94714fc18eaf5adc34ed0ebe9d2ca043bc4299de6350d01ff0d59c224e2d126d",
+          "fact_sha256": "69c01d1d0b6f8542b2b538e6a13cc7d18b47664cea5177e86e5d084e3fc0b591",
+          "jarvis_mac_bound": "d22413f08fd7915b7d8a1c15a861c2b0887d145ac85e8789f89aee16762bb444",
+          "jarvis_hash_independently_verified": true,
+          "jarvis_sha256": "f62afe9d17441dbcdc21c8ba4981e2bd68528e3379882300d1d1648c814c2a53",
+          "retry_allowed": false,
+          "promotion_allowed": false,
+          "checked_at_epoch": 1795557994
+        },
+        "signature": "ca397c71cbf0e43aea587d970831f97ac5bafc25a367122c7b62715054d61cea0151187a624478ee1fd9413fde4ee43c148ed7a672ee538b77376632e9d9bb06"
+      }
+    }
+  },
+  "public_keys": {
+    "AUTHORITY_PUBLIC": "lIQN/ggNpeSaXWhvLsNfFsRBOUgDaEcZ6trA308QSKA=",
+    "CORE_INGRESS_PUBLIC": "CVzjnRiw5jGR7DEHFLTFOJ+QEvVlel0JD2lVvN7tbSI=",
+    "CORE_MACHINE_PUBLIC": "uE2KsnpvGm8mIPm0G9F83PEb8QDDNNyBOg3ueG6hKn4=",
+    "CORE_SUPERVISOR_PUBLIC": "7VMWKrdg3Yge4wbPz0kVtSO44/9sJDad841lrP+Ubng=",
+    "FACT_PUBLIC": "tqYrjJ2psTsFdeXt/ao/Tsqd0taDHUFl9XeaXOW7BuM=",
+    "JARVIS_PUBLIC": "x9tI+/bCLxXYycCfckv7t0zQNBUHK1a8KhnvojOsGIk=",
+    "TRIBUNAL_PUBLIC": "2KV2LJDpkFniAgxJY2/W9jyRqO6RXCmB8Myjci1/SMc="
+  },
+  "signatures_verified": [
+    "SUPERVISOR",
+    "TRIBUNAL"
+  ],
+  "roles": [
+    {
+      "role": "iam",
+      "worker": "cerebro-core-preprod-iam-eu",
+      "inert_version": "43a37307-cd9a-46b4-b7d8-59671caf17d6",
+      "active_version": "d0bff537-cd0a-4822-8803-733f3ba54636",
+      "namespace": "0a5fdfc2c8004286b421dc9f77f757ea",
+      "restored_deployment": "bf1eb99f-128f-4fda-ad3f-e7efe6ef00cc"
+    },
+    {
+      "role": "fact",
+      "worker": "cerebro-core-preprod-fact-eu",
+      "inert_version": "b390e376-ec79-4eea-a8bf-b44a672a778d",
+      "active_version": "9525344d-736d-4d7d-a7fc-d37bb4d03f31",
+      "namespace": "cf1bee8eb216482597fd1cb2ab3a7f99",
+      "restored_deployment": "6d592c22-aa8b-49bd-81ac-45c311502939"
+    },
+    {
+      "role": "tribunal",
+      "worker": "cerebro-core-preprod-tribunal-eu",
+      "inert_version": "f9c68099-faf7-4db7-beb5-50e37ada54fa",
+      "active_version": "d23eb763-4820-4fea-8abc-1f71e3e33fa4",
+      "namespace": "24281c110c5c419ba224df79efce35b4",
+      "restored_deployment": "6f708c4c-b5ec-454e-b074-ca06d9a19dce"
+    },
+    {
+      "role": "jarvis",
+      "worker": "cerebro-core-preprod-jarvis-eu",
+      "inert_version": "6372e2b8-54e5-4fbe-91f8-13ce59ce8427",
+      "active_version": "555a01e7-162c-45e8-9b45-7d4284efecc6",
+      "namespace": "50fd9f5f5eb644778fde404e7cd6b11c",
+      "restored_deployment": "abdb653b-0c1c-474d-98ff-6b1d26ca1612"
+    },
+    {
+      "role": "supervisor",
+      "worker": "cerebro-core-preprod-supervisor-eu",
+      "inert_version": "d1cc0223-9d6f-453a-9cf1-20a51054ac0a",
+      "active_version": "516c29a9-9e3e-407c-8762-9f3d634b509a",
+      "namespace": null,
+      "restored_deployment": "042f5d86-292f-4683-bb65-32fd97861ace"
+    },
+    {
+      "role": "dispatch",
+      "worker": "cerebro-core-preprod-dispatch-eu",
+      "inert_version": "b9fc7da2-9c7a-4eb8-918f-1c880ee6796d",
+      "active_version": "1b2061a7-cae0-439e-a78c-43335efbfe86",
+      "namespace": null,
+      "restored_deployment": "02e4a971-47f2-4de7-9ec1-cf139b7acb35"
+    }
+  ],
+  "backup": {
+    "private_document_id": "1cSWPq3O4B6dGtoDUTw2VYuKDAXN_fkWtzKa_zlkJfZE",
+    "snapshot_sha256": "cf025f506171cb7e178bfd6d75e3f6906c200d42f35c5e595a323c599ae15060",
+    "objects": 4,
+    "rows": 10
+  },
+  "restore": {
+    "status": "PREPROD_ISOLATED_LOGICAL_RESTORE_VERIFIED",
+    "objects": 4,
+    "rows": 10,
+    "original_unchanged": 4,
+    "constructor_table_preserved": true
+  },
+  "rollback": {
+    "status": "PREPROD_SIX_ROLE_ROLLBACK_RESTORE_VERIFIED",
+    "history_retained": true
+  },
+  "resource_counts": {
+    "workers": 73,
+    "durable_object_namespaces": 24,
+    "workflows": 8,
+    "new_D1": 0
+  },
+  "lab_versions_unchanged": 6,
+  "fixture": "SYNTHETIC_REHEARSAL",
+  "production_authorized": false,
+  "hold": [
+    "owner_identity_admission",
+    "generic_multi_company_and_operations",
+    "full_runtime_rebuild_and_credential_reissuance",
+    "final_finops",
+    "independent_release_authority",
+    "PROD_specific_evidence"
+  ]
+}

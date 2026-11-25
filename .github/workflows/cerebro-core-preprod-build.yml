@@ -1,0 +1,198 @@
+name: Isolated PREPROD core build
+on:
+  pull_request:
+    paths:
+      - 'cerebro-os/gateway/preprod-core/**'
+      - 'cerebro-os/governance/native_ci_policy.py'
+      - 'cerebro-os/governance/native_ci_tests.py'
+      - 'cerebro-os/gateway/core-*.mjs'
+      - 'cerebro-os/factory/cp*/**'
+      - '.github/workflows/cerebro-core-preprod-build.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      candidate-id: ${{ steps.finops-artifact.outputs.artifact-id }}
+      candidate-digest: ${{ steps.finops-artifact.outputs.artifact-digest }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - run: |
+          node cerebro-os/gateway/preprod-core/build-preprod.mjs . "$RUNNER_TEMP/core-preprod" cerebro-os/gateway/preprod-core/source-lock.json
+          node --experimental-loader "$RUNNER_TEMP/core-preprod/cloud-loader.mjs" --test "$RUNNER_TEMP/core-preprod/core-cloud.test.mjs" "$RUNNER_TEMP/core-preprod/core-dispatch.test.mjs"
+      - name: Owner admission and durable provenance regression
+        run: node --test cerebro-os/gateway/preprod-core/owner-admission/*.test.mjs
+      - name: Native Free FinOps guard regression
+        run: node --test cerebro-os/gateway/preprod-core/finops/zero-cost-guard.test.mjs
+      - name: Isolated credential reissue regression
+        run: node --test cerebro-os/gateway/preprod-core/reissue/reissue.test.mjs
+      - name: Build and test isolated guarded dispatcher overlay
+        run: |
+          node cerebro-os/gateway/preprod-core/finops/build-guarded-overlay.mjs "$RUNNER_TEMP/core-preprod" "$RUNNER_TEMP/core-finops" cerebro-os/gateway/preprod-core/finops
+          node --experimental-loader "$RUNNER_TEMP/core-finops/cloud-loader.mjs" --test "$RUNNER_TEMP/core-finops/core-cloud.test.mjs" "$RUNNER_TEMP/core-finops/core-dispatch.test.mjs" "$RUNNER_TEMP/core-finops/guarded-dispatch.test.mjs"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: core-preprod-1.1.0
+          path: ${{ runner.temp }}/core-preprod
+          retention-days: 3
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        id: finops-artifact
+        with:
+          name: core-preprod-1.1.0-finops-candidate
+          path: ${{ runner.temp }}/core-finops
+          retention-days: 3
+          if-no-files-found: error
+
+  attest-tests-evidence:
+    # Only the owner's existing in-repository draft, never a fork or production.
+    if: github.repository == 'carlosjmunoz78/capital-mapa-pro' && github.event.pull_request.number == 290 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'cerebro/fact001-company-scope-gate-cp89-lab-20261123'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Inspect exact successful build archive without executing its contents
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ needs.build.outputs.candidate-id }}
+          EXPECTED_DIGEST: ${{ needs.build.outputs.candidate-digest }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          HEAD_COMMIT: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$ARTIFACT_ID" =~ ^[0-9]+$ ]]
+          [[ "$BUILD_RESULT" == success ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" > "$RUNNER_TEMP/candidate.zip"
+          python3 - <<'PY'
+          import hashlib,json,os,re,zipfile
+          from pathlib import Path
+          e=os.environ
+          p=Path(e["RUNNER_TEMP"])
+          blob=(p/"candidate.zip").read_bytes()
+          sha=lambda b:hashlib.sha256(b).hexdigest()
+          digest=sha(blob)
+          assert digest==e["EXPECTED_DIGEST"].removeprefix("sha256:")
+          with zipfile.ZipFile(p/"candidate.zip") as z:
+              assert len(z.namelist())==27 and len(set(z.namelist()))==27
+              assert sum(x.file_size for x in z.infolist())<2_000_000
+              assert z.testzip() is None
+              m=json.loads(z.read("manifest.json"))
+              files=m["files"]
+              assert len(files)==26 and set(z.namelist())==set(files)|{"manifest.json"}
+              assert m["promotion_allowed"] is False
+              assert m["base_manifest_sha256"]=="9987c3fdd1383f75c75e8122ff1ea22c61af922df8ecd5a01631b07736c8463e"
+              for name,h in files.items():
+                  assert re.fullmatch(r"[\w.-]+\.mjs",name) and sha(z.read(name))==h
+              manifest=sha(json.dumps(m,separators=(",",":"),ensure_ascii=False).encode())
+              assert manifest=="b264fdef83cab0818a97d64361de50243c5b5118dab6270cdf757c9a91bc9f1e"
+          assert all(re.fullmatch("[0-9a-f]{40}",e[k]) for k in ("GITHUB_SHA","HEAD_COMMIT"))
+          # This public attestation contains only source/build metadata, not archive
+          # contents, secrets, customer data or a deployment authorization.
+          predicate={"schema":"cerebro.ci.tests-evidence.v1","environment":"PREPROD",
+            "gate":"tests","scope":"CORE_BUILD_REGRESSION_ONLY","result":"PASS",
+            "source_commit":e["GITHUB_SHA"],"pr_head":e["HEAD_COMMIT"],
+            "run_id":int(e["GITHUB_RUN_ID"]),"artifact_id":int(e["ARTIFACT_ID"]),
+            "artifact_sha256":digest,"manifest_sha256":manifest,"module_count":26,
+            "deployment_authorized":False,"promotion_authorized":False}
+          (p/"tests-predicate.json").write_text(json.dumps(predicate,sort_keys=True))
+          print(json.dumps(predicate,sort_keys=True))
+          PY
+      - name: Issue native signed tests evidence
+        id: attest
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/candidate.zip
+          predicate-type: https://github.com/carlosjmunoz78/capital-mapa-pro/cerebro/ci-tests-evidence/v1
+          predicate-path: ${{ runner.temp }}/tests-predicate.json
+      - name: Archive signed bundle and predicate
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-preprod-ci-tests-attestation
+          path: |
+            ${{ steps.attest.outputs.bundle-path }}
+            ${{ runner.temp }}/tests-predicate.json
+          retention-days: 3
+          if-no-files-found: error
+  verify-tests-evidence:
+    needs: [build, attest-tests-evidence]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      attestations: read
+    steps:
+      - name: Verify provider signature and exact source identity independently
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ needs.build.outputs.candidate-id }}
+          EXPECTED_DIGEST: ${{ needs.build.outputs.candidate-digest }}
+          HEAD_COMMIT: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$ARTIFACT_ID" =~ ^[0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" > "$RUNNER_TEMP/candidate.zip"
+          gh attestation verify "$RUNNER_TEMP/candidate.zip" -R "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/cerebro-core-preprod-build.yml" \
+            --source-digest "$GITHUB_SHA" --deny-self-hosted-runners \
+            --predicate-type https://github.com/carlosjmunoz78/capital-mapa-pro/cerebro/ci-tests-evidence/v1 \
+            --format json > "$RUNNER_TEMP/verified-tests.json"
+          python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          e=os.environ;p=Path(e["RUNNER_TEMP"])
+          digest=hashlib.sha256((p/"candidate.zip").read_bytes()).hexdigest()
+          assert digest==e["EXPECTED_DIGEST"].removeprefix("sha256:")
+          verified=json.loads((p/"verified-tests.json").read_text())
+          expected={"schema":"cerebro.ci.tests-evidence.v1","environment":"PREPROD",
+            "gate":"tests","scope":"CORE_BUILD_REGRESSION_ONLY","result":"PASS",
+            "source_commit":e["GITHUB_SHA"],"pr_head":e["HEAD_COMMIT"],
+            "run_id":int(e["GITHUB_RUN_ID"]),"artifact_id":int(e["ARTIFACT_ID"]),
+            "artifact_sha256":digest,"manifest_sha256":"b264fdef83cab0818a97d64361de50243c5b5118dab6270cdf757c9a91bc9f1e","module_count":26,
+            "deployment_authorized":False,"promotion_authorized":False}
+          assert any(v["verificationResult"]["statement"]["predicate"]==expected for v in verified)
+          print(json.dumps({"status":"SIGNED_CI_TESTS_EVIDENCE_VERIFIED",**expected},sort_keys=True))
+          PY
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Admit current candidate tests evidence to CP189 read-only review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONPATH: cerebro-os
+          ARTIFACT_ID: ${{ needs.build.outputs.candidate-id }}
+          EXPECTED_DIGEST: ${{ needs.build.outputs.candidate-digest }}
+          HEAD_COMMIT: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          from governance.native_ci_policy import BuildPolicy,review_build
+          e=os.environ
+          p=BuildPolicy(e["GITHUB_SHA"],e["HEAD_COMMIT"],int(e["GITHUB_RUN_ID"]),int(e["GITHUB_RUN_ATTEMPT"]),int(e["ARTIFACT_ID"]),e["EXPECTED_DIGEST"].removeprefix("sha256:"))
+          result=review_build(Path(e["RUNNER_TEMP"])/"candidate.zip",p)
+          (Path(e["RUNNER_TEMP"])/"current-cp189-review.json").write_text(json.dumps(result,sort_keys=True))
+          print(json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: core-preprod-ci-tests-verified
+          path: |
+            ${{ runner.temp }}/verified-tests.json
+            ${{ runner.temp }}/current-cp189-review.json
+          retention-days: 3
+          if-no-files-found: error

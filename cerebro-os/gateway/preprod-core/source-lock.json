@@ -1,0 +1,22 @@
+{
+  "source_commit": "e5146c2e4d5ef704693acc73440560d2210b047f",
+  "files": {
+    "cerebro-os/factory/cp162/fact001_inventory_read_cp162.mjs": "19aa68c43c043fd970e9a7500aa12d02579e127fa7a3dd7196cad38287699d87",
+    "cerebro-os/factory/cp169/bounded-store.mjs": "a5397e0c40b6747b9367ac5ae10f51cf10ac35b029710c4c8f1e032d2c070199",
+    "cerebro-os/factory/cp169/independent-iam.mjs": "cafc26faf614648d91c913824fecca5f4186f98803b8e7c321ae7e0371e144be",
+    "cerebro-os/factory/cp169/key-import.mjs": "653787d6ac422d1dcdd5b7fb3cd4be2de83f371f2850c7d182cebde39712a43a",
+    "cerebro-os/factory/cp169/private-clients.mjs": "884f7895d02b95cdf54be6c8af1994d099f4153c0b6071d445275d172c8c12e2",
+    "cerebro-os/factory/cp176/receipt-ports.mjs": "5732633405c18de499836408acd2c8b78e9696a722d6c00d9a95dfa2ee781cfb",
+    "cerebro-os/factory/cp177/live-pair.mjs": "7e33cbed1a762b6ee1f76170c4f43cc29e75b61f9e6379ce072d9cd020f09e19",
+    "cerebro-os/factory/cp178/one-shot.mjs": "ce38a8ed9539a81447bc4a992c73944e3f73e5c6902433355b11f87b13857e78",
+    "cerebro-os/factory/cp182/cloud-loader.mjs": "c8aa96faa474e0c5c435081ddf0bb3b947d3b602b6c4ff0b690fb1fc3ae87068",
+    "cerebro-os/gateway/core-cloud.mjs": "0996028109fa057245d392e8c03337f0eac6223cb985f9fc1342d399458a7307",
+    "cerebro-os/gateway/core-cloud.test.mjs": "7f2729fea7629ce34df241eb7b6ac5248e5930f8e94f4ead4b7574713fad1e8b",
+    "cerebro-os/gateway/core-dispatch-entry.mjs": "fe5990dd3649178be1a1f2f84bb6833203b4b19fcc8b4812bad2bab6093da1e7",
+    "cerebro-os/gateway/core-dispatch.mjs": "7c2ff79588720614439ebeda46c06ad19c357eff27508d551585fc537686ffc8",
+    "cerebro-os/gateway/core-dispatch.test.mjs": "0cf3e6ed510544f51ce72baddb4ad70df6016e3518c0fac309a4b10f63529c30",
+    "cerebro-os/gateway/core-ports.mjs": "2b543dd7cf03cbb7352bbe8dc326f6c6536a914cc0ac72e32f8a363aadc8eb87",
+    "cerebro-os/gateway/core-supervisor-entry.mjs": "a626caf70fb7bb4be7bfd5133b9691804d2cbbc69962e955b2cc128b83846255",
+    "cerebro-os/gateway/core-supervisor.mjs": "4b2036a6d3d2093aaa68fd18bab7283b7a86b20d2970697edf112f0bf5df13de"
+  }
+}

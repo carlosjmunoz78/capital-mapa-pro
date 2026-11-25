@@ -92,12 +92,25 @@ class NextLoopTests(unittest.TestCase):
         registry = conn_mod.ConnectorRegistry()
         registry.register(conn_mod.ConnectorCapability("lab-api", "status.read", "OFFICIAL_API", environment="LAB"))
         registry.register(conn_mod.ConnectorCapability("prod-browser", "status.read", "BROWSER", environment="PROD"))
-        gw = gateway_mod.Gateway({"SUP-001"}, registry)
+        gw = gateway_mod.Gateway({"SUP-001"}, registry, policy_check=lambda request: (True, None))
         routed = gw.route(gateway_mod.GatewayRequest("fenix", "SUP-001", "status.read", environment="PROD", version="2.0.0"))
         self.assertEqual("ROUTED", routed["status"])
         self.assertEqual("prod-browser", routed["connector_id"])
         self.assertEqual("PROD", routed["environment"])
         self.assertEqual("2.0.0", routed["version"])
+
+    def test_prod_requires_explicit_boolean_policy_before_connector_lookup(self):
+        class Registry:
+            def route(self, *args):
+                raise AssertionError("denied request must not reach connector")
+        def unavailable(request):
+            raise RuntimeError("policy unavailable")
+        request = gateway_mod.GatewayRequest("fenix", "SUP-001", "status.read", environment="PROD")
+        for policy in (None, True, lambda r: ("true", None), lambda r: None, unavailable,
+                       lambda r: (False, "POLICY_CONFLICT")):
+            with self.subTest(policy=policy):
+                gateway = gateway_mod.Gateway({"SUP-001"}, Registry(), policy)
+                self.assertEqual({"status": "HUMAN_REQUIRED", "reason": "POLICY_CONFLICT"}, gateway.route(request))
 
     def test_executable_backup_restore_and_rebuild(self):
         with tempfile.TemporaryDirectory() as td:

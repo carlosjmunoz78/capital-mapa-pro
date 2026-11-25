@@ -1,0 +1,30 @@
+{
+  "schema": "cerebro.core.recovery-evidence.v1",
+  "environment": "LAB",
+  "source_commit": "f778d13fbceda1e42ba6b77612dc5e1baae061e7",
+  "archive_sha256": "843053815b4b3c9da631e31a59ea5ad8c6cd1f540351ac4945f075abd4d921a8",
+  "private_backup_document_id": "14rzXcdoFIIbqzucNzsaQhofYbiD2eL-fy-NnJKCS80Q",
+  "cloud_restore": {
+    "status": "INDEPENDENT_RESTORE_READBACK_VERIFIED",
+    "namespace": "acb6b34430954fefadad9aadf8c971f6",
+    "objects": 12,
+    "rows": 27,
+    "original_objects_unchanged": 12,
+    "provider_physical_integrity_check": "SQLITE_AUTH_DENIED"
+  },
+  "offline_rebuild": {
+    "status": "CORE_OFFLINE_SQLITE_REBUILD_VERIFIED",
+    "runtime": "Node 22.23.4 / SQLite",
+    "pid": 6864,
+    "objects": 12,
+    "rows": 27,
+    "integrity_checks": "12/12 OK"
+  },
+  "orders": {
+    "001": "c96ff166fae6ae4290fb7434234ee7aa088549f4fe5efdad9972d3de1588fcb7",
+    "002": "fc7b57ea06c32534450f59feb81fd7be7a210afc3e7f81a893c9d51519aff3b7",
+    "003": "37c0352892f8e9cb1d536133c64309ecc5984bca076cf6e122d7bb3ffa6afe20"
+  },
+  "full_runtime_rebuild_verified": false,
+  "production_authorized": false
+}

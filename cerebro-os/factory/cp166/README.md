@@ -1,0 +1,7 @@
+# CP166 — independent IAM authority candidate, LAB
+
+Physical Windows Node 22.23.4 and SQLite: 10/10, PID 4308. Separate Ed25519 authority, JARVIS caller and FACT reader keys; explicit server-provisioned public keys, exact fenix/LAB capability, request scope, nonce persistence, 120s grants, signed current state bound to FACT challenge and max 10s freshness, no reissue for same request, revocation persists on reopen. Exact CP162 reader queried only the allowed candidate and rejected a second read before SQL after revocation. No private key saved or exported by fixtures.
+
+Not yet separate cloud runtime or authenticated enrollment. Tests run in a local process with separate cryptographic roles, not three deployed services. SQLite adapter is local, not a Cloudflare Durable Object adapter. No full CP131 correlated remote pair. No operational grant. A revoke during in-flight read is not an atomic cross-service transaction; must be resolved before production. No persistent key provisioning, rotation, recovery, bounded retention/rate limit or remote rebuild verified. Node SQLite experimental in this runtime. Production disabled. Preserve CP164 historical receipt and inert rollback. Do not connect to App/CRM/Trading or activate a recurring runtime without cost and tribunal gates.
+
+Run: node --test cerebro-os/factory/cp166/independent-iam.test.mjs cerebro-os/factory/cp166/cp162-integration.test.mjs

@@ -1,0 +1,21 @@
+name: Private core gateway integration
+on:
+  pull_request:
+    paths:
+      - 'cerebro-os/gateway/core-*.mjs'
+      - 'cerebro-os/factory/cp*/**'
+      - '.github/workflows/cerebro-private-core-gateway.yml'
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - run: node --experimental-loader ./cerebro-os/factory/cp182/cloud-loader.mjs --test cerebro-os/gateway/core-cloud.test.mjs cerebro-os/gateway/core-dispatch.test.mjs cerebro-os/factory/cp182/cloud-chain.test.mjs

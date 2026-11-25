@@ -1,0 +1,3 @@
+# CP188 — Scoped provider-managed Credential Broker
+
+Additive candidate; legacy metadata-only Broker preserved. Exact FORGE PREPROD read, no token export or static key. Dedicated reader identity with roles/run.viewer on the named service only, no project roles; existing WIF provider restricts repository/branch, account trust restricts PREPROD subject. No deployment, traffic change, API mutation, PROD, arbitrary operation or user-facing credential endpoint. Provider IAM read-back and real workflow receipts required. Revocation: remove the reader's service binding and its WIF trust or disable that reader only; preserve all other identities. General IAM delegation, other providers and complete disaster recovery remain separate gates.

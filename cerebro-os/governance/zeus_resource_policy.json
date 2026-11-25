@@ -1,0 +1,35 @@
+{
+  "schema": "zeus.resource-governance.v1",
+  "authority": "ZEUS",
+  "orchestrator": "CEREBRO_OS",
+  "human_access": "OWNER_ONLY",
+  "resource_owner": "ZEUS",
+  "shared_resource_types": [
+    "AGENT",
+    "ENGINE",
+    "SKILL",
+    "KNOWLEDGE_METHOD",
+    "TOOL",
+    "INFRASTRUCTURE",
+    "AUTOMATION",
+    "MODEL",
+    "TRAINING",
+    "CONNECTOR_DEFINITION"
+  ],
+  "company_model": "AUTHORIZED_OPERATIONAL_CONTEXT",
+  "catalog_visibility": "ALL_AUTHORIZED_COMPANIES",
+  "execution": "SCOPED_AUTHORIZED_CAPABILITIES",
+  "company_bound": [
+    "BUSINESS_DATA",
+    "CUSTOMER_DATA",
+    "ACCOUNTS",
+    "CREDENTIALS",
+    "ACTIONS",
+    "AUDIT",
+    "LEGAL_OBLIGATIONS"
+  ],
+  "separate_trading_lab": true,
+  "additional_cost_eur": 0,
+  "grants_runtime_access": false,
+  "grants_deployment_authority": false
+}

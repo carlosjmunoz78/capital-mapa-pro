@@ -1,0 +1,85 @@
+name: CEREBRO CP189 verified promotion tests
+on:
+  pull_request:
+    paths:
+      - 'cerebro-os/governance/verified_promotion_gate.py'
+      - 'cerebro-os/governance/promotion_evidence_intake.py'
+      - 'cerebro-os/governance/native_ci_tests.py'
+      - 'cerebro-os/governance/native_ci_policy.py'
+      - 'cerebro-os/governance/promotion_receipt_store.py'
+      - 'cerebro-os/governance/signed_promotion_receipts.py'
+      - 'cerebro-os/governance/promotion_gate.py'
+      - 'cerebro-os/governance/cp189_tests/**'
+      - 'cerebro-os/gateway/catalog_read.py'
+      - 'cerebro-os/gateway/catalog_policy.py'
+      - 'cerebro-os/governance/tenant.py'
+      - 'cerebro-os/governance/policy.py'
+      - 'cerebro-os/gateway/catalog_audit.py'
+      - 'cerebro-os/console/persistent_store.py'
+      - 'cerebro-os/gateway/audit_release_consumers.py'
+      - 'cerebro-os/registry/canonical_177.json'
+      - 'cerebro-os/registry/zeus_shared_catalog.py'
+      - 'cerebro-os/registry/engine_registry.seed.json'
+      - 'cerebro-os/governance/zeus_resource_policy.json'
+      - '.github/workflows/cerebro-verified-promotion-cp189.yml'
+permissions:
+  contents: read
+jobs:
+  directed-promotion-regression:
+    if: github.repository == 'carlosjmunoz78/capital-mapa-pro'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install pinned signature verifier
+        run: python3 -m pip install --disable-pip-version-check cryptography==46.0.4
+      - name: Verify fail-closed promotion logic
+        env:
+          PYTHONPATH: cerebro-os
+        run: python3 -m unittest discover -v -s cerebro-os/governance/cp189_tests -p 'test_*.py'
+      - name: Map actual tracked source consumers
+        run: python3 cerebro-os/gateway/audit_release_consumers.py > "$RUNNER_TEMP/release-consumers.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-consumers-static
+          path: ${{ runner.temp }}/release-consumers.json
+          retention-days: 3
+          if-no-files-found: error
+
+  native-ci-tests-gate-rehearsal:
+    # Historical one-shot evidence, not a current release gate. Do not re-run on subsequent candidates.
+    if: github.event.pull_request.head.sha == '382fdec3f6042619fc4c41af9f1310264c2617fb' && github.repository == 'carlosjmunoz78/capital-mapa-pro' && github.event.pull_request.number == 290 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'cerebro/fact001-company-scope-gate-cp89-lab-20261123'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      actions: read
+      attestations: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify historical signed artifact through CP189 without rebuilding it
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONPATH: cerebro-os
+        run: |
+          set -euo pipefail
+          gh api repos/carlosjmunoz78/capital-mapa-pro/actions/artifacts/15012739243/zip > "$RUNNER_TEMP/candidate.zip"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          from governance.native_ci_tests import review_native_tests
+          x=review_native_tests(Path(os.environ["RUNNER_TEMP"])/"candidate.zip")
+          p=Path(os.environ["RUNNER_TEMP"])/"native-cp189-review.json"
+          p.write_text(json.dumps(x,sort_keys=True))
+          print(json.dumps(x,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-cp189-tests-review
+          path: ${{ runner.temp }}/native-cp189-review.json
+          retention-days: 3
+          if-no-files-found: error

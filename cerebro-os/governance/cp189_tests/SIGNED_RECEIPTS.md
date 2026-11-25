@@ -1,0 +1,3 @@
+# Signed promotion receipt adapter
+
+Additive candidate for CP189. Ed25519 verification with a pinned per-gate trust policy, independent tribunal key, exact candidate, payload hash, issuer, time window, and receipt ID. No production authority, no key provisioning, no live evidence store configured. The test fixtures are synthetic; the existing PREPROD deployment and old gate are unchanged. Runtime must provide independently collected signed evidence and a trusted clock, with no caller-controlled keys. Do not use a PREPROD execution receipt as PROD evidence. Rollback: revert this additive commit; no runtime impact. Dependency cryptography 46.0.4 (open source); no new subscription.

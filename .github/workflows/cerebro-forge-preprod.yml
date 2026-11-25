@@ -2,6 +2,11 @@ name: CEREBRO FORGE PREPROD
 
 on:
   workflow_dispatch:
+    inputs:
+      preflight_only:
+        description: Verify existing private canary permissions without building or deploying
+        type: boolean
+        default: true
   push:
     branches:
       - cerebro-engine-factory-v0
@@ -12,6 +17,10 @@ on:
 permissions:
   contents: read
   id-token: write
+
+concurrency:
+  group: cerebro-forge-preprod-europe-southwest1-cerebro-advisory-preprod
+  cancel-in-progress: false
 
 env:
   PROJECT_ID: cerebro-forge
@@ -24,9 +33,45 @@ env:
   DEPLOY_SERVICE_ACCOUNT: cerebro-forge-deployer@cerebro-forge.iam.gserviceaccount.com
 
 jobs:
-  deploy-preprod:
+  private-canary-preflight:
+    if: ${{ github.ref == 'refs/heads/cerebro-engine-factory-v0' && ((github.event_name == 'workflow_dispatch' && inputs.preflight_only) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[forge-preflight-only]'))) }}
     runs-on: ubuntu-latest
     environment: PREPROD
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.DEPLOY_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+      - run: python cerebro-os/preprod/private_canary.py preflight
+      - name: Invoke serving revision exactly once without traffic mutation
+        if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[forge-serving-canary]') }}
+        run: python cerebro-os/preprod/private_canary.py invoke-serving
+        env:
+          FORGE_CANARY_ID: forge-20261124-1
+          FORGE_EXPECTED_REVISION: cerebro-advisory-preprod-00266-xnc
+          FORGE_OLD_REVISION: cerebro-advisory-preprod-00266-xnc
+      - name: Preserve serving canary evidence
+        if: ${{ always() && github.event_name == 'push' && contains(github.event.head_commit.message, '[forge-serving-canary]') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-serving-canary-${{ github.run_id }}
+          path: forge-evidence/private-canary.json
+          if-no-files-found: warn
+  deploy-preprod:
+    # Repository-level readiness is set ONLY after an existing same-project,
+    # authenticated private canary invoker is proven in a real execution.
+    # Unset => SKIPPED before runner allocation, saving builds/registry uploads
+    # and Cloud Run revisions that cannot pass the remote-log evidence gate.
+    # This is not a waiver: downstream D1/identity/observability gates remain.
+    if: ${{ vars.CEREBRO_FORGE_INTERNAL_CANARY_READY == 'true' && github.ref == 'refs/heads/cerebro-engine-factory-v0' && github.event_name == 'workflow_dispatch' && inputs.preflight_only == false }}
+    runs-on: ubuntu-latest
+    environment: PREPROD
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -51,6 +96,9 @@ jobs:
           ACTIVE_ACCOUNT="$(gcloud auth list --filter=status:ACTIVE --format='value(account)')"
           test "$ACTIVE_ACCOUNT" = "$DEPLOY_SERVICE_ACCOUNT"
 
+      - name: Verify private invoker and bounded queue before building
+        run: python cerebro-os/preprod/private_canary.py preflight
+
       - name: Ensure Artifact Registry repository exists
         shell: bash
         run: |
@@ -65,11 +113,26 @@ jobs:
       - name: Configure Docker auth
         run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
 
+      - name: Preserve exact PREPROD rollback revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format=json > /tmp/before-forge.json
+          python - <<'PY'
+          import json,os
+          traffic=(json.load(open('/tmp/before-forge.json')).get('status') or {}).get('traffic') or []
+          serving=[t for t in traffic if t.get('percent',0)>0]
+          if len(serving)!=1 or serving[0].get('percent')!=100 or not serving[0].get('revisionName'):
+              raise SystemExit('HOLD: original PREPROD traffic must be one verified 100% revision')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('PREVIOUS_REVISION='+serving[0]['revisionName']+'\n')
+          PY
+
       - name: Build image
         shell: bash
         run: |
           set -euo pipefail
-          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/cerebro-advisory-preprod:${GITHUB_SHA}"
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/cerebro-advisory-preprod:${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
           docker build -f cerebro-os/preprod/Dockerfile -t "$IMAGE" .
 
@@ -123,8 +186,17 @@ jobs:
           trap - EXIT
           cleanup
 
-      - name: Push image
-        run: docker push "$IMAGE"
+      - name: Push immutable image and pin exact registry digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker push "$IMAGE"
+          EXPECTED_DIGEST="$(gcloud artifacts docker images describe "$IMAGE" --format='value(image_summary.digest)')"
+          [[ "$EXPECTED_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
+          IMAGE_REPO="${IMAGE%:*}"
+          IMAGE_CANONICAL="${IMAGE_REPO}@${EXPECTED_DIGEST}"
+          echo "IMAGE_CANONICAL=$IMAGE_CANONICAL" >> "$GITHUB_ENV"
+          echo "IMAGE_DIGEST=$EXPECTED_DIGEST" >> "$GITHUB_ENV"
 
       - name: Deploy private Cloud Run PREPROD candidate
         shell: bash
@@ -132,7 +204,8 @@ jobs:
           set -euo pipefail
           set +e
           gcloud run deploy "$SERVICE_NAME" \
-            --image="$IMAGE" \
+            --image="$IMAGE_CANONICAL" \
+            --no-traffic \
             --region="$REGION" \
             --platform=managed \
             --service-account="$RUNTIME_SERVICE_ACCOUNT" \
@@ -176,20 +249,51 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          REVISION="$(gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format='value(status.latestReadyRevisionName)')"
+          REVISION="$(gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format='value(status.latestCreatedRevisionName)')"
           test -n "$REVISION"
 
           IMAGE_DEPLOYED="$(gcloud run revisions describe "$REVISION" --region="$REGION" --format='value(spec.containers[0].image)')"
-          EXPECTED_DIGEST="$(gcloud artifacts docker images describe "$IMAGE" --format='value(image_summary.digest)')"
-          test -n "$EXPECTED_DIGEST"
-          IMAGE_REPO="${IMAGE%:*}"
-          EXPECTED_CANONICAL="${IMAGE_REPO}@${EXPECTED_DIGEST}"
-          if [ "$IMAGE_DEPLOYED" != "$IMAGE" ] && [ "$IMAGE_DEPLOYED" != "$EXPECTED_CANONICAL" ]; then
-            echo "Unexpected deployed image: $IMAGE_DEPLOYED"
-            echo "Expected tag: $IMAGE"
-            echo "Expected digest: $EXPECTED_CANONICAL"
-            exit 1
+          # Image is pinned at push; never re-resolve mutable tags during acceptance.
+          test -n "$IMAGE_CANONICAL"
+          # Cloud Run resolves an OCI index to its linux/amd64 child manifest.
+          # The child is acceptable ONLY if it is cryptographically listed by the pinned index.
+          if [ "$IMAGE_DEPLOYED" != "$IMAGE_CANONICAL" ]; then
+            export IMAGE_DEPLOYED
+            OCI_URL="https://${REGION}-docker.pkg.dev/v2/${PROJECT_ID}/${REPOSITORY}/cerebro-advisory-preprod/manifests/${IMAGE_DIGEST}"
+            AUTH="$(gcloud auth print-access-token)"
+            curl --fail --silent --show-error --max-time 20 --max-redirs 0 \
+              -H "Authorization: Bearer $AUTH" \
+              -H 'Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json' \
+              "$OCI_URL" > /tmp/forge-oci-index.json
+            unset AUTH
+            python - <<'PY'
+          import json, os
+          manifest=json.load(open('/tmp/forge-oci-index.json',encoding='utf-8'))
+          allowed={'application/vnd.oci.image.index.v1+json','application/vnd.docker.distribution.manifest.list.v2+json'}
+          expected=os.environ['IMAGE_CANONICAL']
+          deployed=os.environ['IMAGE_DEPLOYED']
+          index=os.environ['IMAGE_DIGEST']
+          if manifest.get('mediaType') not in allowed or not expected.endswith('@'+index):
+              raise SystemExit('HOLD: unexpected OCI index or digest')
+          repository=expected.split('@',1)[0]
+          if not deployed.startswith(repository+'@sha256:'):
+              raise SystemExit('HOLD: different repository or invalid child reference')
+          child=deployed.split('@',1)[1]
+          children=[x for x in manifest.get('manifests',[]) if x.get('digest')==child
+            and x.get('platform',{}).get('os')=='linux' and x.get('platform',{}).get('architecture')=='amd64']
+          if len(children)!=1:
+              raise SystemExit('HOLD: deployed digest is not the single linux/amd64 child of pinned OCI index')
+          print('Verified pinned OCI index → exact linux/amd64 Cloud Run child:',child)
+          PY
           fi
+          gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format=json > /tmp/forge-candidate-traffic.json
+          python - <<'PY'
+          import json,os
+          state=json.load(open('/tmp/forge-candidate-traffic.json'))
+          traffic=[t for t in (state.get('status') or {}).get('traffic',[]) if t.get('percent',0)>0]
+          if len(traffic)!=1 or traffic[0].get('percent')!=100 or traffic[0].get('revisionName')!=os.environ['PREVIOUS_REVISION']:
+              raise SystemExit('HOLD: candidate traffic before passing gates or concurrent mutation')
+          PY
 
           gcloud run revisions describe "$REVISION" --region="$REGION" --format=json > /tmp/forge-revision.json
           python - <<'PY'
@@ -219,15 +323,21 @@ jobs:
           PY
 
           echo "REVISION=$REVISION" >> "$GITHUB_ENV"
-          echo "IMAGE_DIGEST=$EXPECTED_DIGEST" >> "$GITHUB_ENV"
-          echo "Persistent PREPROD revision: $REVISION"
+          echo "Persistent PREPROD revision prepared at 0% traffic: $REVISION"
+
+      - name: Invoke exact private candidate once
+        run: python cerebro-os/preprod/private_canary.py invoke
+        env:
+          FORGE_CANARY_ID: forge-${{ github.run_id }}-${{ github.run_attempt }}
+          FORGE_EXPECTED_REVISION: ${{ env.REVISION }}
+          FORGE_OLD_REVISION: ${{ env.PREVIOUS_REVISION }}
 
       - name: Verify persistent remote onboarding rehearsal evidence
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p forge-evidence
-          FILTER="resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${SERVICE_NAME}\" AND resource.labels.revision_name=\"${REVISION}\" AND jsonPayload.marker=\"PERSISTENT_REMOTE_ONBOARDING_REHEARSAL_PASS\""
+          FILTER="resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${SERVICE_NAME}\" AND resource.labels.revision_name=\"${REVISION}\" AND timestamp>=\"${FORGE_CANARY_STARTED}\" AND jsonPayload.marker=\"PERSISTENT_REMOTE_ONBOARDING_REHEARSAL_PASS\""
           for attempt in $(seq 1 12); do
             gcloud logging read "$FILTER" --limit=20 --format=json > /tmp/preprod-remote-rehearsal.json
             if python - <<'PY'
@@ -284,7 +394,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p forge-evidence
-          FILTER="resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${SERVICE_NAME}\" AND resource.labels.revision_name=\"${REVISION}\" AND jsonPayload.marker=\"PERSISTENT_OBSERVABILITY_PROBE\""
+          FILTER="resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"${SERVICE_NAME}\" AND resource.labels.revision_name=\"${REVISION}\" AND timestamp>=\"${FORGE_CANARY_STARTED}\" AND jsonPayload.marker=\"PERSISTENT_OBSERVABILITY_PROBE\""
           for attempt in $(seq 1 12); do
             gcloud logging read "$FILTER" --limit=500 --format=json > /tmp/preprod-observability.json
             if python - <<'PY'
@@ -365,6 +475,39 @@ jobs:
             echo "computer_use_performed=false"
             echo "github_sha=$GITHUB_SHA"
           } > forge-evidence/preprod-deployment.txt
+
+      - name: Promote only fully accepted PREPROD revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format=json > /tmp/forge-gate.json
+          python - <<'PY'
+          import json,os
+          state=json.load(open('/tmp/forge-gate.json'))
+          traffic=[t for t in (state.get('status') or {}).get('traffic',[]) if t.get('percent',0)>0]
+          if len(traffic)!=1 or traffic[0].get('percent')!=100 or traffic[0].get('revisionName')!=os.environ['PREVIOUS_REVISION']:
+              raise SystemExit('HOLD: serving revision changed before promotion')
+          PY
+          if ! gcloud run services update-traffic "$SERVICE_NAME" --region="$REGION" \
+               --to-revisions "$REVISION=100" --quiet; then
+            gcloud run services update-traffic "$SERVICE_NAME" --region="$REGION" \
+              --to-revisions "$PREVIOUS_REVISION=100" --quiet || true
+            exit 1
+          fi
+          gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format=json > /tmp/forge-promoted.json
+          if ! python - <<'PY'
+          import json,os
+          state=json.load(open('/tmp/forge-promoted.json'))
+          traffic=[t for t in (state.get('status') or {}).get('traffic',[]) if t.get('percent',0)>0]
+          if len(traffic)!=1 or traffic[0].get('percent')!=100 or traffic[0].get('revisionName')!=os.environ['REVISION']:
+              raise SystemExit('PROMOTION_TRAFFIC_MISMATCH')
+          PY
+          then
+            gcloud run services update-traffic "$SERVICE_NAME" --region="$REGION" \
+              --to-revisions "$PREVIOUS_REVISION=100" --quiet || true
+            exit 1
+          fi
+          echo "Verified PREPROD revision serving 100%: $REVISION"
 
       - name: Upload evidence
         uses: actions/upload-artifact@v4

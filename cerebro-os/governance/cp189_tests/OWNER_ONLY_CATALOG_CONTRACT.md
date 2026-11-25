@@ -1,0 +1,10 @@
+# Owner-only operating model and FACT.CATALOG.READ boundary
+
+Owner directive 2026-11-25: one human administrator, no public signup, no external company login, no customer portal. Companies are operational contexts, not human users. Shared engines and knowledge methods are permitted; company-specific data, accounts, secrets, actions and audit remain scoped. Machine identities remain distinct and least privilege. No aliasing between canonical company IDs. An authorized owner may select a company, but the execution context must match that company's scope. This is a design directive, not a runtime identity grant.
+
+## Exact existing capability
+Candidate fenix / FACT-001 / PREPROD / 1.2.0, source 70a6fa8608c52b7b832e6c46704b0663bf4c2c7f, artifact SHA256 3037a23330f0049ed7457d11103212c2b338c5fcb03b4b77cfef25aec4711fd4. Contract: only global logical definitions (177 IDs); no operational-instance certification, network, external mutations or deployment. Successful audit required. Existing package and signature unchanged.
+
+Four alternatives reviewed: A compose existing tenant.py and policy.py with exact scope (selected); B reuse legacy global_only exception (not appropriate for company-specific execution); C duplicate IAM or new multiuser service (unnecessary); D use an existing authorized runtime identity once the prior hold is resolved (still required for live execution, not replaced by A).
+
+The new offline policy adapter composes existing rules, rejects mismatched scope, invalid contexts and costs outside zero-additional-cost allowance, preserves canonical exceptions. No live caller is wired. Local/CI results are evidence of composition only; no permissions, runtime isolation, policy or release gate is self-approved. A future runtime must supply verified identity, membership and facts from trusted sources; request data cannot supply authorization. Existing owner admission and historical recovery holds remain untouched. Rollback: leave adapter unreferenced. No new data store or subscription.
