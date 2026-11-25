@@ -1,5 +1,6 @@
 """CP188: provider-managed credentials, exact operation and scope; no raw secret returned.
-LAB/PREPROD only. Runtime-configured adapter, not a public credential endpoint.
+LAB/PREPROD providers unchanged; exact PROD catalog scope is opt-in and fail-closed.
+Runtime-configured adapter, not a public credential endpoint.
 """
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,13 +27,32 @@ IMPERSONATION = "https://iamcredentials.googleapis.com/v1/projects/-/serviceAcco
 EXPECTED_REF = "refs/heads/cerebro-engine-factory-v0"
 EXPECTED_REPO = "carlosjmunoz78/capital-mapa-pro"
 
+# Logical account alias only: not a provisioned service identity or grant.
+FACT_CATALOG_PROD = Scope("fenix", "FACT-001", "fact-catalog-reader",
+                          "PROD", "1.2.0", "FACT.CATALOG.READ")
+
 class ScopedCredentialBroker:
-    def __init__(self, *, providers):
+    def __init__(self, *, providers, prod_authorizer=None):
         self._providers = dict(providers)
+        # Trusted runtime dependency, never supplied by the request. Must
+        # independently verify live identity, scope and release authorization.
+        # No default, no fallback to the LAB/PREPROD provider.
+        self._prod_authorizer = prod_authorizer
 
     def execute(self, scope):
-        if type(scope) is not Scope or scope.environment not in ("LAB", "PREPROD"):
+        if type(scope) is not Scope or scope.environment not in ("LAB", "PREPROD", "PROD"):
             raise PermissionError("CREDENTIAL_ENVIRONMENT_DENIED")
+        if scope.environment == "PROD":
+            if scope != FACT_CATALOG_PROD:
+                raise PermissionError("CREDENTIAL_SCOPE_DENIED")
+            if not callable(self._prod_authorizer):
+                raise PermissionError("PROD_AUTHORITY_REQUIRED")
+            try:
+                granted = self._prod_authorizer(scope)
+            except Exception:
+                raise PermissionError("PROD_AUTHORITY_DENIED") from None
+            if granted is not True:
+                raise PermissionError("PROD_AUTHORITY_DENIED")
         adapter = self._providers.get(scope)
         if adapter is None:
             raise PermissionError("CREDENTIAL_SCOPE_DENIED")
