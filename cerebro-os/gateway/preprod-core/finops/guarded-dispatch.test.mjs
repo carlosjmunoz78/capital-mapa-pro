@@ -1,0 +1,28 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {CoreFinOpsLedger,submitGuarded} from './guarded-dispatch.mjs';
+import {FaultWorkflow185} from './core-dispatch-entry.mjs';
+import {verifyMachineOrder} from './core-dispatch.mjs';
+import {signBody} from './independent-iam.mjs';
+const b64=x=>Buffer.from(x).toString('base64'),account='a'.repeat(32),id='CORE-PREPROD-20261124-002';
+function storage(db){return{sql:{exec(q,...args){const s=db.prepare(q);if(/^SELECT/.test(q))return{toArray:()=>s.all(...args)};s.run(...args);return{toArray:()=>[]};}},transactionSync(f){db.exec('BEGIN IMMEDIATE');try{const v=f();db.exec('COMMIT');return v;}catch(e){db.exec('ROLLBACK');throw e;}}};}
+async function setup(t){
+ const db=new DatabaseSync(':memory:');t.after(()=>db.close());
+ const [m,s]=await Promise.all(Array.from({length:2},()=>crypto.subtle.generateKey({name:'Ed25519'},true,['sign','verify'])));
+ const e={CORE_ENV:'PREPROD',CORE_MACHINE_ENABLED:'true',CORE_FINOPS_ENABLED:'true',CORE_FINOPS_ACCOUNT:account,CORE_FINOPS_DAILY_LIMIT:'1',CORE_FINOPS_PLAN:JSON.stringify({account_id:account,plan:'WORKERS_FREE',observed_at_epoch:Math.floor(Date.now()/1000),source:'synthetic-test-only',products:['workers','durable_objects_sqlite','workflows'],external_paid_services:false}),CORE_MACHINE_PUBLIC:b64(await crypto.subtle.exportKey('raw',m.publicKey)),CORE_MACHINE_PRIVATE:b64(await crypto.subtle.exportKey('pkcs8',m.privateKey)),CORE_SUPERVISOR_PUBLIC:b64(await crypto.subtle.exportKey('raw',s.publicKey))};
+ let calls=0,superCalls=0,core,proof;
+ const ledger=new CoreFinOpsLedger({storage:storage(db)},e);
+ e.CORE_FINOPS_LEDGER={jurisdiction(j){assert.equal(j,'eu');return{get(n){assert.equal(n,'core-finops-preprod:'+account);return ledger;},idFromName:n=>n};}};
+ e.CORE_WORKFLOW={create:async v=>{calls++;const route=await verifyMachineOrder(e,v.params,v.id);core={status:'CORE_ORDER_COMPLETED',route,result:{request_id:route.request_id,company_id:'fenix',environment:'PREPROD',external_mutation_allowed:false},grant_revoked:true,tribunal_verified:true,promotion_allowed:false,receipt_hashes:{fact:'a'.repeat(64),grant:'b'.repeat(64),jarvis:'c'.repeat(64),result:'d'.repeat(64)}};return{id:v.id};},get:async()=>({status:async()=>({status:'complete',output:core})})};
+ e.SUPERVISOR_WORKFLOW={create:async v=>{superCalls++;const b={schema:'cerebro.core.supervisor.v1',request_id:core.route.request_id,company_id:'fenix',engine_id:'FACT-001',environment:'PREPROD',capability:'FACT.INVENTORY.READ',status:'CORE_SUPERVISOR_VERIFIED',provider_terminal:true,iam_revoked:true,tribunal_signature_verified:true,fact_persisted:true,promotion_allowed:false,retry_allowed:false,grant_sha256:core.receipt_hashes.grant,result_sha256:core.receipt_hashes.result,fact_sha256:core.receipt_hashes.fact,jarvis_hash_independently_verified:true,jarvis_sha256:core.receipt_hashes.jarvis};proof={body:b,signature:await signBody(s.privateKey,b)};return{id:v.id};},get:async()=>({status:async()=>({status:'complete',output:proof})})};
+ const workflow=new FaultWorkflow185({},e),steps=[];
+ const step={do:async(name,opts,fn)=>{assert.equal(opts.retries.limit,0);steps.push(name);return fn();}};
+ return{e,ledger,workflow,step,steps,calls:()=>calls,superCalls:()=>superCalls,run:(n=2,payload={})=>workflow.run({instanceId:'core-preprod-dispatch-20261124-00'+n,payload},step)};
+}
+test('compiled dispatcher uses durable guard, actual signed machine order and signed supervisor verification',async t=>{const f=await setup(t);const r=await f.run();assert.equal(r.status,'CORE_MACHINE_ORDER_SUPERVISED');assert.equal(f.steps.length,4);assert.equal(f.calls(),1);assert.equal(f.superCalls(),1);assert.equal((await f.run()).reason,'DUPLICATE_RECONCILE_NO_RETRY');assert.equal(f.calls(),1);});
+test('no quota returns DEFER without child or supervisor',async t=>{const f=await setup(t);await f.run();const r=await f.run(3);assert.equal(r.status,'DEFER');assert.equal(f.calls(),1);assert.equal(f.superCalls(),1);});
+test('disabled, missing or invalid runtime binding fails closed',async t=>{const f=await setup(t);f.e.CORE_FINOPS_ENABLED='false';assert.equal((await f.run()).status,'HOLD');f.e.CORE_FINOPS_ENABLED='true';f.e.CORE_FINOPS_PLAN='{}';assert.equal((await f.run()).status,'HOLD');delete f.e.CORE_FINOPS_LEDGER;assert.equal((await f.run()).status,'HOLD');assert.equal(f.calls(),0);});
+test('historical ID and caller supplied plan denied',async t=>{const f=await setup(t);await assert.rejects(f.run(1),/INSTANCE_DENIED/);await assert.rejects(f.run(2,{plan:'WORKERS_FREE'}),/MACHINE_PAYLOAD_DENIED/);assert.equal(f.calls(),0);});
+test('ambiguous child submission does not retry',async t=>{const f=await setup(t);let n=0;f.e.CORE_WORKFLOW.create=async()=>{n++;throw Error('provider ambiguity');};assert.equal((await f.run()).status,'HOLD');assert.equal((await f.run()).reason,'DUPLICATE_RECONCILE_NO_RETRY');assert.equal(n,1);assert.equal(f.superCalls(),0);});
+test('foreign environment denied at private ledger and wrapper',async t=>{const f=await setup(t);f.e.CORE_ENV='PROD';assert.equal((await f.ledger.submit(id)).status,'HOLD');assert.equal((await submitGuarded(f.e,id)).status,'HOLD');assert.equal(f.calls(),0);});

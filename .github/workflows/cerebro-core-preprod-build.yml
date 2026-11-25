@@ -26,6 +26,10 @@ jobs:
         run: node --test cerebro-os/gateway/preprod-core/owner-admission/*.test.mjs
       - name: Native Free FinOps guard regression
         run: node --test cerebro-os/gateway/preprod-core/finops/*.test.mjs
+      - name: Build and test isolated guarded dispatcher overlay
+        run: |
+          node cerebro-os/gateway/preprod-core/finops/build-guarded-overlay.mjs "$RUNNER_TEMP/core-preprod" "$RUNNER_TEMP/core-finops" cerebro-os/gateway/preprod-core/finops
+          node --experimental-loader "$RUNNER_TEMP/core-finops/cloud-loader.mjs" --test "$RUNNER_TEMP/core-finops/core-cloud.test.mjs" "$RUNNER_TEMP/core-finops/core-dispatch.test.mjs" "$RUNNER_TEMP/core-finops/guarded-dispatch.test.mjs"
       - uses: actions/upload-artifact@v4
         with:
           name: core-preprod-1.1.0
