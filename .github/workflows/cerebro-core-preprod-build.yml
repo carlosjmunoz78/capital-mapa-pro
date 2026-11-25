@@ -24,6 +24,8 @@ jobs:
           node --experimental-loader "$RUNNER_TEMP/core-preprod/cloud-loader.mjs" --test "$RUNNER_TEMP/core-preprod/core-cloud.test.mjs" "$RUNNER_TEMP/core-preprod/core-dispatch.test.mjs"
       - name: Owner admission and durable provenance regression
         run: node --test cerebro-os/gateway/preprod-core/owner-admission/*.test.mjs
+      - name: Native Free FinOps guard regression
+        run: node --test cerebro-os/gateway/preprod-core/finops/*.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: core-preprod-1.1.0
