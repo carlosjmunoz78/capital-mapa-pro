@@ -11,6 +11,8 @@ on:
       - 'cerebro-os/governance/promotion_gate.py'
       - 'cerebro-os/governance/cp189_tests/**'
       - 'cerebro-os/gateway/catalog_read.py'
+      - 'cerebro-os/gateway/catalog_audit.py'
+      - 'cerebro-os/console/persistent_store.py'
       - 'cerebro-os/gateway/audit_release_consumers.py'
       - 'cerebro-os/registry/canonical_177.json'
       - '.github/workflows/cerebro-verified-promotion-cp189.yml'
