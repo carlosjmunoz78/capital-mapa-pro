@@ -23,12 +23,23 @@ class Gateway:
         self.engine_ids = set(engine_ids)
         self.connector_registry = connector_registry
         self.policy_check = policy_check or (lambda request: (True, None))
+        self._explicit_policy_check = policy_check
 
     def route(self, request: GatewayRequest) -> dict:
         request.validate()
         if request.engine_id not in self.engine_ids:
             return {"status": "HUMAN_REQUIRED", "reason": "LOW_CONFIDENCE"}
-        allowed, reason = self.policy_check(request)
+        if request.environment == "PROD":
+            if not callable(self._explicit_policy_check):
+                return {"status": "HUMAN_REQUIRED", "reason": "POLICY_CONFLICT"}
+            try:
+                allowed, reason = self._explicit_policy_check(request)
+            except Exception:
+                return {"status": "HUMAN_REQUIRED", "reason": "POLICY_CONFLICT"}
+            if type(allowed) is not bool:
+                return {"status": "HUMAN_REQUIRED", "reason": "POLICY_CONFLICT"}
+        else:
+            allowed, reason = self.policy_check(request)
         if not allowed:
             return {"status": "HUMAN_REQUIRED", "reason": reason or "POLICY_CONFLICT"}
         connector = self.connector_registry.route(
