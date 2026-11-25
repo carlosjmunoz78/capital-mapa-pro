@@ -1,0 +1,51 @@
+name: CEREBRO PROD evidence review (no deployment)
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/cerebro-core-prod.yml'
+      - 'cerebro-os/governance/prod_release_review.py'
+      - 'cerebro-os/governance/cp189_tests/test_prod_release_review.py'
+permissions:
+  contents: read
+jobs:
+  regression:
+    if: github.repository == 'carlosjmunoz78/capital-mapa-pro'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check cryptography==46.0.4
+      - name: Verify review-only boundary
+        env:
+          PYTHONPATH: cerebro-os
+        run: python -m unittest discover -v -s cerebro-os/governance/cp189_tests -p 'test_prod_release_review.py'
+  review:
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'carlosjmunoz78/capital-mapa-pro'
+    needs: regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check cryptography==46.0.4
+      - name: Review exact candidate and independent PROD evidence
+        env:
+          PYTHONPATH: cerebro-os
+          GH_TOKEN: ${{ github.token }}
+          CEREBRO_PROD_REVIEW_CONFIG: ${{ vars.CEREBRO_PROD_REVIEW_CONFIG }}
+        run: python -m governance.prod_release_review
+# Intentionally no deploy job, PROD environment secret access, or release authority.
+# Separate independently authorized deployment must consume verified evidence.
