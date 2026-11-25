@@ -1,0 +1,99 @@
+name: CEREBRO catalog exact PREPROD artifact attestation
+on:
+  pull_request:
+    paths:
+      - 'cerebro-os/gateway/build_catalog_exact.py'
+      - '.github/workflows/cerebro-catalog-preprod-attest.yml'
+permissions:
+  contents: read
+jobs:
+  catalog-package:
+    if: github.repository == 'carlosjmunoz78/capital-mapa-pro' && github.event.pull_request.number == 290 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'cerebro/fact001-company-scope-gate-cp89-lab-20261123'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Recreate exact previously accepted catalog package
+        run: python3 cerebro-os/gateway/build_catalog_exact.py "$RUNNER_TEMP/catalog.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catalog-exact-1.2.0
+          path: ${{ runner.temp }}/catalog.zip
+          retention-days: 3
+          if-no-files-found: error
+  catalog-attest:
+    needs: catalog-package
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: catalog-exact-1.2.0
+          path: ${{ runner.temp }}/catalog
+      - name: Validate artifact and scope before issuing technical attestation
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/catalog"
+          echo '3037a23330f0049ed7457d11103212c2b338c5fcb03b4b77cfef25aec4711fd4  catalog.zip' | sha256sum -c -
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          p={"schema":"cerebro.catalog.artifact-integrity.v1","company_id":"fenix","engine_id":"FACT-001","environment":"PREPROD","version":"1.2.0","capability":"FACT.CATALOG.READ","package_source":"70a6fa8608c52b7b832e6c46704b0663bf4c2c7f","artifact_sha256":"3037a23330f0049ed7457d11103212c2b338c5fcb03b4b77cfef25aec4711fd4","manifest_sha256":"f9f8d38e520afa9871e78cd93d5e3a31e17ff4d3f39a25be2ffebcf1f9056629","result":"EXACT_PACKAGE_INTEGRITY","workflow_commit":os.environ["GITHUB_SHA"],"run_id":int(os.environ["GITHUB_RUN_ID"]),"deployment_authorized":False,"runtime_identity_verified":False,"historical_restore_performed":False}
+          Path("predicate.json").write_text(json.dumps(p,sort_keys=True))
+          PY
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        id: attest
+        with:
+          subject-path: ${{ runner.temp }}/catalog/catalog.zip
+          predicate-type: https://github.com/carlosjmunoz78/capital-mapa-pro/cerebro/catalog-artifact-integrity/v1
+          predicate-path: ${{ runner.temp }}/catalog/predicate.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catalog-exact-attestation
+          path: |
+            ${{ steps.attest.outputs.bundle-path }}
+            ${{ runner.temp }}/catalog/predicate.json
+          retention-days: 3
+          if-no-files-found: error
+  catalog-verify:
+    needs: [catalog-package, catalog-attest]
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions:
+      contents: read
+      actions: read
+      attestations: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: catalog-exact-1.2.0
+          path: ${{ runner.temp }}/catalog
+      - name: Independently verify exact signed artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/catalog"
+          echo '3037a23330f0049ed7457d11103212c2b338c5fcb03b4b77cfef25aec4711fd4  catalog.zip' | sha256sum -c -
+          gh attestation verify catalog.zip -R "$GITHUB_REPOSITORY" --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/cerebro-catalog-preprod-attest.yml" --source-digest "$GITHUB_SHA" --deny-self-hosted-runners --predicate-type https://github.com/carlosjmunoz78/capital-mapa-pro/cerebro/catalog-artifact-integrity/v1 --format json > verified.json
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          expected={"schema":"cerebro.catalog.artifact-integrity.v1","company_id":"fenix","engine_id":"FACT-001","environment":"PREPROD","version":"1.2.0","capability":"FACT.CATALOG.READ","package_source":"70a6fa8608c52b7b832e6c46704b0663bf4c2c7f","artifact_sha256":"3037a23330f0049ed7457d11103212c2b338c5fcb03b4b77cfef25aec4711fd4","manifest_sha256":"f9f8d38e520afa9871e78cd93d5e3a31e17ff4d3f39a25be2ffebcf1f9056629","result":"EXACT_PACKAGE_INTEGRITY","workflow_commit":os.environ["GITHUB_SHA"],"run_id":int(os.environ["GITHUB_RUN_ID"]),"deployment_authorized":False,"runtime_identity_verified":False,"historical_restore_performed":False}
+          assert any(x["verificationResult"]["statement"]["predicate"]==expected for x in json.loads(Path("verified.json").read_text()))
+          print("CATALOG_EXACT_ATTESTATION_VERIFIED",json.dumps(expected,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catalog-exact-verified
+          path: ${{ runner.temp }}/catalog/verified.json
+          retention-days: 3
+          if-no-files-found: error
