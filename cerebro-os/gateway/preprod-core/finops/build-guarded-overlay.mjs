@@ -16,7 +16,7 @@ const replace=(a,b)=>{if(entry.split(a).length!==2)throw Error('ENTRY_DRIFT');en
 replace("import {dispatchCore,waitComplete","import {submitGuarded,CoreFinOpsLedger} from './guarded-dispatch.mjs';\nimport {waitComplete");
 replace("export {closed as default};","export {closed as default,CoreFinOpsLedger};");
 replace("00[1-8]","00[2-8]");
-replace("await step.do('machine signed order submission',opts,()=>dispatchCore(this.env,id));","const admission=await step.do('finops guarded machine submission',opts,()=>submitGuarded(this.env,id));if(admission.status!=='SUBMITTED')return {...admission,request_id:id};");
+replace("await step.do('machine signed order submission',opts,()=>dispatchCore(this.env,id));","let admission=await step.do('finops guarded machine submission',opts,()=>submitGuarded(this.env,id));if(admission.status==='DEFER'){await step.sleepUntil('finops wait for UTC quota reset',admission.retry_after_epoch*1000);admission=await step.do('finops revalidate after quota reset',opts,()=>submitGuarded(this.env,id));}if(admission.status!=='SUBMITTED')return {...admission,request_id:id};");
 files['core-dispatch-entry.mjs']=Buffer.from(entry);
 const out={...manifest,base_manifest_sha256:baseHash,artifact_revision:'1.1.0-finops-candidate',promotion_allowed:false,files:Object.fromEntries(Object.keys(files).sort().map(n=>[n,sha(files[n])]))};
 mkdirSync(dest);for(const [n,b] of Object.entries(files))writeFileSync(join(dest,n),b,{flag:'wx'});writeFileSync(join(dest,'manifest.json'),JSON.stringify(out,null,2)+'\n',{flag:'wx'});
