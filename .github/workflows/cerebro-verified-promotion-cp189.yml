@@ -5,6 +5,7 @@ on:
       - 'cerebro-os/governance/verified_promotion_gate.py'
       - 'cerebro-os/governance/promotion_evidence_intake.py'
       - 'cerebro-os/governance/native_ci_tests.py'
+      - 'cerebro-os/governance/native_ci_policy.py'
       - 'cerebro-os/governance/promotion_receipt_store.py'
       - 'cerebro-os/governance/signed_promotion_receipts.py'
       - 'cerebro-os/governance/promotion_gate.py'

@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'cerebro-os/gateway/preprod-core/**'
+      - 'cerebro-os/governance/native_ci_policy.py'
+      - 'cerebro-os/governance/native_ci_tests.py'
       - 'cerebro-os/gateway/core-*.mjs'
       - 'cerebro-os/factory/cp*/**'
       - '.github/workflows/cerebro-core-preprod-build.yml'
@@ -165,9 +167,32 @@ jobs:
           assert any(v["verificationResult"]["statement"]["predicate"]==expected for v in verified)
           print(json.dumps({"status":"SIGNED_CI_TESTS_EVIDENCE_VERIFIED",**expected},sort_keys=True))
           PY
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Admit current candidate tests evidence to CP189 read-only review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONPATH: cerebro-os
+          ARTIFACT_ID: ${{ needs.build.outputs.candidate-id }}
+          EXPECTED_DIGEST: ${{ needs.build.outputs.candidate-digest }}
+          HEAD_COMMIT: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          from governance.native_ci_policy import BuildPolicy,review_build
+          e=os.environ
+          p=BuildPolicy(e["GITHUB_SHA"],e["HEAD_COMMIT"],int(e["GITHUB_RUN_ID"]),int(e["GITHUB_RUN_ATTEMPT"]),int(e["ARTIFACT_ID"]),e["EXPECTED_DIGEST"].removeprefix("sha256:"))
+          result=review_build(Path(e["RUNNER_TEMP"])/"candidate.zip",p)
+          (Path(e["RUNNER_TEMP"])/"current-cp189-review.json").write_text(json.dumps(result,sort_keys=True))
+          print(json.dumps(result,sort_keys=True))
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: core-preprod-ci-tests-verified
-          path: ${{ runner.temp }}/verified-tests.json
+          path: |
+            ${{ runner.temp }}/verified-tests.json
+            ${{ runner.temp }}/current-cp189-review.json
           retention-days: 3
           if-no-files-found: error
