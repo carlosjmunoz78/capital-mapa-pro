@@ -18,6 +18,9 @@ on:
       - 'cerebro-os/console/persistent_store.py'
       - 'cerebro-os/gateway/audit_release_consumers.py'
       - 'cerebro-os/registry/canonical_177.json'
+      - 'cerebro-os/registry/zeus_shared_catalog.py'
+      - 'cerebro-os/registry/engine_registry.seed.json'
+      - 'cerebro-os/governance/zeus_resource_policy.json'
       - '.github/workflows/cerebro-verified-promotion-cp189.yml'
 permissions:
   contents: read
