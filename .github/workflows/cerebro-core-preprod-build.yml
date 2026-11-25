@@ -26,6 +26,8 @@ jobs:
         run: node --test cerebro-os/gateway/preprod-core/owner-admission/*.test.mjs
       - name: Native Free FinOps guard regression
         run: node --test cerebro-os/gateway/preprod-core/finops/zero-cost-guard.test.mjs
+      - name: Isolated credential reissue regression
+        run: node --test cerebro-os/gateway/preprod-core/reissue/reissue.test.mjs
       - name: Build and test isolated guarded dispatcher overlay
         run: |
           node cerebro-os/gateway/preprod-core/finops/build-guarded-overlay.mjs "$RUNNER_TEMP/core-preprod" "$RUNNER_TEMP/core-finops" cerebro-os/gateway/preprod-core/finops
