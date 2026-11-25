@@ -14,11 +14,28 @@ from .promotion_receipt_store import MAX_PAYLOAD, MAX_ENVELOPE, _unique_pairs
 
 def admit_receipt(*, candidate, gate, evidence_id, payload, envelope_json,
                   store_path, trust, clock, max_age_seconds=3600):
+    return _admit_receipt(candidate=candidate, gate=gate, evidence_id=evidence_id,
+        payload=payload, envelope_json=envelope_json, store_path=store_path,
+        trust=trust, clock=clock, max_age_seconds=max_age_seconds, expected_environment="PREPROD")
+
+
+def admit_prod_receipt(*, candidate, gate, evidence_id, payload, envelope_json,
+                       store_path, trust, clock, max_age_seconds=3600):
+    """Trusted PROD evidence intake only. Requires a separately provisioned PROD store.
+    This does not issue receipts, restore historical data or authorize a release.
+    """
+    return _admit_receipt(candidate=candidate, gate=gate, evidence_id=evidence_id,
+        payload=payload, envelope_json=envelope_json, store_path=store_path,
+        trust=trust, clock=clock, max_age_seconds=max_age_seconds, expected_environment="PROD")
+
+
+def _admit_receipt(*, candidate, gate, evidence_id, payload, envelope_json,
+                   store_path, trust, clock, max_age_seconds, expected_environment):
     def result(status, reason):
         return {"status":status,"reason":reason,"deployment_authorized":False}
     db=None
     try:
-        if type(candidate) is not Candidate or candidate.environment!="PREPROD":
+        if type(candidate) is not Candidate or candidate.environment!=expected_environment:
             return result("HOLD","CANDIDATE_SCOPE_DENIED")
         if gate not in REQUIRED_GATES or type(payload) is not bytes or not 0<len(payload)<=MAX_PAYLOAD:
             return result("HOLD","PAYLOAD_DENIED")
@@ -40,6 +57,14 @@ def admit_receipt(*, candidate, gate, evidence_id, payload, envelope_json,
         db=sqlite3.connect(path.as_uri()+"?mode=rw",uri=True,timeout=2)
         db.execute("PRAGMA trusted_schema=OFF")
         db.execute("BEGIN IMMEDIATE")
+        scope_table=db.execute("SELECT type FROM sqlite_schema WHERE name='promotion_store_scope'").fetchall()
+        if scope_table:
+            if scope_table!=[("table",)] or db.execute("SELECT environment FROM promotion_store_scope LIMIT 2").fetchall()!=[(expected_environment,)]:
+                db.rollback()
+                return result("HOLD","STORE_SCOPE_DENIED")
+        elif expected_environment=="PROD":
+            db.rollback()
+            return result("HOLD","STORE_SCOPE_DENIED")
         rows=db.execute("SELECT gate,payload,envelope FROM promotion_receipts WHERE evidence_id=? LIMIT 2",(evidence_id,)).fetchall()
         if rows:
             if len(rows)==1 and rows[0][0]==gate and rows[0][1]==payload and json.loads(rows[0][2],object_pairs_hook=_unique_pairs)==envelope:
