@@ -77,5 +77,57 @@ class BrokerTests(unittest.TestCase):
         with self.assertRaisesRegex(PermissionError,"^PROVIDER_OPERATION_DENIED$"):
             self.broker().execute(FORGE)
 
+class ProdCatalogBrokerTests(unittest.TestCase):
+    def setUp(self):
+        self.calls = []
+        self.auth_calls = []
+
+    def provider(self):
+        self.calls.append("catalog")
+        return {"status": "TEST_ONLY"}
+
+    def allow(self, scope):
+        self.auth_calls.append(scope)
+        return True
+
+    def test_missing_authority_fails_closed(self):
+        broker = ScopedCredentialBroker(providers={FACT_CATALOG_PROD: self.provider})
+        with self.assertRaisesRegex(PermissionError, "PROD_AUTHORITY_REQUIRED"):
+            broker.execute(FACT_CATALOG_PROD)
+        self.assertEqual(self.calls, [])
+
+    def test_only_exact_scope_with_trusted_authority(self):
+        broker = ScopedCredentialBroker(providers={FACT_CATALOG_PROD: self.provider},
+                                         prod_authorizer=self.allow)
+        for field, value in (("company_id", "other"), ("engine_id", "OTHER"),
+                             ("account_id", "other"), ("version", "2.0.0"),
+                             ("operation", "WRITE")):
+            with self.assertRaises(PermissionError):
+                broker.execute(dataclasses.replace(FACT_CATALOG_PROD, **{field: value}))
+        self.assertEqual(self.calls, [])
+        self.assertEqual(self.auth_calls, [])
+        self.assertEqual(broker.execute(FACT_CATALOG_PROD), {"status": "TEST_ONLY"})
+        self.assertEqual(self.calls, ["catalog"])
+        self.assertEqual(self.auth_calls, [FACT_CATALOG_PROD])
+
+    def test_denied_non_boolean_and_failed_authority(self):
+        def broken(scope):
+            raise RuntimeError("sensitive")
+        for checker in (lambda scope: False, lambda scope: 1, broken):
+            broker = ScopedCredentialBroker(providers={FACT_CATALOG_PROD: self.provider},
+                                             prod_authorizer=checker)
+            with self.assertRaisesRegex(PermissionError, "^PROD_AUTHORITY_DENIED$"):
+                broker.execute(FACT_CATALOG_PROD)
+        self.assertEqual(self.calls, [])
+
+    def test_no_fallback_and_no_forge_prod(self):
+        broker = ScopedCredentialBroker(providers={FORGE: self.provider},
+                                         prod_authorizer=self.allow)
+        with self.assertRaises(PermissionError):
+            broker.execute(FACT_CATALOG_PROD)
+        with self.assertRaises(PermissionError):
+            broker.execute(dataclasses.replace(FORGE, environment="PROD"))
+        self.assertEqual(self.calls, [])
+
 if __name__=="__main__":
     unittest.main()
