@@ -1,0 +1,132 @@
+name: CEREBRO catalog package tests evidence
+on:
+  pull_request:
+    paths:
+      - 'cerebro-os/governance/catalog_tests_evidence.py'
+      - '.github/workflows/cerebro-catalog-tests-evidence.yml'
+permissions:
+  contents: read
+jobs:
+  acceptance:
+    if: github.repository == 'carlosjmunoz78/capital-mapa-pro' && github.event.pull_request.number == 290 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'cerebro/fact001-company-scope-gate-cp89-lab-20261123'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions:
+      contents: read
+      actions: read
+      attestations: read
+    steps:
+      - name: Verify original signed package and run exact acceptance in isolated extraction
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          gh api repos/carlosjmunoz78/capital-mapa-pro/actions/artifacts/15015803635/zip > outer.zip
+          echo '4660df2357cc07d255246abc0bf576a4a07b6e64310e618a3269b07ac3b8ccac  outer.zip' | sha256sum -c -
+          unzip -p outer.zip catalog.zip > catalog.zip
+          echo '3037a23330f0049ed7457d11103212c2b338c5fcb03b4b77cfef25aec4711fd4  catalog.zip' | sha256sum -c -
+          gh attestation verify catalog.zip -R "$GITHUB_REPOSITORY" --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/cerebro-catalog-preprod-attest.yml" --source-digest 0edc94b91b71b84b08d0a7bc1f522d2525cadd5e --deny-self-hosted-runners --predicate-type https://github.com/carlosjmunoz78/capital-mapa-pro/cerebro/catalog-artifact-integrity/v1
+          python3 - <<'PY'
+          import zipfile,hashlib,json,pathlib
+          with zipfile.ZipFile("catalog.zip") as z:
+              m=z.read("manifest.json")
+              assert hashlib.sha256(m).hexdigest()=="f9f8d38e520afa9871e78cd93d5e3a31e17ff4d3f39a25be2ffebcf1f9056629"
+              files=json.loads(m)["files"]
+              assert len(z.namelist())==10 and set(z.namelist())==set(files)|{"manifest.json"}
+              for name,h in files.items():
+                  assert not name.startswith("/") and ".." not in pathlib.PurePosixPath(name).parts
+                  assert hashlib.sha256(z.read(name)).hexdigest()==h
+              z.extractall("acceptance")
+          PY
+          # No provider token inherited by tests; only local synthetic actor metadata.
+          cd acceptance
+          env -i PATH="$PATH" PYTHONPATH="$PWD" python3 - <<'PY'
+          import unittest,json
+          r=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.discover("tests"))
+          assert r.wasSuccessful() and r.testsRun==16 and not r.skipped
+          open("../result.json","w").write(json.dumps({"tests_run":16,"failures":0,"errors":0}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catalog-tests-input
+          path: |
+            ${{ runner.temp }}/catalog.zip
+            ${{ runner.temp }}/result.json
+          retention-days: 3
+          if-no-files-found: error
+  attest:
+    needs: acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: catalog-tests-input
+          path: ${{ runner.temp }}/catalog
+      - name: Construct bounded tests predicate without executing package
+        run: |
+          cd "$RUNNER_TEMP/catalog"
+          echo '3037a23330f0049ed7457d11103212c2b338c5fcb03b4b77cfef25aec4711fd4  catalog.zip' | sha256sum -c -
+          python3 - <<'PY'
+          import os,json
+          r=json.load(open("result.json"))
+          assert r=={"tests_run":16,"failures":0,"errors":0}
+          p={"schema":"cerebro.catalog.tests.v1","candidate":{"company_id":"fenix","engine_id":"FACT-001","environment":"PREPROD","version":"1.2.0","commit":"70a6fa8608c52b7b832e6c46704b0663bf4c2c7f","artifact_sha256":"3037a23330f0049ed7457d11103212c2b338c5fcb03b4b77cfef25aec4711fd4"},"gate":"tests","scope":"OFFLINE_CATALOG_ACCEPTANCE","result":"PASS",**r,"workflow_commit":os.environ["GITHUB_SHA"],"run_id":int(os.environ["GITHUB_RUN_ID"]),"attempt":int(os.environ["GITHUB_RUN_ATTEMPT"]),"deployment_authorized":False,"runtime_identity_verified":False}
+          json.dump(p,open("predicate.json","w"),sort_keys=True)
+          PY
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        id: attest
+        with:
+          subject-path: ${{ runner.temp }}/catalog/catalog.zip
+          predicate-type: https://github.com/carlosjmunoz78/capital-mapa-pro/cerebro/catalog-tests/v1
+          predicate-path: ${{ runner.temp }}/catalog/predicate.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catalog-tests-signed
+          path: |
+            ${{ steps.attest.outputs.bundle-path }}
+            ${{ runner.temp }}/catalog/predicate.json
+          retention-days: 3
+  verify:
+    needs: attest
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions:
+      contents: read
+      actions: read
+      attestations: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: catalog-tests-input
+          path: ${{ runner.temp }}/catalog
+      - name: Admit verified tests to CP189
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONPATH: cerebro-os
+        run: |
+          python3 - <<'PY'
+          import os,json
+          from pathlib import Path
+          from governance.catalog_tests_evidence import verify
+          e=os.environ
+          p=Path(e["RUNNER_TEMP"])/"catalog"
+          r=verify(p/"catalog.zip",e["GITHUB_SHA"],int(e["GITHUB_RUN_ID"]),int(e["GITHUB_RUN_ATTEMPT"]))
+          print(json.dumps(r,sort_keys=True))
+          (p/"review.json").write_text(json.dumps(r,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catalog-tests-cp189-review
+          path: ${{ runner.temp }}/catalog/review.json
+          retention-days: 3
+          if-no-files-found: error
