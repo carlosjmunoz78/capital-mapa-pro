@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'cerebro-os/governance/catalog_tests_evidence.py'
+      - 'cerebro-os/gateway/build_catalog_exact.py'
       - '.github/workflows/cerebro-catalog-tests-evidence.yml'
 permissions:
   contents: read
@@ -16,15 +17,18 @@ jobs:
       actions: read
       attestations: read
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Rebuild exact package from pinned source without relying on expiring CI artifacts
+        run: python3 cerebro-os/gateway/build_catalog_exact.py "$RUNNER_TEMP/catalog.zip"
       - name: Verify original signed package and run exact acceptance in isolated extraction
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           cd "$RUNNER_TEMP"
-          gh api repos/carlosjmunoz78/capital-mapa-pro/actions/artifacts/15015803635/zip > outer.zip
-          echo '4660df2357cc07d255246abc0bf576a4a07b6e64310e618a3269b07ac3b8ccac  outer.zip' | sha256sum -c -
-          unzip -p outer.zip catalog.zip > catalog.zip
           echo '3037a23330f0049ed7457d11103212c2b338c5fcb03b4b77cfef25aec4711fd4  catalog.zip' | sha256sum -c -
           gh attestation verify catalog.zip -R "$GITHUB_REPOSITORY" --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/cerebro-catalog-preprod-attest.yml" --source-digest 0edc94b91b71b84b08d0a7bc1f522d2525cadd5e --deny-self-hosted-runners --predicate-type https://github.com/carlosjmunoz78/capital-mapa-pro/cerebro/catalog-artifact-integrity/v1
           python3 - <<'PY'
