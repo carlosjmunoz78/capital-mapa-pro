@@ -10,6 +10,9 @@ on:
       - 'cerebro-os/governance/signed_promotion_receipts.py'
       - 'cerebro-os/governance/promotion_gate.py'
       - 'cerebro-os/governance/cp189_tests/**'
+      - 'cerebro-os/gateway/catalog_read.py'
+      - 'cerebro-os/gateway/audit_release_consumers.py'
+      - 'cerebro-os/registry/canonical_177.json'
       - '.github/workflows/cerebro-verified-promotion-cp189.yml'
 permissions:
   contents: read
@@ -28,6 +31,14 @@ jobs:
         env:
           PYTHONPATH: cerebro-os
         run: python3 -m unittest discover -v -s cerebro-os/governance/cp189_tests -p 'test_*.py'
+      - name: Map actual tracked source consumers
+        run: python3 cerebro-os/gateway/audit_release_consumers.py > "$RUNNER_TEMP/release-consumers.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-consumers-static
+          path: ${{ runner.temp }}/release-consumers.json
+          retention-days: 3
+          if-no-files-found: error
 
   native-ci-tests-gate-rehearsal:
     # Historical one-shot evidence, not a current release gate. Do not re-run on subsequent candidates.
