@@ -11,7 +11,7 @@ export class CoreFinOpsLedger extends DurableObject {
   try{
    const g=createReservationGuard({storage:this.storage,accountId:e.CORE_FINOPS_ACCOUNT,
     readTrustedPlan:async()=>JSON.parse(e.CORE_FINOPS_PLAN),
-    dailyLimit:Number(e.CORE_FINOPS_DAILY_LIMIT)});
+    dailyLimit:Number(e.CORE_FINOPS_DAILY_LIMIT),policyMode:e.CORE_FINOPS_POLICY_MODE??'FRESH_OBSERVATION'});
    return await g.reserve({company_id:'fenix',engine_id:'FACT-001',environment:'PREPROD',version:'1.1.0',capability:'FACT.INVENTORY.READ',request_id:id});
   }catch{return blocked('FINOPS_CONFIG_OR_LEDGER_UNAVAILABLE');}
  }
