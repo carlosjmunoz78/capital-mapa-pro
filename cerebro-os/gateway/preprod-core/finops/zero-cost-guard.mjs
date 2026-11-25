@@ -22,13 +22,13 @@ function validOrder(order){
 }
 // Use a single account-level serialized SQL ledger; no per-order/per-tenant quota silos.
 // Reserve before dispatch; never refund an ambiguous or completed submission.
-export function createGuard({storage,accountId,readTrustedPlan,clock=()=>Math.floor(Date.now()/1000),dailyLimit=maxDailyOrders}){
+export function createReservationGuard({storage,accountId,readTrustedPlan,clock=()=>Math.floor(Date.now()/1000),dailyLimit=maxDailyOrders}){
  if(!storage?.sql||typeof storage.transactionSync!=='function'||typeof readTrustedPlan!=='function'||
  !/^[a-f0-9]{32}$/.test(accountId)||!Number.isSafeInteger(dailyLimit)||dailyLimit<1||dailyLimit>maxDailyOrders)throw Error('FINOPS_CONFIG_DENIED');
  const sql=storage.sql;
  sql.exec("CREATE TABLE IF NOT EXISTS core_finops_reservations (account_id TEXT NOT NULL, request_id TEXT NOT NULL, day INTEGER NOT NULL, created_at INTEGER NOT NULL, PRIMARY KEY(account_id,request_id))");
- return Object.freeze({async submit(order,dispatch){
-   if(!validOrder(order)||typeof dispatch!=='function')return result('BLOCKED','SCOPE_DENIED');
+ return Object.freeze({async reserve(order){
+   if(!validOrder(order))return result('BLOCKED','SCOPE_DENIED');
    const id=order.request_id;
    try{
      const p=await readTrustedPlan();
@@ -45,12 +45,22 @@ export function createGuard({storage,accountId,readTrustedPlan,clock=()=>Math.fl
      });
      if(reserved==='DUPLICATE')return result('HOLD','DUPLICATE_RECONCILE_NO_RETRY');
      if(reserved==='QUOTA')return result('DEFER','INTERNAL_DAILY_LIMIT',{retry_after_epoch:(day+1)*DAY});
-     // No automatic retry or paid fallback; caller must reconcile by original ID.
-     try{
-       const response=await dispatch(id);
-       if(response?.request_id!==id||response?.instance_id!==id.toLowerCase())return result('HOLD','SUBMISSION_AMBIGUOUS_NO_RETRY');
-       return result('SUBMITTED','NATIVE_FREE_AND_LOCAL_RESERVATION',{request_id:id,instance_id:response.instance_id});
-     }catch{return result('HOLD','SUBMISSION_FAILED_RECONCILE_NO_RETRY');}
+     return result('RESERVED','NATIVE_FREE_RESERVATION',{request_id:id,account_id:accountId});
    }catch{return result('HOLD','PLAN_OR_LEDGER_UNAVAILABLE');}
+ }});
+}
+// Compatibility wrapper retains the original one-shot contract; reservation is never
+// refunded after transport ambiguity. The separate ledger uses reserve only.
+export function createGuard(config){
+ const ledger=createReservationGuard(config);
+ return Object.freeze({async submit(order,dispatch){
+  if(typeof dispatch!=='function')return result('BLOCKED','SCOPE_DENIED');
+  const r=await ledger.reserve(order);
+  if(r.status!=='RESERVED')return r;
+  try{
+   const response=await dispatch(order.request_id);
+   if(response?.request_id!==order.request_id||response?.instance_id!==order.request_id.toLowerCase())return result('HOLD','SUBMISSION_AMBIGUOUS_NO_RETRY');
+   return result('SUBMITTED','NATIVE_FREE_AND_LOCAL_RESERVATION',{request_id:order.request_id,instance_id:response.instance_id});
+  }catch{return result('HOLD','SUBMISSION_FAILED_RECONCILE_NO_RETRY');}
  }});
 }
