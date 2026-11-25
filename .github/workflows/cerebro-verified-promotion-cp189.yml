@@ -29,7 +29,8 @@ jobs:
         run: python3 -m unittest discover -v -s cerebro-os/governance/cp189_tests -p 'test_*.py'
 
   native-ci-tests-gate-rehearsal:
-    if: github.repository == 'carlosjmunoz78/capital-mapa-pro' && github.event.pull_request.number == 290 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'cerebro/fact001-company-scope-gate-cp89-lab-20261123'
+    # Historical one-shot evidence, not a current release gate. Do not re-run on subsequent candidates.
+    if: github.event.pull_request.head.sha == '382fdec3f6042619fc4c41af9f1310264c2617fb' && github.repository == 'carlosjmunoz78/capital-mapa-pro' && github.event.pull_request.number == 290 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'cerebro/fact001-company-scope-gate-cp89-lab-20261123'
     runs-on: ubuntu-latest
     timeout-minutes: 3
     permissions:
