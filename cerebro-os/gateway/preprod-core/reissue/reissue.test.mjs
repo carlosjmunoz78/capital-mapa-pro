@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {rehearse} from './reissue-core.mjs';
+const roles=['AUTHORITY','CORE_INGRESS','CORE_MACHINE','CORE_SUPERVISOR','FACT','JARVIS','TRIBUNAL'];
+async function setup(epoch){const e={REISSUE_SCOPE:'ISOLATED_PREPROD_REHEARSAL',REISSUE_EPOCH:epoch};for(const r of roles){const k=await crypto.subtle.generateKey('Ed25519',true,['sign','verify']);e[r+'_PRIVATE']=Buffer.from(await crypto.subtle.exportKey('pkcs8',k.privateKey)).toString('base64');e[r+'_PUBLIC']=Buffer.from(await crypto.subtle.exportKey('raw',k.publicKey)).toString('base64');}for(const r of ['FACT_MAC','JARVIS_MAC'])e[r]=Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64');return e;}
+const run=(e,p=null)=>rehearse(e,'core-reissue-rehearsal-20261125-00'+(e.REISSUE_EPOCH==='A'?1:2),p);
+const prior=x=>({epoch:x.epoch,signatures:x.signatures,macs:x.macs});
+test('all nine identities reissued and historical signature trust separated',async()=>{const a=await setup('A'),b=await setup('B');const old=await run(a),n=await run(b,prior(old));assert.equal(n.old_signatures_rejected,7);assert.equal(n.old_macs_rejected,2);assert.equal(n.old_signatures_historical_verified,7);assert.equal(n.production_authorized,false);assert.equal(n.dispatch_authorized,false);for(const k of Object.values(a).concat(Object.values(b)))if(k.length>40&&!Object.values(old.signatures).some(v=>v.public_key===k)&&!Object.values(n.signatures).some(v=>v.public_key===k))assert.ok(!JSON.stringify(n).includes(k));});
+test('same key generation rejected',async()=>{const a=await setup('A'),old=await run(a);await assert.rejects(run({...a,REISSUE_EPOCH:'B'},prior(old)),/ROTATION_DENIED/);});
+test('tampered historical proof denied',async()=>{const a=await setup('A'),b=await setup('B'),p=prior(await run(a));p.signatures.FACT.signature=p.signatures.JARVIS.signature;await assert.rejects(run(b,p),/REISSUE_PROOF_DENIED/);});
+test('shared MAC or duplicate public keys denied',async()=>{const a=await setup('A');await assert.rejects(run({...a,JARVIS_MAC:a.FACT_MAC}),/MAC_SCOPE/);await assert.rejects(run({...a,FACT_PUBLIC:a.JARVIS_PUBLIC,FACT_PRIVATE:a.JARVIS_PRIVATE}),/KEY_SCOPE/);});
+test('foreign scope and instance rejected',async()=>{const a=await setup('A');await assert.rejects(run({...a,REISSUE_SCOPE:'PROD'}),/SCOPE_DENIED/);await assert.rejects(rehearse(a,'CORE-PREPROD-20261124-005',null),/SCOPE_DENIED/);});
+test('mismatched private and public keys denied',async()=>{const a=await setup('A');await assert.rejects(run({...a,FACT_PRIVATE:a.JARVIS_PRIVATE}),/PAIR_MISMATCH/);});
