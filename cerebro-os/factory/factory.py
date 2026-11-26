@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import argparse
+import importlib.util
 import json
 import re
 import sys
@@ -68,8 +70,16 @@ def build_manifest(engine_id: str, name: str) -> dict:
     }
 
 
-def scaffold(root: Path, engine_id: str, name: str, company_id: str | None = None) -> Path:
+def scaffold(root: Path, engine_id: str, name: str, company_id: str | None = None, *,
+             agent_inventory: object = ()) -> Path:
     engine_id = validate_engine_id(engine_id)
+    knowledge_hook = Path(__file__).with_name("knowledge_factory_hook.py")
+    knowledge_spec = importlib.util.spec_from_file_location("cerebro_knowledge_factory_hook", knowledge_hook)
+    if knowledge_spec is None or knowledge_spec.loader is None:
+        raise RuntimeError("knowledge factory hook unavailable")
+    knowledge_module = importlib.util.module_from_spec(knowledge_spec)
+    knowledge_spec.loader.exec_module(knowledge_module)
+    candidates = knowledge_module.validate_agent_inventory(agent_inventory)
     target = root / "engines" / engine_id
     if target.exists():
         raise FileExistsError(f"engine already exists: {engine_id}")
@@ -80,7 +90,6 @@ def scaffold(root: Path, engine_id: str, name: str, company_id: str | None = Non
     # Universal UMS-001 hook: new engines automatically inherit the same media contract.
     # This does not self-authorize an engine, create a Worker, or expose credentials.
     # Works both as a package import and via "python factory.py ..."
-    import importlib.util
     media_hook = Path(__file__).with_name("universal_media_hook.py")
     spec = importlib.util.spec_from_file_location("cerebro_universal_media_hook", media_hook)
     if spec is None or spec.loader is None:
@@ -97,6 +106,10 @@ def scaffold(root: Path, engine_id: str, name: str, company_id: str | None = Non
     enroll_module = importlib.util.module_from_spec(enroll_spec)
     enroll_spec.loader.exec_module(enroll_module)
     enroll_module.enroll_factory_engine(target, manifest, company_id=company_id)
+    # KNOWLEDGE-FACTORY-001: durable LAB requests for this engine and its declared identities.
+    knowledge_module.write_knowledge_scaffold(target, manifest, company_id=company_id)
+    for agent_id, subagent_id in candidates:
+        knowledge_module.register_agent_candidate(target, agent_id, subagent_id)
     (target / "docs" / "README.md").write_text(f"# {engine_id} · {manifest['name']}\n\nEstado inicial: DEFINED_NOT_BUILT.\n", encoding="utf-8")
     (target / "ops" / "backup.md").write_text("# Backup\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
     (target / "ops" / "rollback.md").write_text("# Rollback\n\nPendiente de implementación y prueba.\n", encoding="utf-8")
@@ -105,13 +118,15 @@ def scaffold(root: Path, engine_id: str, name: str, company_id: str | None = Non
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) < 3:
-        print("usage: python factory.py ENGINE_ID 'Engine Name' [ROOT] [COMPANY_ID]", file=sys.stderr)
-        return 2
-    engine_id, name = argv[1], argv[2]
-    root = Path(argv[3]) if len(argv) > 3 else Path(__file__).resolve().parents[1]
-    company_id = argv[4] if len(argv) > 4 else None
-    target = scaffold(root, engine_id, name, company_id=company_id)
+    parser = argparse.ArgumentParser(description="Scaffold a LAB engine and enqueue knowledge candidates")
+    parser.add_argument("engine_id")
+    parser.add_argument("name")
+    parser.add_argument("root", nargs="?", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("company_id", nargs="?")
+    parser.add_argument("--agents-json", type=Path, help="Creator's JSON array of agent_id/subagent_id records")
+    args = parser.parse_args(argv[1:])
+    inventory = json.loads(args.agents_json.read_text(encoding="utf-8")) if args.agents_json else ()
+    target = scaffold(args.root, args.engine_id, args.name, company_id=args.company_id, agent_inventory=inventory)
     print(target)
     return 0
 

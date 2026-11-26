@@ -1,0 +1,42 @@
+{
+  "worker": "cerebro-knowledge-audit-lab",
+  "runtime_version": "9cba282c-f3c4-424a-b7f0-ab3c332d2d7c",
+  "migration": "audit-v1",
+  "jurisdiction": "eu",
+  "workers_dev": false,
+  "previews_enabled": false,
+  "events": [
+    {
+      "source": {
+        "phase": "VERIFY",
+        "boot": "60e4716e-c4c0-4a22-9d5d-55c596754907",
+        "request_id": "knowledge-audit-storage-v1-20261119",
+        "recorded_at": "2026-11-19T16:26:41.885Z",
+        "count": 1
+      },
+      "trace": "5231a481e40d59f0fdc513bb38ea9de5",
+      "id": "01M7TA4NP80000000000000006"
+    },
+    {
+      "source": {
+        "conflict_denied": true,
+        "unexpected_field_denied": true,
+        "phase": "WRITE_RESTART_READ",
+        "request_id": "knowledge-audit-storage-v1-20261119",
+        "first": "INSERTED",
+        "retry": "EXISTING",
+        "before": "df7a0cda-b48f-4ced-a3f3-65546350fed9",
+        "after": "cd45f199-2255-4ead-8168-4122d55e00ab",
+        "recorded_at": "2026-11-19T16:26:41.885Z",
+        "count": 1
+      },
+      "trace": "1aa07cd977ca7a77cf0400fc9deab2af",
+      "id": "01M7TA3ENP000000000000001P"
+    }
+  ],
+  "queue": {
+    "name": "cerebro-facebook-w24-read-canary-lab-eu",
+    "consumers_after": 0,
+    "producers_after": 0
+  }
+}
