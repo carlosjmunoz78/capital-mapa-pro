@@ -1,0 +1,49 @@
+{
+  "schema": "cerebro.core.minimum.scope.v1",
+  "source_commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+  "candidate_scope": {
+    "company_id": "fenix",
+    "engine_id": "FACT-001",
+    "capability": "FACT.CATALOG.READ",
+    "version": "1.2.0",
+    "environment": "PREPROD",
+    "read_only": true
+  },
+  "files": {
+    "connectors/registry.py": "249d7037866b1f8fcd535367b4759fb8fc49a989",
+    "console/persistent_store.py": "4571f57d2a210854d727cb75144c89f52cc7fb9d",
+    "gateway/catalog_audit.py": "411a66de92343e1c20c7cf0e44a9a53d6c69e349",
+    "gateway/catalog_read.py": "344911d69e943de9de81a157dfb1d91eec3dcb7e",
+    "gateway/catalog_policy.py": "7302f9f8971d92bd9e3fff575842b486038c3276",
+    "gateway/service.py": "8e55fe1a3f2f714307e369af916db2c5c5030876",
+    "governance/policy.py": "1fdd51b0bece55cb6b52c18f38c8039665478855",
+    "governance/tenant.py": "3b9bd467f377a22765455d6abd2fd141dce70d67",
+    "registry/canonical_177.json": "adff12f25af7c8c28ecbe71e814fea85699c60fa",
+    "registry/canonical_loader.py": "fe332e17969c082229b45548477411e0072c2572",
+    "governance/cp189_tests/test_catalog_read.py": "5007a993b3e51822a7caa807e430d59aa69de660",
+    "governance/cp189_tests/test_catalog_policy.py": "d81543a0ccd6897a52b4d07362c9cc5e096b9589",
+    "governance/cp189_tests/test_catalog_audit.py": "b802df6c3aebb85d42e12d7c02c8b03ec602a623"
+  },
+  "required_core": [
+    "Gateway",
+    "IAM",
+    "runtime",
+    "FACT-001",
+    "Supervisor",
+    "audit",
+    "persistence",
+    "backup/rebuild",
+    "release authority"
+  ],
+  "excluded_initial": [
+    "commercial multiuser",
+    "chat UI",
+    "browser bridge",
+    "historical restore execution",
+    "external mutations",
+    "all other engines"
+  ],
+  "hold_preserved": true,
+  "live_ingress": false,
+  "production_authorized": false
+}
