@@ -38,3 +38,5 @@ jobs:
           if-no-files-found: error
       - name: Verify actual catalog in existing JavaScript runtime
         run: node --test cerebro-os/factory/cp162/canonical-catalog-data.test.mjs
+      - name: Verify exact production IAM catalog grant contract (review only)
+        run: node --test cerebro-os/core/minimum/catalog-grant-review.test.mjs
