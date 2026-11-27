@@ -4,6 +4,7 @@ on:
     paths:
       - 'cerebro-os/core/minimum/**'
       - 'cerebro-os/factory/cp162/canonical-catalog-data*.mjs'
+      - 'cerebro-os/factory/cp169/catalog-lifecycle-contract*.mjs'
       - '.github/workflows/cerebro-core-minimum-build.yml'
 permissions:
   contents: read
@@ -40,3 +41,5 @@ jobs:
         run: node --test cerebro-os/factory/cp162/canonical-catalog-data.test.mjs
       - name: Verify exact production IAM catalog grant contract (review only)
         run: node --test cerebro-os/core/minimum/catalog-grant-review.test.mjs
+      - name: Test catalog grant lifecycle and signed-review compatibility
+        run: node --test cerebro-os/factory/cp169/catalog-lifecycle-contract.test.mjs
