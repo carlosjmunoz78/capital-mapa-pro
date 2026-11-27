@@ -69,3 +69,83 @@ class ProdReview(unittest.TestCase):
         self.receipts[-1] = self.receipts[0]
         self.bundle()
         self.assertEqual(self.check()["decision"], "BLOCKED")
+
+    def release_fixture(self):
+        import sqlite3
+        from governance.prod_release_authority import ReleaseTrust, canonical_approval
+        key = Ed25519PrivateKey.generate()
+        ledger = Path(self.tmp.name)/"release.sqlite"
+        with sqlite3.connect(ledger) as db:
+            db.execute("CREATE TABLE release_ledger_scope(environment TEXT NOT NULL)")
+            db.execute("INSERT INTO release_ledger_scope VALUES('PROD')")
+            db.execute("CREATE TABLE release_reservations(release_id TEXT PRIMARY KEY,target TEXT NOT NULL,company_id TEXT NOT NULL,engine_id TEXT NOT NULL,commit_sha TEXT NOT NULL,artifact_sha256 TEXT NOT NULL,evidence_sha256 TEXT NOT NULL,expires_at INTEGER NOT NULL,UNIQUE(target,company_id,engine_id,commit_sha,artifact_sha256))")
+        trust = ReleaseTrust("fixture:release", key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw),
+                             "fixture:target", (), "b"*64, ledger)
+        body = {"schema":"cerebro.release.approval.v1","decision":"APPROVE","issuer":trust.issuer,
+                "candidate":dict(self.config["candidate"]),"target":trust.target,"artifact_id":1,
+                "evidence_artifact_id":2,"evidence_sha256":self.config["evidence_sha256"],
+                "hold_resolution_sha256":trust.hold_resolution_sha256,"release_id":"fixture:release-001",
+                "issued_at":120,"expires_at":180}
+        def sign():
+            return {"body":dict(body),"signature":key.sign(canonical_approval(body)).hex()}
+        return trust, body, sign
+
+    def authorize(self, trust, approval, now=150):
+        from governance.prod_release_authority import authorize_release
+        return authorize_release(json.dumps(self.config),self.artifact,self.evidence,approval,trust=trust,clock=lambda:now)
+
+    def test_release_requires_approval(self):
+        t,b,s=self.release_fixture()
+        self.assertFalse(self.authorize(t,None)["deployment_authorized"])
+
+    def test_release_valid_once(self):
+        t,b,s=self.release_fixture()
+        result=self.authorize(t,s())
+        self.assertEqual(result["decision"],"RELEASE_RESERVED")
+        self.assertTrue(result["deployment_authorized"])
+        self.assertFalse(result["deployed"])
+        self.assertEqual(self.authorize(t,s())["reason"],"RELEASE_ALREADY_RESERVED")
+        b["release_id"]="fixture:release-002"
+        self.assertEqual(self.authorize(t,s())["reason"],"RELEASE_ALREADY_RESERVED")
+
+    def test_release_active_hold(self):
+        from dataclasses import replace
+        t,b,s=self.release_fixture()
+        self.assertEqual(self.authorize(replace(t,active_holds=("OWNER_ADMISSION",)),s())["reason"],"ACTIVE_HOLDS")
+
+    def test_release_tampered_signature(self):
+        t,b,s=self.release_fixture()
+        a=s(); a["signature"]="0"*128
+        self.assertFalse(self.authorize(t,a)["deployment_authorized"])
+
+    def test_release_wrong_scope(self):
+        t,b,s=self.release_fixture()
+        b["target"]="fixture:other"
+        self.assertEqual(self.authorize(t,s())["reason"],"RELEASE_APPROVAL_SCOPE")
+
+    def test_release_wrong_hold_resolution(self):
+        t,b,s=self.release_fixture()
+        b["hold_resolution_sha256"]="c"*64
+        self.assertEqual(self.authorize(t,s())["reason"],"RELEASE_APPROVAL_SCOPE")
+
+    def test_release_expired(self):
+        t,b,s=self.release_fixture()
+        self.assertEqual(self.authorize(t,s(),180)["reason"],"RELEASE_APPROVAL_EXPIRED")
+
+    def test_release_independence(self):
+        from dataclasses import replace
+        t,b,s=self.release_fixture()
+        gate=self.config["trust"]["tribunal"]
+        self.assertEqual(self.authorize(replace(t,public_key=bytes.fromhex(gate["public_key_hex"])),s())["reason"],"RELEASE_AUTHORITY_NOT_INDEPENDENT")
+
+    def test_release_missing_gate(self):
+        t,b,s=self.release_fixture()
+        self.receipts.pop(); self.bundle()
+        b["evidence_sha256"]=self.config["evidence_sha256"]
+        self.assertEqual(self.authorize(t,s())["reason"],"RELEASE_EVIDENCE_NOT_VERIFIED")
+
+    def test_release_missing_ledger(self):
+        from dataclasses import replace
+        t,b,s=self.release_fixture()
+        self.assertFalse(self.authorize(replace(t,ledger=t.ledger.parent/"absent.sqlite"),s())["deployment_authorized"])
+        self.assertFalse((t.ledger.parent/"absent.sqlite").exists())
