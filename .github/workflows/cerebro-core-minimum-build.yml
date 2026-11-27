@@ -1,0 +1,25 @@
+name: CEREBRO minimum core clean build (no deployment)
+on:
+  pull_request:
+    paths:
+      - 'cerebro-os/core/minimum/**'
+      - '.github/workflows/cerebro-core-minimum-build.yml'
+permissions:
+  contents: read
+jobs:
+  clean-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Build twice from pinned public source and test extracted archive
+        run: python3 cerebro-os/core/minimum/build.py "$RUNNER_TEMP/minimum-core-catalog.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: minimum-core-catalog-preprod
+          path: ${{ runner.temp }}/minimum-core-catalog.zip
+          retention-days: 3
+          if-no-files-found: error
