@@ -27,3 +27,11 @@ jobs:
           path: ${{ runner.temp }}/minimum-core-catalog.zip
           retention-days: 3
           if-no-files-found: error
+      - name: Build complete integration package and verify extracted contents
+        run: python3 -B cerebro-os/core/minimum/build_integration.py "$RUNNER_TEMP/minimum-core-integration.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: minimum-core-integration-acceptance
+          path: ${{ runner.temp }}/minimum-core-integration.zip
+          retention-days: 3
+          if-no-files-found: error

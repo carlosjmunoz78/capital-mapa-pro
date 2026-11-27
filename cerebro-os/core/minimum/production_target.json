@@ -1,0 +1,111 @@
+{
+  "schema": "cerebro.minimum.production-target.v1",
+  "target": {
+    "company_id": "fenix",
+    "engine_id": "FACT-001",
+    "capability": "FACT.CATALOG.READ",
+    "environment": "PROD",
+    "version": "1.2.0"
+  },
+  "acceptance_environment": "PREPROD",
+  "status": "CANDIDATE_NOT_AUTHORIZED",
+  "catalog_source_sha256": "1c566602c5ecc7df815c7653d77f8dad65b5e12eca8017d060b5764e7d488b03",
+  "logical_definitions": 177,
+  "read_only": true,
+  "cost_ceiling_eur": 0,
+  "external_mutation_allowed": false,
+  "live_ingress": false,
+  "deployment_authorized": false,
+  "ports": {
+    "gateway": "gateway.service.Gateway",
+    "executor": "core.minimum.execute_catalog.CatalogExecution",
+    "identity": "independently authorized current principal and grant; exact production scope required",
+    "audit": "console.persistent_store.ConsoleStore",
+    "supervisor": "independent readback of exact result and audit; existing cloud fixture supervisor cannot certify new scope",
+    "tribunal": "governance.signed_promotion_receipts; independent scope-specific signed evidence",
+    "release": "governance.prod_release_authority.authorize_release; existing CP189 gates unchanged"
+  },
+  "required_before_deploy": [
+    "exact production executable artifact",
+    "authorized live runtime binding",
+    "production identity and revocation evidence",
+    "independent supervisor and tribunal evidence",
+    "12 CP189 signed receipts",
+    "separate release reservation and executor fencing",
+    "scope-specific rollback, recovery and measured cost",
+    "legitimate independence or resolution of applicable holds"
+  ],
+  "excluded": [
+    "owner admission deployment under review",
+    "historical snapshot transfer or restore",
+    "customer data",
+    "App/CRM changes",
+    "new public ingress"
+  ],
+  "pinned_files": {
+    "connectors/registry.py": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "249d7037866b1f8fcd535367b4759fb8fc49a989"
+    },
+    "console/persistent_store.py": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "4571f57d2a210854d727cb75144c89f52cc7fb9d"
+    },
+    "gateway/catalog_audit.py": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "411a66de92343e1c20c7cf0e44a9a53d6c69e349"
+    },
+    "gateway/catalog_read.py": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "344911d69e943de9de81a157dfb1d91eec3dcb7e"
+    },
+    "gateway/catalog_policy.py": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "7302f9f8971d92bd9e3fff575842b486038c3276"
+    },
+    "gateway/service.py": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "8e55fe1a3f2f714307e369af916db2c5c5030876"
+    },
+    "governance/policy.py": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "1fdd51b0bece55cb6b52c18f38c8039665478855"
+    },
+    "governance/tenant.py": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "3b9bd467f377a22765455d6abd2fd141dce70d67"
+    },
+    "registry/canonical_177.json": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "adff12f25af7c8c28ecbe71e814fea85699c60fa"
+    },
+    "registry/canonical_loader.py": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "fe332e17969c082229b45548477411e0072c2572"
+    },
+    "governance/cp189_tests/test_catalog_read.py": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "5007a993b3e51822a7caa807e430d59aa69de660"
+    },
+    "governance/cp189_tests/test_catalog_policy.py": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "d81543a0ccd6897a52b4d07362c9cc5e096b9589"
+    },
+    "governance/cp189_tests/test_catalog_audit.py": {
+      "commit": "31aef3bcd831d0d425bb7f5685b6c7f75e5f9c3e",
+      "blob": "b802df6c3aebb85d42e12d7c02c8b03ec602a623"
+    },
+    "identity/contracts.py": {
+      "commit": "4fa6c92143c79e948681c8cfb13a6ff586815947",
+      "blob": "e0f98ae4edce77e97748a3e5efad77fc9be960dc"
+    },
+    "core/minimum/execute_catalog.py": {
+      "commit": "4fa6c92143c79e948681c8cfb13a6ff586815947",
+      "blob": "a01614eba70756a479c795185f5076bab0073c9e"
+    },
+    "core/minimum/test_execute_catalog.py": {
+      "commit": "4fa6c92143c79e948681c8cfb13a6ff586815947",
+      "blob": "d3eb85234cccff57b91ab14abaeb18b7a69ad2dc"
+    }
+  }
+}
