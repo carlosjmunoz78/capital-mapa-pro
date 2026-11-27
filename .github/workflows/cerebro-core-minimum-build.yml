@@ -17,6 +17,10 @@ jobs:
           persist-credentials: false
       - name: Build twice from pinned public source and test extracted archive
         run: python3 cerebro-os/core/minimum/build.py "$RUNNER_TEMP/minimum-core-catalog.zip"
+      - name: Test internal catalog execution composition (no live ingress)
+        env:
+          PYTHONPATH: cerebro-os
+        run: python3 -B -m unittest discover -s cerebro-os/core/minimum -p 'test_execute_catalog.py' -v
       - uses: actions/upload-artifact@v4
         with:
           name: minimum-core-catalog-preprod
