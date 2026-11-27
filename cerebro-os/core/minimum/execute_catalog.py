@@ -72,6 +72,20 @@ class CatalogExecution:
         return ctx,now
 
     def execute(self, request, *, request_id):
+        return self._execute(request, request_id=request_id, verify_receipt=None)
+
+    def execute_verified(self, request, *, request_id, read_signed_receipt, tribunal_issuer,
+                         tribunal_public_key):
+        """Require a verified independent readback in the PREPROD candidate."""
+        try:
+            from core.minimum.catalog_receipt import catalog_receipt_verifier
+            verify_receipt = catalog_receipt_verifier(read_signed_receipt=read_signed_receipt,
+                issuer=tribunal_issuer, public_key=tribunal_public_key)
+        except (ImportError, TypeError, ValueError):
+            return blocked("AUDIT_RECEIPT_REQUIRED")
+        return self._execute(request, request_id=request_id, verify_receipt=verify_receipt)
+
+    def _execute(self, request, *, request_id, verify_receipt):
         if type(request) is not GatewayRequest or (
             request.company_id,request.engine_id,request.environment,request.version,request.capability)!=SCOPE:
             return blocked("SCOPE_DENIED")
@@ -93,10 +107,16 @@ class CatalogExecution:
             def audit(row):
                 now=still_current()
                 return persist_catalog_audit(self._store,request_id=request_id,
-                    user_id=ctx.identity.identity_id,now_epoch=now,row=row)
+                    user_id=ctx.identity.identity_id,now_epoch=now,row=row,
+                    grant_ref=ctx.grant_ref if verify_receipt is not None else None)
             result=catalog.read_catalog(request,policy_check=policy,audit_sink=audit)
             if result.get("status")!="CATALOG_READ":
                 return result
+            if verify_receipt is not None:
+                receipt_ref = verify_receipt(context=ctx, result=result.copy(), clock=self._clock)
+                if not isinstance(receipt_ref, str) or not re.fullmatch(r"sha256:[a-f0-9]{64}", receipt_ref):
+                    return blocked("AUDIT_RECEIPT_UNVERIFIED")
+                result = {**result, "receipt_ref": receipt_ref}
             still_current()
             return result
         except Exception:

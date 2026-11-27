@@ -10,7 +10,7 @@ from registry.canonical_loader import load_canonical_registry
 def digest(value):
     return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(",",":")).encode()).hexdigest()
 
-def verify_execution(*, store_path, request_id, actor_id, result, now_epoch):
+def verify_execution(*, store_path, request_id, actor_id, result, now_epoch, grant_ref=None):
     def reject(reason):
         return {"status":"BLOCKED","reason":reason,"deployment_authorized":False}
     try:
@@ -36,6 +36,10 @@ def verify_execution(*, store_path, request_id, actor_id, result, now_epoch):
             capability=c.CAPABILITY,status="CATALOG_READ",source_sha256=c.SOURCE_SHA256,
             result_sha256=h,request_id=request_id,user_id=actor_id,action=c.CAPABILITY,
             result="CATALOG_READ",evidence_ref=ref)
+        if grant_ref is not None:
+            if type(grant_ref) is not str or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", grant_ref):
+                return reject("GRANT_REFERENCE_INVALID")
+            meta["grant_ref"] = grant_ref
         path=Path(store_path).resolve(strict=True)
         with closing(sqlite3.connect(path.as_uri()+"?mode=ro",uri=True,timeout=2)) as db:
             db.execute("PRAGMA query_only=ON")

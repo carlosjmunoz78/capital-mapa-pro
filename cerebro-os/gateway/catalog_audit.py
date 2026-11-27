@@ -12,7 +12,7 @@ from contextlib import closing
 from console.persistent_store import ConsoleStore
 from gateway import catalog_read as catalog
 
-def persist_catalog_audit(store, *, request_id, user_id, now_epoch, row):
+def persist_catalog_audit(store, *, request_id, user_id, now_epoch, row, grant_ref=None):
     """Return True only after both existing store records match exact metadata."""
     if type(store) is not ConsoleStore:
         return False
@@ -32,6 +32,10 @@ def persist_catalog_audit(store, *, request_id, user_id, now_epoch, row):
         return False
     audit={**row,"request_id":request_id,"user_id":user_id,"action":catalog.CAPABILITY,
            "result":row["status"],"evidence_ref":"sha256:"+row["result_sha256"]}
+    if grant_ref is not None:
+        if type(grant_ref) is not str or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", grant_ref):
+            return False
+        audit["grant_ref"] = grant_ref
     try:
         path=Path(store.path).resolve(strict=True)
         if not path.is_file():
